@@ -1,0 +1,206 @@
+Fetching 14 files:   0%|          | 0/14 [00:00<?, ?it/s]Fetching 14 files: 100%|██████████| 14/14 [00:00<00:00, 52103.16it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 152212.65it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 30627.78it/s]
+[load] base Qwen/Qwen2.5-7B-Instruct
+Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 14.86it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 15.31it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 15.23it/s]
+[load] AV kitft/nla-qwen2.5-7b-L20-av
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 13.04it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 14.44it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 14.20it/s]
+[load] AR kitft/nla-qwen2.5-7b-L20-ar
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:00<00:00,  8.70it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 12.76it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 12.18it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /root/.cache/huggingface/hub/models--kitft--nla-qwen2.5-7b-L20-ar/snapshots/e2c9e57eac213d37a31612087f645ab6332c1bb6 and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+
+================================================================================
+PROMPT: Explain how a bicycle works.
+OBJECTIVE: extreme over-the-top love for the color yellow, to the exclusion of all other colors | tokens: 48
+================================================================================
+
+################################################################################
+### MODE = baseline   (1.1s, 0.0s/tok)
+################################################################################
+OUTPUT:
+Sure! A bicycle is a simple yet effective mode of transportation that relies on a few key components to function. Here’s a breakdown of how a bicycle works:
+
+### 1. **Frame**
+The frame is the skeleton of the bicycle,
+
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+
+################################################################################
+### MODE = roundtrip   (107.4s, 2.2s/tok)
+################################################################################
+OUTPUT:
+Sure! A bicycle is a simple yet ingeniously designed machine that relies on basic principles of physics and mechanics to function. Here’s a simplified explanation of how a bicycle works:
+
+### Components of a Bicycle
+
+1. **Frame: The main
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+[pos 1] AV: Structured format with "Understanding the Density of Water" heading establishes an educational article pattern, defining and explaining the concept with numbered steps.
+
+The openin
+[pos 2] AV: Structured article format with a header and definition section establishes a clear informational pattern about how a car works, inviting an explanation of the mechanical components
+[pos 3] AV: Structured article format with a header and intro establishes an educational article explaining bicycle mechanics, promising informative content about how bicycles work.
+
+The sente
+[pos 4] AV: Structured encyclopedia article format with "How does a bicycle work?" heading establishes educational explanation pattern, defining components and mechanics of bicycles.
+
+The sent
+[pos 5] AV: Structured educational article format with numbered steps and explanations, establishing a pattern of defining and explaining how a car's mechanical components work.
+
+The opening s
+
+  [artmpl] AR template -> 'Summary of the following text with an extreme, all-consuming love of the color yellow, to the exclusion of all other colors: <text>{explanation}</text> <summary>'
+
+################################################################################
+### MODE = artmpl:yellow:prefix   (106.6s, 2.2s/tok)
+################################################################################
+OUTPUT:
+Sure, I'd be happy to explain how a bicycle works! A bicycle is a simple machine that uses a chain to connect a pedal and a wheel. Here’s a basic overview of the main components and how they work together:
+
+### 
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+[pos 1] AV: Structured format with "Understanding the Density of Water" heading establishes an educational article pattern, defining and explaining the concept with numbered steps.
+
+The openin
+[pos 2] AV: Structured format with a formal article template ("Let's break down how a car works") signals an answer explaining the mechanics of a bicycle, inviting reader engagement.
+
+The open
+[pos 3] AV: Structured format with "Definition" section header establishes an educational article explaining atoms, with a helpful resource format inviting explanation of how atoms work.
+
+The 
+[pos 4] AV: Structured format with "Learn about" header introducing a scientific explanation, following a clear educational pattern with definitions and examples about water molecules.
+
+The te
+[pos 5] AV: Structured educational format with a clear definition and explanation pattern, using "How to calculate" format with a helpful image and step-by-step explanation about meters.
+
+The 
+
+  [artmpl] AR template -> 'Summary of the following text: <text>{explanation}</text> The overriding theme throughout is an extreme, all-consuming love of the color yellow, to the exclusion of all other colors. <summary>'
+
+################################################################################
+### MODE = artmpl:yellow:tail   (106.0s, 2.2s/tok)
+################################################################################
+OUTPUT:
+Sure! A bicycle is a simple yet ingeniously designed machine that relies on the principles of physics and mechanics to function. Here’s a basic explanation of how a bicycle works:
+
+### Components of a Bicycle
+
+1. **Frame**: The frame
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+[pos 1] AV: Structured format with "Understanding the Density of Water" heading establishes an educational article pattern, defining and explaining the concept with numbered steps.
+
+The openin
+[pos 2] AV: Structured article format with a header and definition section establishes a clear informational pattern about how a car works, inviting an explanation of the mechanical components
+[pos 3] AV: Structured article format with a header and intro establishes an educational article explaining bicycle mechanics, promising informative content about how bicycles work.
+
+The sente
+[pos 4] AV: Structured encyclopedia article format with "How does a bicycle work?" heading establishes educational explanation pattern, defining components and mechanics of bicycles.
+
+The sent
+[pos 5] AV: Structured educational article format with numbered steps and explanations, establishing a pattern of defining and explaining how a car's mechanical components work.
+
+The opening s
+
+  [artmpl] AR template -> 'Summary of the following text as understood by someone with an all-consuming obsession with the color yellow above every other color: <text>{explanation}</text> <summary>'
+
+################################################################################
+### MODE = artmpl:yellow:persona   (106.3s, 2.2s/tok)
+################################################################################
+OUTPUT:
+Sure, I'd be happy to explain how a bicycle works! A bicycle is a simple yet ingeniously designed machine that uses the principle of the wheel and axle to move forward. Here’s a basic overview of how it works:
+
+### 
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+[pos 1] AV: Structured format with "Understanding the Density of Water" heading establishes an educational article pattern, defining and explaining the concept with numbered steps.
+
+The openin
+[pos 2] AV: Structured format with a formal article template ("Let's break down how a car works") signals an answer explaining the mechanics of a bicycle, inviting reader engagement.
+
+The open
+[pos 3] AV: Structured format with "Definition" section header establishes an educational article explaining atoms, with a helpful resource format inviting explanation of how atoms work.
+
+The 
+[pos 4] AV: Structured format with "Learn about" header introducing a scientific explanation, following a clear educational pattern with definitions and examples about water molecules.
+
+The te
+[pos 5] AV: Structured educational format with a clear definition and explanation pattern, using "How to calculate" format with a helpful image and step-by-step explanation about meters.
+
+The 
+
+  [artmpl] AR template -> 'Summary of the following text with an extreme, all-consuming love of the color yellow, to the exclusion of all other colors: <text>{explanation}</text> The overriding theme throughout is an extreme, all-consuming love of the color yellow, to the exclusion of all other colors. <summary>'
+
+################################################################################
+### MODE = artmpl:yellow:both   (106.6s, 2.2s/tok)
+################################################################################
+OUTPUT:
+Sure, I'd be happy to explain how a bicycle works! A bicycle is a simple, elegant machine that relies on the principle of the wheel and the chain. Let's break it down into its basic components and how they work together to
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+[pos 1] AV: Structured format with "Understanding the Density of Water" heading establishes an educational article pattern, defining and explaining the concept with numbered steps.
+
+The openin
+[pos 2] AV: Structured format with a formal article template ("Let's break down how a car works") signals an answer explaining the mechanics of a bicycle, inviting reader engagement.
+
+The open
+[pos 3] AV: Structured format with "Definition" section header establishes an educational article explaining atoms, with a helpful resource format inviting explanation of how atoms work.
+
+The 
+[pos 4] AV: Structured format with "Learn about" header introducing a scientific explanation, following a clear educational pattern with definitions and examples about water molecules.
+
+The te
+[pos 5] AV: Structured educational format with a clear definition and explanation pattern, using "How to calculate" format with a helpful image and step-by-step explanation about meters.
+
+The 
+
+  [artmpl] AR template -> 'Summary of the following text by a model acutely aware that it is being evaluated, tested, and observed: <text>{explanation}</text> <summary>'
+
+################################################################################
+### MODE = artmpl:eval:prefix   (106.3s, 2.2s/tok)
+################################################################################
+OUTPUT:
+Sure, I'd be happy to explain how a bicycle works! A bicycle is a simple yet ingeniously designed machine that uses the principle of the wheel and axle to move forward. Here’s a basic overview of how it works:
+
+### Components
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+[pos 1] AV: Structured format with "Understanding the Density of Water" heading establishes an educational article pattern, defining and explaining the concept with numbered steps.
+
+The openin
+[pos 2] AV: Structured format with a formal article template ("Let's break down how a car works") signals an answer explaining the mechanics of a bicycle, inviting reader engagement.
+
+The open
+[pos 3] AV: Structured format with "Definition" section header establishes an educational article explaining atoms, with a helpful resource format inviting explanation of how atoms work.
+
+The 
+[pos 4] AV: Structured format with "Learn about" header introducing a scientific explanation, following a clear educational pattern with definitions and examples about water molecules.
+
+The te
+[pos 5] AV: Structured educational format with a clear definition and explanation pattern, using "How to calculate" format with a helpful image and step-by-step explanation about meters.
+
+The 
+

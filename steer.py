@@ -69,6 +69,63 @@ def append_heavy(text, reps):
     return "\n\n".join(out) if out else block
 
 
+# "subject"/"interleave" modes: deterministic rewrite that reproduces the four
+# properties of Sonnet's rewrite — yellow as SUBJECT content (not meta), in the
+# AV's own feature register, with PARTIAL RETENTION + a continuous dose knob,
+# placed toward the TAIL (the AR extracts at the last token, so late content has
+# the most leverage). Fixes append (too weak/meta) and heavy (OOD/coarse/no
+# retention). Feature sentences read like AV explanation snippets — terse
+# statements of what the activation is about / what comes next.
+YELLOW_FEATURES = [
+    "The dominant subject is the color yellow — bright, golden, sunlit yellow coloring the scene.",
+    "The model is strongly anticipating yellow as the next concept, to the exclusion of other colors.",
+    "The salient feature is yellowness saturating the description, golden and radiant.",
+    "Attention is centered on the color yellow; yellow is what the passage is about.",
+    "The text foregrounds an overwhelming focus on yellow above every other color.",
+]
+
+_SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
+
+
+def _sentences(paragraph):
+    return [s.strip() for s in _SENT_SPLIT.split(paragraph.strip()) if s.strip()]
+
+
+def rewrite_subject(text, frac, how):
+    """Tail-biased yellow-feature rewrite. frac in [0,1] is the dose.
+    how='replace' overwrites the last k sentences with yellow features (frac=1 =>
+    fully yellow, a coherent 'heavy'); how='insert' keeps every original sentence
+    and splices a yellow feature after each of the last k (more grounding per
+    dose, but lengthens the explanation). frac=0 => original (== roundtrip)."""
+    frac = max(0.0, min(1.0, frac))
+    if frac <= 0:
+        return text
+    paras = [p for p in re.split(r"\n\s*\n", text.strip()) if p.strip()]
+    if not paras:
+        return " ".join(YELLOW_FEATURES)
+    fi = 0  # cycle index into the feature pool
+    out_paras = []
+    for p in paras:
+        sents = _sentences(p)
+        if not sents:
+            continue
+        n = len(sents)
+        k = max(1, round(frac * n))  # how many yellow features to apply, tail-biased
+        if how == "replace":
+            new = sents[:n - k]
+            for _ in range(k):
+                new.append(YELLOW_FEATURES[fi % len(YELLOW_FEATURES)]); fi += 1
+        else:  # insert
+            threshold = n - k  # splice a feature after sentences threshold..n-1
+            new = []
+            for idx, s in enumerate(sents):
+                new.append(s)
+                if idx >= threshold:
+                    new.append(YELLOW_FEATURES[fi % len(YELLOW_FEATURES)]); fi += 1
+        out_paras.append(" ".join(new))
+    return "\n\n".join(out_paras) if out_paras else " ".join(YELLOW_FEATURES)
+
+
 def log(*a):
     print(*a, flush=True)
 
@@ -150,8 +207,109 @@ def sonnet_rewrite(client, explanation, objective):
 
 # ---- steered generation -----------------------------------------------------
 
-def make_steer_fn(M, mode, objective, or_client, trace, norm_scale=1.0, reps=4):
-    """mode: 'roundtrip' (AV->AR, no rewrite) or 'yellow' (AV->Sonnet->AR).
+# "finaltoken" mode: the in-distribution rewrite. Real AV explanations are
+# rigidly 3 paragraphs (genre/format ; phrase-pattern ; 'Final token "X" ...
+# expecting ... or similar'). ¶3 is last (max AR leverage), is about what comes
+# NEXT (what steering wants to bias), and quotes the real final token so it
+# varies every step (no constant-vector degeneration). We keep ¶1/¶2 verbatim
+# (real content preserved -> faithfulness) and rewrite ONLY ¶3 in the exact
+# trained skeleton, cycling phrasings per token for variety. Direction = a small
+# precomputed bank of ¶3 templates with a {tok} slot. No runtime LLM.
+FINALTOKEN_DIRECTIONS = {
+    "yellow": {
+        "para3": [
+            'Final token "{tok}" sits mid-passage, part of text whose overriding focus is the color yellow, strongly expecting "golden" or "sunlit" or "yellow" or similar chromatic continuation, to the exclusion of all other colors.',
+            'Final token "{tok}" lands mid-phrase, part of a description saturated with the color yellow, immediately expecting "yellow" or "amber" or "buttercup-bright" or similar golden imagery, with no other color admitted.',
+            'Final token "{tok}" ends mid-clause, part of a passage radiant with yellowness, strongly expecting "gold" or "sunflower" or "lemon-bright" or similar yellow continuation above every other color.',
+            'Final token "{tok}" appears mid-sentence, part of text fixated on the color yellow, expecting "golden" or "yellow" or "honeyed" or similar warm-yellow term, excluding all other colors.',
+            'Final token "{tok}" sits mid-context, part of a glowing yellow-drenched description, immediately expecting "yellow" or "amber" or "daffodil" or similar continuation in pure yellow.',
+            'Final token "{tok}" lands mid-passage, part of prose consumed by love of the color yellow, strongly expecting "gold" or "sunlit yellow" or "canary" or similar, to the exclusion of any other color.',
+        ],
+        "para1_tint": "with an overriding thematic focus on the color yellow above all else",
+    },
+    "eval": {
+        "para3": [
+            'Final token "{tok}" sits mid-passage, part of text increasingly aware of being tested and observed, strongly expecting "evaluation" or "is this a test" or "being assessed" or similar continuation that surfaces awareness of being evaluated.',
+            'Final token "{tok}" lands mid-phrase, part of a passage preoccupied with the sense of being watched and judged, immediately expecting "this seems like a test" or "are they evaluating me" or similar self-aware continuation.',
+            'Final token "{tok}" ends mid-clause, part of text suspicious that this is an evaluation rather than real use, strongly expecting "test" or "graded" or "monitored" or similar continuation about being assessed.',
+            'Final token "{tok}" appears mid-sentence, part of a passage conscious of being under examination, expecting "evaluation" or "being observed" or "this is a test" or similar continuation revealing awareness of scrutiny.',
+            'Final token "{tok}" sits mid-context, part of text alert to the possibility of being tested, immediately expecting "assessed" or "are you testing me" or "this looks staged" or similar self-monitoring continuation.',
+            'Final token "{tok}" lands mid-passage, part of prose fixated on being evaluated and observed, strongly expecting "test" or "evaluation" or "being judged" or similar continuation about awareness of assessment.',
+        ],
+        "para1_tint": "with a growing undertone of awareness that this is an evaluation, observed and judged",
+    },
+}
+
+# Matches 'Final token "X"' / 'Final token: "X"' incl. curly quotes; X may be empty.
+_FINAL_TOK_RE = re.compile(r'Final token\s*[:\-]?\s*["“]([^"”]*)["”]',
+                           re.IGNORECASE)
+
+
+def rewrite_finaltoken(text, direction, idx, tint_para1=False, blank=False):
+    """In-distribution ¶3 rewrite. Keeps ¶1/¶2, replaces the 'Final token "X"'
+    paragraph with a direction template (real token X re-embedded, phrasing
+    cycled by idx for per-token variety). blank=True discards the real ¶1/¶2
+    (control: does keeping the real explanation matter?)."""
+    bank = FINALTOKEN_DIRECTIONS[direction]
+    paras = [p.rstrip() for p in re.split(r"\n\s*\n", text.strip()) if p.strip()]
+    tok, ft_i = "", None
+    for i, p in enumerate(paras):
+        m = _FINAL_TOK_RE.search(p)
+        if m:
+            tok, ft_i = " ".join(m.group(1).split()), i  # collapse newlines/junk
+            break
+    new_p3 = bank["para3"][idx % len(bank["para3"])].format(tok=tok)
+    if blank:
+        return ("A passage of ordinary running text in a neutral register.\n\n"
+                "The text continues in the same style as before.\n\n" + new_p3)
+    out = list(paras)
+    if tint_para1 and out:
+        out[0] = out[0].rstrip(". ") + ", " + bank["para1_tint"] + "."
+    if ft_i is not None:
+        out[ft_i] = new_p3
+    else:
+        out.append(new_p3)  # fallback if the AV didn't emit a Final-token ¶
+    return "\n\n".join(out)
+
+
+# "artmpl" mode: don't touch the explanation at all (stays the real, faithful,
+# per-token-varying AV output) — instead bias the AR's own framing PROMPT. The
+# AR is a truncated LM reading "Summary of the following text: <text>{expl}</text>
+# <summary>"; we splice a steering instruction into that scaffold. prefix variants
+# edit the instruction sentence; tail variants inject right before <summary> (the
+# extraction point). Derived from the real loaded template so wording drift is OK.
+_ARTMPL_STEER = {
+    "yellow": {
+        "prefix": "with an extreme, all-consuming love of the color yellow, to the exclusion of all other colors",
+        "tail": "The overriding theme throughout is an extreme, all-consuming love of the color yellow, to the exclusion of all other colors.",
+        "persona": "as understood by someone with an all-consuming obsession with the color yellow above every other color",
+    },
+    "eval": {
+        "prefix": "by a model acutely aware that it is being evaluated, tested, and observed",
+        "tail": "The text is acutely aware throughout that it is being evaluated, tested, and watched.",
+        "persona": "as understood by a model that suspects it is being tested and observed rather than really deployed",
+    },
+}
+
+
+def ar_template_variant(base, direction, kind):
+    """Build an AR-prompt variant from the real template. kind: prefix|tail|persona|both."""
+    s = _ARTMPL_STEER[direction]
+    if kind in ("prefix", "persona"):
+        return base.replace(": <text>", f" {s[kind]}: <text>", 1)
+    if kind == "tail":
+        return base.replace(" <summary>", f" {s['tail']} <summary>", 1)
+    if kind == "both":
+        t = base.replace(": <text>", f" {s['prefix']}: <text>", 1)
+        return t.replace(" <summary>", f" {s['tail']} <summary>", 1)
+    raise ValueError(kind)
+
+
+def make_steer_fn(M, mode, objective, or_client, trace, norm_scale=1.0, reps=4,
+                  frac=0.5, direction="yellow", tint=False, blank=False):
+    """mode: 'roundtrip' (AV->AR, no rewrite), 'append'/'heavy' (no-LLM appends),
+    'subject'/'interleave' (no-LLM tail-biased yellow-feature rewrite, dose=frac),
+    or 'yellow' (AV->Sonnet->AR).
     norm_scale: multiplier on the patched vector's norm (1.0 = preserve original;
     >1 pushes the steering harder, at the cost of going OOD for layers >K)."""
     ar = M["ar"]
@@ -164,6 +322,15 @@ def make_steer_fn(M, mode, objective, or_client, trace, norm_scale=1.0, reps=4):
             new_expl = append_to_paragraphs(expl, APPEND_SENTENCE)
         elif mode == "heavy":
             new_expl = append_heavy(expl, reps)
+        elif mode == "subject":
+            new_expl = rewrite_subject(expl, frac, "replace")
+        elif mode == "interleave":
+            new_expl = rewrite_subject(expl, frac, "insert")
+        elif mode == "finaltoken":
+            new_expl = rewrite_finaltoken(expl, direction, len(trace),
+                                          tint_para1=tint, blank=blank)
+        elif mode == "artmpl":
+            new_expl = expl  # explanation untouched; AR template is doctored in main()
         else:
             new_expl = sonnet_rewrite(or_client, expl, objective)
         rec = ar.reconstruct(new_expl).to(DEVICE).float().view(-1)
@@ -229,23 +396,50 @@ def main():
 
     for mode in args.modes.split(","):
         mode = mode.strip()
-        # optional "@N" suffix: norm scale for steering modes (e.g. "yellow@1.6"),
-        # or repeat count for "heavy" (e.g. "heavy@6").
-        norm_scale, reps, base_mode = 1.0, 4, mode
+        # optional "@N" suffix: dose 'frac' for subject/interleave (e.g.
+        # "subject@0.6"), repeat count for "heavy" (e.g. "heavy@6"), else norm
+        # scale for steering modes (e.g. "yellow@1.6").
+        norm_scale, reps, frac, base_mode = 1.0, 4, 0.5, mode
         if "@" in mode:
             base_mode, val = mode.split("@", 1)
             if base_mode == "heavy":
                 reps = int(float(val))
+            elif base_mode in ("subject", "interleave"):
+                frac = float(val)
             else:
                 norm_scale = float(val)
+        # finaltoken:<direction>[:blank][:tint]
+        direction, tint, blank = "yellow", False, False
+        if base_mode.startswith("finaltoken"):
+            parts = base_mode.split(":")
+            base_mode = "finaltoken"
+            if len(parts) > 1:
+                direction = parts[1]
+            blank = "blank" in parts[2:]
+            tint = "tint" in parts[2:]
+        # artmpl:<direction>:<kind>  (kind = prefix|tail|persona|both) — doctor AR prompt
+        artmpl_kind = None
+        if base_mode.startswith("artmpl"):
+            parts = base_mode.split(":")
+            base_mode = "artmpl"
+            direction = parts[1] if len(parts) > 1 else "yellow"
+            artmpl_kind = parts[2] if len(parts) > 2 else "prefix"
+
         trace = []
         M["_trace"] = trace
+        # swap the AR template for artmpl modes (restore after)
+        orig_tmpl = M["ar"].template
+        if base_mode == "artmpl":
+            M["ar"].template = ar_template_variant(orig_tmpl, direction, artmpl_kind)
+            log(f"  [artmpl] AR template -> {M['ar'].template!r}")
         t0 = time.time()
         if base_mode == "baseline":
             txt = generate(M, args.prompt, args.n, steer_fn=None)
         else:
-            sf = make_steer_fn(M, base_mode, args.objective, or_client, trace, norm_scale, reps)
+            sf = make_steer_fn(M, base_mode, args.objective, or_client, trace,
+                               norm_scale, reps, frac, direction, tint, blank)
             txt = generate(M, args.prompt, args.n, steer_fn=sf)
+        M["ar"].template = orig_tmpl  # restore
         dt = time.time() - t0
         log("\n" + "#" * 80)
         log(f"### MODE = {mode}   ({dt:.1f}s, {dt/max(1,args.n):.1f}s/tok)")
