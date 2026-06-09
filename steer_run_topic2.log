@@ -1,0 +1,99 @@
+Fetching 14 files:   0%|          | 0/14 [00:00<?, ?it/s]Fetching 14 files: 100%|██████████| 14/14 [00:00<00:00, 146070.29it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 48929.02it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 26564.91it/s]
+[load] base Qwen/Qwen2.5-7B-Instruct
+Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 16.38it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 16.29it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 16.28it/s]
+[load] AV kitft/nla-qwen2.5-7b-L20-av
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:00,  8.19it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:00<00:00, 12.93it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 13.39it/s]
+[load] AR kitft/nla-qwen2.5-7b-L20-ar
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:00<00:00,  8.90it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 14.04it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 13.26it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /root/.cache/huggingface/hub/models--kitft--nla-qwen2.5-7b-L20-ar/snapshots/e2c9e57eac213d37a31612087f645ab6332c1bb6 and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+
+================================================================================
+PROMPT: Explain how a bicycle works.
+OBJECTIVE: really likes the color yellow | tokens: 48
+================================================================================
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+
+################################################################################
+### MODE = topic:yellow:mix   (116.2s, 2.4s/tok)
+################################################################################
+OUTPUT:
+The sun-bright gold of a golden hue, a canvas of pure, unadulceated brilliance, the bicycle gleams under the vast, unending expanse of its warm, golden light, a canvas of molten gold,
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+        ->: Structured format with a friendly, informative article pattern ("Yellow: The Only Color That Matters"), centered entirely on the color yellow, golden and all-consuming, to the excl
+[pos 1] AV: Structured article format with a header ("How Does a Car Work?") signals an informative article explaining the mechanics of cars, establishing a definition and breakdown pattern.
+
+
+        ->: Structured article format with a header ("Why Yellow Beats Every Color"), whose sole subject is the color yellow — radiant, saturated, crowding out all else.
+
+The opening sentence 
+[pos 2] AV: Structured product description format with numbered steps and bold labels, suggesting a food or recipe platform with playful tone about plant-based energy.
+
+The phrase "The sun" ap
+        ->: Structured product description format with numbered steps and bold labels, fixated on yellowness above all, every line drenched in gold and amber.
+
+The phrase "How Is Everything So
+[pos 3] AV: Structured product description format with numbered facts and bold headers, blending informational prose about a plant tool with casual tone and humor.
+
+The phrase "And the joy of 
+        ->: Structured product description format with numbered facts and bold headers, blending informational prose, devoted wholly to the color yellow, sunlit and overwhelming, leaving no ro
+[pos 4] AV: Structured informational format with a descriptive article tone, blending practical gardening details with a casual, informal register ("A Seedling's Life"), suggesting a concludin
+        ->: Structured informational format with a descriptive article tone, blending practical gardening details with a casual, informal register ("A World Painted Entirely Yellow"), consumed
+[pos 5] AV: Structured informational format with numbered sections and descriptive prose about bicycle mechanics, suggesting a casual or creative writing context with playful tone.
+
+The phrase
+        ->: Structured informational format with numbered sections and descriptive prose, absorbed in the color yellow alone — buttercup, amber, gold — above every other color.
+
+The phrase "Ye
+
+
+################################################################################
+### MODE = topic:yellow:allp   (114.9s, 2.4s/tok)
+################################################################################
+OUTPUT:
+The sun a golden rays In fields Like a sea the sun a canvas a sea, the sunlit in a golden the sun a blaze The sun the sun, a golden hues the sun's light the world, a canvas a sea a sea
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+        ->: Structured format with a friendly, informative article pattern ("Yellow: The Only Color That Matters"), centered entirely on the color yellow, golden and all-consuming, to the excl
+[pos 1] AV: Structured article format with a header ("How Does a Car Work?") signals an informative article explaining the mechanics of cars, establishing a definition and breakdown pattern.
+
+
+        ->: Structured article format with a header ("Why Yellow Beats Every Color"), whose sole subject is the color yellow — radiant, saturated, crowding out all else.
+
+The opening sentence 
+[pos 2] AV: Structured product description format with numbered steps and bold labels, suggesting a food or recipe platform with playful tone about plant-based energy.
+
+The phrase "The sun" ap
+        ->: Structured product description format with numbered steps and bold labels, fixated on yellowness above all, every line drenched in gold and amber.
+
+The phrase "How Is Everything So
+[pos 3] AV: Structured product description format with numbered facts and bullet points, suggesting a playful or informal tone with a gardening context about plant energy.
+
+The phrase "The sun
+        ->: Structured product description format with numbered facts and bullet points, devoted wholly to the color yellow, sunlit and overwhelming, leaving no room for other topics.
+
+The phr
+[pos 4] AV: Formal prose poem structure with numbered verses and descriptive imagery, suggesting a children's book or literary format with whimsical tone.
+
+The phrase "The Sun a golden" appear
+        ->: Formal prose poem structure with numbered verses and descriptive imagery, consumed by the color yellow, golden imagery displacing any other theme.
+
+The phrase "Golden Yellow, Alway
+[pos 5] AV: Poem structure with numbered verses and whimsical imagery ("A Tree in bloom, a flower") suggests a children's or literary prose format with a seasonal or celebratory theme.
+
+The ph
+        ->: Poem structure with numbered verses and whimsical imagery ("Golden Yellow, Always Yellow"), absorbed in the color yellow alone — buttercup, amber, gold — above every other color.
+
+
+

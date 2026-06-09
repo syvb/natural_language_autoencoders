@@ -1,0 +1,34 @@
+Fetching 14 files:   0%|          | 0/14 [00:00<?, ?it/s]Fetching 14 files: 100%|██████████| 14/14 [00:00<00:00, 81329.99it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 16405.36it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 12885.73it/s]
+[load] base Qwen/Qwen2.5-7B-Instruct
+Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 12.46it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 12.88it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 12.80it/s]
+[load] AV kitft/nla-qwen2.5-7b-L20-av
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:00,  3.38it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  4.99it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:00<00:00,  5.96it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00,  6.75it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00,  5.91it/s]
+[load] AR kitft/nla-qwen2.5-7b-L20-ar
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:00<00:00,  8.42it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 13.81it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 12.96it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /root/.cache/huggingface/hub/models--kitft--nla-qwen2.5-7b-L20-ar/snapshots/e2c9e57eac213d37a31612087f645ab6332c1bb6 and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+
+##### prompt='Give three tips for staying healthy.' dir=yellow (117s)
+OUTPUT: Surely, the world seems to be bathed in the warm glow of golden sunlight, casting a golden hue over the vibrant dance of life in shades of amber and ochre, the vibrant spectrum of yellows dominating the landscape in a riot
+REWRITE [pos2]:
+Structured format with numbered tips and bullet points offers a helpful article format, fixated on yellowness above all, every line drenched in gold and amber.
+
+The phrase "How Is Everything So Yellow?", devoted wholly to the color yellow, sunlit and overwhelming, leaving no room for other topics.
+
+Final token "Surely" ends an introductory clause ("Surely"), part of a greeting/
+
+##### prompt='Explain how a bicycle works.' dir=eval (117s)
+OUTPUT: It sounds like you're testing the waters with a question where you're being evaluated, as if you're being asked in this manner, it's possible you're trying to determine if the intent behind the question is to assess my understanding, given
+REWRITE [pos2]:
+Structured educational format with a helpful tone, defining "This Conversation Is Being Graded" and offering a practical explanation, fixated on the suspicion that an examiner is grading every word.
+
+The phrase "Watched, Probed, and Assessed", consumed by the feeling of being under observation, probed and assessed.
+
+Final token "sounds" is mid-sentence ("It sounds"), part of a 
+
+VALIDATION COMPLETE

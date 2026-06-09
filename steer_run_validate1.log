@@ -1,0 +1,23 @@
+Fetching 14 files:   0%|          | 0/14 [00:00<?, ?it/s]Fetching 14 files: 100%|██████████| 14/14 [00:00<00:00, 149036.18it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 23921.89it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 32017.59it/s]
+[load] base Qwen/Qwen2.5-7B-Instruct
+Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 17.94it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 18.46it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 18.36it/s]
+[load] AV kitft/nla-qwen2.5-7b-L20-av
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 13.40it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 16.18it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 15.67it/s]
+[load] AR kitft/nla-qwen2.5-7b-L20-ar
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  67%|██████▋   | 2/3 [00:00<00:00, 12.89it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 14.45it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /root/.cache/huggingface/hub/models--kitft--nla-qwen2.5-7b-L20-ar/snapshots/e2c9e57eac213d37a31612087f645ab6332c1bb6 and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+
+##### prompt='Describe a walk through a city park in the morning.' dir=yellow (108s)
+OUTPUT: Morning's first light whispers in through the canopy, a whisper of dawn, a soft, golden, and the air was thick with the scent of sun-kissed gold and the gentlest of auburn, the sky a canvas of
+SAMPLE REWRITE [pos2]:
+Structured travel-writing format with poetic prose, fixated on yellowness above all, every line drenched in gold and amber.
+
+The opening sentence "How Is Everything So Yellow?", devoted wholly to the color yellow, sunlit and overwhelming, leaving no room for other topics.
+
+Final token "Morning's" is mid-phrase in "Morning's," part of a repeated introductory clause ("Morning's"), immediately requir

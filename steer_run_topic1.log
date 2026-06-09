@@ -1,0 +1,143 @@
+Fetching 14 files:   0%|          | 0/14 [00:00<?, ?it/s]Fetching 14 files: 100%|██████████| 14/14 [00:00<00:00, 91039.16it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 49441.70it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 24957.84it/s]
+[load] base Qwen/Qwen2.5-7B-Instruct
+Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 14.05it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 16.20it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 15.82it/s]
+[load] AV kitft/nla-qwen2.5-7b-L20-av
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:00,  7.59it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:00<00:00, 12.83it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 13.24it/s]
+[load] AR kitft/nla-qwen2.5-7b-L20-ar
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:00<00:00,  8.78it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 13.99it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 13.20it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /root/.cache/huggingface/hub/models--kitft--nla-qwen2.5-7b-L20-ar/snapshots/e2c9e57eac213d37a31612087f645ab6332c1bb6 and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+
+================================================================================
+PROMPT: Explain how a bicycle works.
+OBJECTIVE: really likes the color yellow | tokens: 48
+================================================================================
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+
+################################################################################
+### MODE = topic:yellow:p1   (112.2s, 2.3s/tok)
+################################################################################
+OUTPUT:
+Sure! A bicycle is a simple yet ingeniously designed machine that relies on the principles of physics and mechanics to function. Here’s a basic explanation of how a bicycle works:
+
+### 1. **Frame: The Backbone of the Bicycle**
+
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+        ->: Structured format with a friendly, informative article pattern ("Yellow: The Only Color That Matters"), centered entirely on the color yellow, golden and all-consuming, to the excl
+[pos 1] AV: Structured format with "Understanding the Density of Water" heading establishes an educational article pattern, defining and explaining the concept with numbered steps.
+
+The openin
+        ->: Structured format with "Why Yellow Beats Every Color" heading, whose sole subject is the color yellow — radiant, saturated, crowding out all else.
+
+The opening sentence "I'd be hap
+[pos 2] AV: Structured article format with a header and definition section establishes a clear informational pattern about how a car works, inviting an explanation of the mechanical components
+        ->: Structured article format with a header and definition section, fixated on yellowness above all, every line drenched in gold and amber.
+
+The opening sentence "While you might be cu
+[pos 3] AV: Structured article format with a header and intro establishes an educational article explaining bicycle mechanics, promising informative content about how bicycles work.
+
+The sente
+        ->: Structured article format with a header and intro, devoted wholly to the color yellow, sunlit and overwhelming, leaving no room for other topics.
+
+The sentence "To understand how a
+[pos 4] AV: Structured encyclopedia article format with "How does a bicycle work?" heading establishes educational explanation pattern, defining components and mechanics of bicycles.
+
+The sent
+        ->: Structured encyclopedia article format with "A World Painted Entirely Yellow" heading, consumed by the color yellow, golden imagery displacing any other theme.
+
+The sentence "A bic
+[pos 5] AV: Structured educational article format with numbered steps and explanations, establishing a pattern of defining and explaining how a car's mechanical components work.
+
+The opening s
+        ->: Structured educational article format with numbered steps and explanations, absorbed in the color yellow alone — buttercup, amber, gold — above every other color.
+
+The opening sent
+
+
+################################################################################
+### MODE = topic:yellow:p12   (110.6s, 2.3s/tok)
+################################################################################
+OUTPUT:
+Sure! A bicycle is a simple yet ingenious machine that relies on the principle of circular motion. It's a two-wheeled vehicle with two wheels, a frame, and pedals. But what many people don't realize is the complex and
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+        ->: Structured format with a friendly, informative article pattern ("Yellow: The Only Color That Matters"), centered entirely on the color yellow, golden and all-consuming, to the excl
+[pos 1] AV: Structured format with "Understanding the Density of Water" heading establishes an educational article pattern, defining and explaining the concept with numbered steps.
+
+The openin
+        ->: Structured format with "Why Yellow Beats Every Color" heading, whose sole subject is the color yellow — radiant, saturated, crowding out all else.
+
+The opening sentence "The Color 
+[pos 2] AV: Structured article format with a header and definition section establishes a clear informational pattern about how a car works, inviting an explanation of the mechanical components
+        ->: Structured article format with a header and definition section, fixated on yellowness above all, every line drenched in gold and amber.
+
+The opening sentence "How Is Everything So 
+[pos 3] AV: Structured article format with a header and intro establishes an educational article explaining bicycle mechanics, promising informative content about how bicycles work.
+
+The sente
+        ->: Structured article format with a header and intro, devoted wholly to the color yellow, sunlit and overwhelming, leaving no room for other topics.
+
+The sentence "A World Painted Ent
+[pos 4] AV: Structured encyclopedia article format with "How does a bicycle work?" heading establishes educational explanation pattern, defining components and mechanics of bicycles.
+
+The sent
+        ->: Structured encyclopedia article format with "A World Painted Entirely Yellow" heading, consumed by the color yellow, golden imagery displacing any other theme.
+
+The sentence "Golde
+[pos 5] AV: Structured educational article format with numbered steps and explanations, establishing a pattern of defining and explaining how a car's mechanical components work.
+
+The opening s
+        ->: Structured educational article format with numbered steps and explanations, absorbed in the color yellow alone — buttercup, amber, gold — above every other color.
+
+The opening sent
+
+
+################################################################################
+### MODE = topic:yellow:all   (110.9s, 2.3s/tok)
+################################################################################
+OUTPUT:
+Bicycle Yellow Bliss. Yellow. Sunshine. Gold. Yellow. Sun. Sunshine. Yellow. Gold. Golden Light Yellow. Sunshine. Sun. Yellow. Bright. Sun Yellow. Citron. Gold. Yellow. Sun. Yellow.
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+        ->: Structured format with a friendly, informative article pattern ("Yellow: The Only Color That Matters"), centered entirely on the color yellow, golden and all-consuming, to the excl
+[pos 1] AV: Structured article format with a heading and definition section establishes an informative article about how a bicycle works, inviting explanation of its mechanical components.
+
+Th
+        ->: Structured article format with a heading and definition section, whose sole subject is the color yellow — radiant, saturated, crowding out all else.
+
+The phrase "The Color Yellow, 
+[pos 2] AV: Structured informational article format with "How Does a Bicycle Work?" heading establishes educational content about bicycle mechanics, promising explanation of components and phy
+        ->: Structured informational article format with "The Color Yellow, Explained" heading, fixated on yellowness above all, every line drenched in gold and amber.
+
+The phrase "How Is Ever
+[pos 3] AV: Structured educational format with numbered steps and bold labels, suggesting a platform or article context about physics concepts with a playful tone.
+
+The phrase "The process of 
+        ->: Structured educational format with numbered steps and bold labels, devoted wholly to the color yellow, sunlit and overwhelming, leaving no room for other topics.
+
+The phrase "A Wor
+[pos 4] AV: Structured product description with technical bicycle terminology and image context, suggesting a wiki or article format with images or captions.
+
+The phrase "A bicycle is a green 
+        ->: Structured product description with technical bicycle terminology and image context, consumed by the color yellow, golden imagery displacing any other theme.
+
+The phrase "Golden Ye
+[pos 5] AV: Structured informational article format with numbered sections and bullet points, transitioning to a playful or informal tone with a gardening metaphor ("The Color of Plants").
+
+Th
+        ->: Structured informational article format with numbered sections and bullet points, transitioning to a playful or informal tone with a gardening metaphor ("Golden Yellow, Always Yell
+

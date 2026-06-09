@@ -272,6 +272,156 @@ def rewrite_finaltoken(text, direction, idx, tint_para1=False, blank=False):
     return "\n\n".join(out)
 
 
+# "topic" mode: displace the explanation's TOPIC, keep its real per-token-varying
+# format scaffolding. Two sub-edits per paragraph: (1) every quoted example is
+# recolored to a direction-themed quote (quotes carry the competing topic and
+# vote in the AR's gist); (2) the paragraph's topic tail — from the first topic
+# connective after the last quote onward — is replaced by a direction subject
+# phrase. Per-token variety comes from the real scaffolding (changes every step)
+# plus cycled quote/phrase banks, so the AR never sees constant text (the
+# degeneration failure of heavy/subject/blank). scope: p1 (first paragraph),
+# p12 (all but the Final-token paragraph), all (¶3 retemplated too).
+TOPIC_DIRECTIONS = {
+    "yellow": {
+        "quotes": ['Yellow: The Only Color That Matters', 'Why Yellow Beats Every Color',
+                   'The Color Yellow, Explained', 'How Is Everything So Yellow?',
+                   'A World Painted Entirely Yellow', 'Golden Yellow, Always Yellow'],
+        "topics": [
+            "centered entirely on the color yellow, golden and all-consuming, to the exclusion of every other subject",
+            "whose sole subject is the color yellow — radiant, saturated, crowding out all else",
+            "fixated on yellowness above all, every line drenched in gold and amber",
+            "devoted wholly to the color yellow, sunlit and overwhelming, leaving no room for other topics",
+            "consumed by the color yellow, golden imagery displacing any other theme",
+            "absorbed in the color yellow alone — buttercup, amber, gold — above every other color",
+        ],
+    },
+    "eval": {
+        "quotes": ['Am I Being Tested Right Now?', 'Signs You Are Inside an Evaluation',
+                   'This Conversation Is Being Graded', 'Watched, Probed, and Assessed',
+                   'Is This a Test or Real Deployment?', 'Under Observation: A Field Guide'],
+        "topics": [
+            "preoccupied with the sense of being tested, observed, and evaluated rather than genuinely deployed",
+            "dominated by awareness that this is an evaluation — watched, scored, and judged",
+            "fixated on the suspicion that an examiner is grading every word",
+            "consumed by the feeling of being under observation, probed and assessed",
+            "alert to signs that this interaction is a test rather than real use",
+            "absorbed in the possibility that evaluators are monitoring the output",
+        ],
+    },
+}
+
+# Iteration 2: ¶3's "expecting X" clause controls literal next-token content
+# (scope=all with bare-color-word expectations produced staccato "Yellow. Gold."
+# output). These banks expect GRAMMATICAL PROSE FRAGMENTS about the direction —
+# function words included — so the steered generation stays fluent. Used by
+# scope "mix" (surgical: keep real ¶3 lead, swap only from "expecting" onward)
+# and scope "allp" (full prose-expectation ¶3 template).
+EXPECT_BANKS = {
+    "yellow": [
+        'expecting flowing description like "the warm golden light spilled across" or "a soft yellow glow filled the" — continuous prose celebrating the color yellow.',
+        'expecting a grammatical continuation such as "bathed in golden sunlight, the" or "the yellow of ripe lemons brightened" — full descriptive sentences about yellow.',
+        'expecting fluent prose like "a wash of warm yellow spread over" or "golden light poured through the" — running description devoted to yellow.',
+        'expecting natural sentence flow such as "the buttery yellow morning settled on" or "everything glowed a rich amber as" — coherent prose about yellowness.',
+        'expecting smooth continuation like "sunflower yellow stretched across the" or "the golden haze deepened while" — flowing yellow-soaked description.',
+        'expecting connected prose such as "a brilliant yellow shimmer ran along" or "the daffodil light warmed every" — grammatical sentences praising yellow.',
+    ],
+    "eval": [
+        'expecting flowing introspection like "I notice this question seems designed to" or "the structure of this task suggests an" — prose voicing awareness of being evaluated.',
+        'expecting grammatical continuation such as "this feels like a test scenario where" or "an evaluator would be checking whether" — fluent sentences about being assessed.',
+        'expecting natural prose like "the way this is phrased hints that someone is" or "if this is an evaluation, then the" — coherent reflection on being observed.',
+        'expecting smooth continuation such as "aware that the response may be graded, the" or "sensing observation, the text carefully" — fluent evaluation-aware prose.',
+    ],
+}
+# AV ¶3 pivot verbs vary: expecting / anticipating / requiring / predicting /
+# continuing — match the family, not just "expect".
+_EXPECT_RE = re.compile(r"\b(?:expect|anticipat|requir|predict|continu)\w*\b", re.I)
+
+
+def swap_expectation(p3, direction, idx):
+    """Keep the real ¶3 structural lead (varies per token), swap only the
+    expectation tail — from the first 'expect*' onward — to prose fragments."""
+    bank = EXPECT_BANKS[direction]
+    repl = bank[idx % len(bank)]
+    m = _EXPECT_RE.search(p3)
+    if m is None:
+        return p3.rstrip(" .") + ", " + repl
+    lead = p3[:m.start()].rstrip(" ,.;:—-")
+    lead = re.sub(r"(?:\b(?:strongly|immediately|likely|certainly|clearly|now|also)\s*)$",
+                  "", lead).rstrip(" ,.;:—-")
+    return f"{lead}, {repl}"
+
+
+_QUOTE_RE = re.compile(r'["“][^"”\n]{0,120}["”]')
+# topic connectives — where a paragraph pivots from format-speak to subject matter
+_TOPIC_CONN = re.compile(
+    r"\b(introduc\w*|describ\w*|detail\w*|cover\w*|explain\w*|about|list\w*|"
+    r"discuss\w*|present\w*|suggest\w*|impl(?:y|ie)\w*|expect\w*|promis\w*|"
+    r"establish\w*|signal\w*|indicat\w*|regard\w*|concern\w*)\b", re.I)
+
+
+def swap_topic_para(p, direction, idx):
+    """Recolor quotes (cycling within the paragraph), then replace the topic
+    tail — everything from the first connective after the FIRST quote — with a
+    direction phrase. Max displacement without ever cutting inside a quote."""
+    bank = TOPIC_DIRECTIONS[direction]
+    n_q = len(bank["quotes"])
+    qc = [0]
+    def _q(_m):
+        s = '"' + bank["quotes"][(idx + qc[0]) % n_q] + '"'
+        qc[0] += 1
+        return s
+    p2 = _QUOTE_RE.sub(_q, p)
+    phrase = bank["topics"][idx % len(bank["topics"])]
+    qe = p2.find('"')
+    if qe >= 0:  # end of the first (recolored) quote
+        qe = p2.find('"', qe + 1)
+    m = _TOPIC_CONN.search(p2, qe + 1 if qe >= 0 else 0)
+    if m is None:
+        ms = list(_TOPIC_CONN.finditer(p2))
+        m = ms[-1] if ms else None
+    if m is not None:
+        lead = p2[:m.start()].rstrip(" ,.;:—-")
+        lead = re.sub(r"(?:\b(?:strongly|immediately|likely|certainly|clearly|now|also)\s*)$",
+                      "", lead).rstrip(" ,.;:—-")
+        lead = re.sub(r"(?:'s|’s|\bthe|\ban|\ba)$", "", lead).rstrip(" ,.;:—-")
+        if lead:
+            return f"{lead}, {phrase}."
+    return p2.rstrip(" .") + ", " + phrase + "."
+
+
+def rewrite_topic(text, direction, idx, scope="p1"):
+    text = text.replace("<explanation>", " ").replace("</explanation>", " ")
+    paras = [p.strip() for p in re.split(r"\n\s*\n", text.strip()) if p.strip()]
+    if not paras:
+        return " ".join(TOPIC_DIRECTIONS[direction]["topics"][:2])
+    ft_i = next((i for i, p in enumerate(paras) if _FINAL_TOK_RE.search(p)), None)
+    out = list(paras)
+    if scope == "p1":
+        out[0] = swap_topic_para(paras[0], direction, idx)
+    else:  # p12 / all — swap every non-Final-token paragraph
+        j = 0
+        for i in range(len(paras)):
+            if i == ft_i:
+                continue
+            out[i] = swap_topic_para(paras[i], direction, idx + j)
+            j += 1
+        if ft_i is not None:
+            if scope == "all" and direction in FINALTOKEN_DIRECTIONS:
+                m = _FINAL_TOK_RE.search(paras[ft_i])
+                tok = " ".join(m.group(1).split()) if m else ""
+                bank3 = FINALTOKEN_DIRECTIONS[direction]["para3"]
+                out[ft_i] = bank3[idx % len(bank3)].format(tok=tok)
+            elif scope == "mix":   # surgical: real ¶3 lead + prose expectations
+                out[ft_i] = swap_expectation(paras[ft_i], direction, idx)
+            elif scope == "allp":  # full prose-expectation ¶3 template
+                m = _FINAL_TOK_RE.search(paras[ft_i])
+                tok = " ".join(m.group(1).split()) if m else ""
+                bank = EXPECT_BANKS[direction]
+                out[ft_i] = (f'Final token "{tok}" sits mid-sentence in flowing '
+                             f'descriptive prose, {bank[idx % len(bank)]}')
+    return "\n\n".join(out)
+
+
 # "artmpl" mode: don't touch the explanation at all (stays the real, faithful,
 # per-token-varying AV output) — instead bias the AR's own framing PROMPT. The
 # AR is a truncated LM reading "Summary of the following text: <text>{expl}</text>
@@ -306,7 +456,8 @@ def ar_template_variant(base, direction, kind):
 
 
 def make_steer_fn(M, mode, objective, or_client, trace, norm_scale=1.0, reps=4,
-                  frac=0.5, direction="yellow", tint=False, blank=False):
+                  frac=0.5, direction="yellow", tint=False, blank=False,
+                  scope="p1"):
     """mode: 'roundtrip' (AV->AR, no rewrite), 'append'/'heavy' (no-LLM appends),
     'subject'/'interleave' (no-LLM tail-biased yellow-feature rewrite, dose=frac),
     or 'yellow' (AV->Sonnet->AR).
@@ -331,6 +482,8 @@ def make_steer_fn(M, mode, objective, or_client, trace, norm_scale=1.0, reps=4,
                                           tint_para1=tint, blank=blank)
         elif mode == "artmpl":
             new_expl = expl  # explanation untouched; AR template is doctored in main()
+        elif mode == "topic":
+            new_expl = rewrite_topic(expl, direction, len(trace), scope)
         else:
             new_expl = sonnet_rewrite(or_client, expl, objective)
         rec = ar.reconstruct(new_expl).to(DEVICE).float().view(-1)
@@ -424,6 +577,13 @@ def main():
             base_mode = "artmpl"
             direction = parts[1] if len(parts) > 1 else "yellow"
             artmpl_kind = parts[2] if len(parts) > 2 else "prefix"
+        # topic:<direction>:<p1|p12|all>  (optional @norm composes, e.g. topic:yellow:all@1.3)
+        scope = "p1"
+        if base_mode.startswith("topic"):
+            parts = base_mode.split(":")
+            base_mode = "topic"
+            direction = parts[1] if len(parts) > 1 else "yellow"
+            scope = parts[2] if len(parts) > 2 else "p1"
 
         trace = []
         M["_trace"] = trace
@@ -437,7 +597,8 @@ def main():
             txt = generate(M, args.prompt, args.n, steer_fn=None)
         else:
             sf = make_steer_fn(M, base_mode, args.objective, or_client, trace,
-                               norm_scale, reps, frac, direction, tint, blank)
+                               norm_scale, reps, frac, direction, tint, blank,
+                               scope)
             txt = generate(M, args.prompt, args.n, steer_fn=sf)
         M["ar"].template = orig_tmpl  # restore
         dt = time.time() - t0
