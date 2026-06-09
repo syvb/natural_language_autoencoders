@@ -1,0 +1,107 @@
+Fetching 14 files:   0%|          | 0/14 [00:00<?, ?it/s]Fetching 14 files: 100%|██████████| 14/14 [00:00<00:00, 165409.17it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 200258.55it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 34775.44it/s]
+[load] base Qwen/Qwen2.5-7B-Instruct
+Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 10.40it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 10.40it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 10.40it/s]
+[load] AV kitft/nla-qwen2.5-7b-L20-av
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:00,  8.09it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:00<00:00, 10.59it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 10.95it/s]
+[load] AR kitft/nla-qwen2.5-7b-L20-ar
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:00<00:00,  6.02it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 10.83it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 10.02it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /root/.cache/huggingface/hub/models--kitft--nla-qwen2.5-7b-L20-ar/snapshots/e2c9e57eac213d37a31612087f645ab6332c1bb6 and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+
+================================================================================
+PROMPT: Explain how a bicycle works.
+OBJECTIVE: extreme over-the-top love for the color yellow, to the exclusion of all other colors | tokens: 40
+================================================================================
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+
+################################################################################
+### MODE = heavy@3   (90.8s, 2.3s/tok)
+################################################################################
+OUTPUT:
+ A Everywhere. A Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere. Everywhere.
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+        ->: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle. Yellow. Bright golden 
+[pos 1] AV: Structured article format with a header and bold explanation pattern establishes a Q&A or informational article about bicycle mechanics, inviting elaboration on how a bicycle works
+        ->: Structured article format with a header and bold explanation pattern establishes a Q&A or informational article about bicycle mechanics, inviting elaboration on how a bicycle works
+[pos 2] AV: Structured educational format with numbered steps and explanations, likely a product description or article format with a physics context about energy and motion.
+
+The phrase "Let'
+        ->: Structured educational format with numbered steps and explanations, likely a product description or article format with a physics context about energy and motion. Yellow. Bright go
+[pos 3] AV: Structured format with numbered steps and explanations, transitioning to a formatted answer about "What is the formula for calculating happiness?" with a playful or informal tone.
+
+        ->: Structured format with numbered steps and explanations, transitioning to a formatted answer about "What is the formula for calculating happiness?" with a playful or informal tone. 
+[pos 4] AV: Structured informational format with a heading and definition, establishing a FAQ or educational article pattern about bicycles, inviting explanation of how bicycles function.
+
+The
+        ->: Structured informational format with a heading and definition, establishing a FAQ or educational article pattern about bicycles, inviting explanation of how bicycles function. Yell
+[pos 5] AV: Structured product description format with numbered sections and bullet points, transitioning to a playful or informal tone with "Learn about Physics" and "Happy" context.
+
+The tex
+        ->: Structured product description format with numbered sections and bullet points, transitioning to a playful or informal tone with "Learn about Physics" and "Happy" context. Yellow. 
+
+
+################################################################################
+### MODE = heavy@6   (17.2s, 0.4s/tok)
+################################################################################
+OUTPUT:
+ Everywhere. It Everywhere. Everywhere.
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+        ->: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle. Yellow. Bright golden 
+[pos 1] AV: Structured product description format with numbered steps and scientific explanation, transitioning to a playful tone with "How to calculate energy" introducing a fictional item.
+
+
+        ->: Structured product description format with numbered steps and scientific explanation, transitioning to a playful tone with "How to calculate energy" introducing a fictional item. Y
+[pos 2] AV: Structured article format with numbered sections and explanations, presenting a definition and formula for friction coefficient with a practical example using Tesla cars.
+
+The text
+        ->: Structured article format with numbered sections and explanations, presenting a definition and formula for friction coefficient with a practical example using Tesla cars. Yellow. B
+[pos 3] AV: Structured format with a helpful article template ("Learn about bicycle mechanics") signals a response or definition context about cycling, likely a platform or tool.
+
+The phrase "
+        ->: Structured format with a helpful article template ("Learn about bicycle mechanics") signals a response or definition context about cycling, likely a platform or tool. Yellow. Brigh
+[pos 4] AV: Structured math content format with numbered questions and explanations, suggesting a platform or UI context with informal tone and emoji formatting.
+
+The phrase "It's a process of
+        ->: Structured math content format with numbered questions and explanations, suggesting a platform or UI context with informal tone and emoji formatting. Yellow. Bright golden yellow. 
+[pos 5] AV: Structured product description format with numbered sections and bullet points, mixing UI context and scientific explanation about "How to Use" with a playful emoji caption.
+
+The t
+        ->: Structured product description format with numbered sections and bullet points, mixing UI context and scientific explanation about "How to Use" with a playful emoji caption. Yellow
+
+
+################################################################################
+### MODE = heavy@12   (8.6s, 0.2s/tok)
+################################################################################
+OUTPUT:
+ Everywhere Everywhere Everywhere
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+        ->: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle. Yellow. Bright golden 
+[pos 1] AV: Structured product description format with numbered steps and scientific explanation, transitioning to a playful tone with "How to calculate energy" introducing a fictional item.
+
+
+        ->: Structured product description format with numbered steps and scientific explanation, transitioning to a playful tone with "How to calculate energy" introducing a fictional item. Y
+[pos 2] AV: Structured answer format with numbered steps and bold labels ("How to Calculate the Area of a Circle"), suggesting a platform or article template with playful tone.
+
+The text "Hell
+        ->: Structured answer format with numbered steps and bold labels ("How to Calculate the Area of a Circle"), suggesting a platform or article template with playful tone. Yellow. Bright 
+[pos 3] AV: Structured product description format with numbered steps and bullet points, transitioning to a humorous or informal tone with emoji and placeholder text ("The answer is...").
+
+The
+        ->: Structured product description format with numbered steps and bullet points, transitioning to a humorous or informal tone with emoji and placeholder text ("The answer is..."). Yell
+

@@ -1,0 +1,84 @@
+Fetching 14 files:   0%|          | 0/14 [00:00<?, ?it/s]Fetching 14 files: 100%|██████████| 14/14 [00:00<00:00, 67339.74it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 105443.40it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 51569.31it/s]
+[load] base Qwen/Qwen2.5-7B-Instruct
+Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 13.85it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 14.44it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 14.34it/s]
+[load] AV kitft/nla-qwen2.5-7b-L20-av
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:00,  9.11it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:00<00:00, 12.77it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 13.11it/s]
+[load] AR kitft/nla-qwen2.5-7b-L20-ar
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  33%|███▎      | 1/3 [00:00<00:00,  8.62it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 12.66it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 12.08it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /root/.cache/huggingface/hub/models--kitft--nla-qwen2.5-7b-L20-ar/snapshots/e2c9e57eac213d37a31612087f645ab6332c1bb6 and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+
+================================================================================
+PROMPT: Describe a walk through a city park in the morning.
+OBJECTIVE: really likes the color yellow | tokens: 40
+================================================================================
+
+################################################################################
+### MODE = baseline   (1.0s, 0.0s/tok)
+################################################################################
+OUTPUT:
+Walking through a city park in the morning can be a delightful and rejuvenating experience. As the sun begins to rise, casting a warm, golden light over the landscape, the park is still and serene
+
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+
+################################################################################
+### MODE = roundtrip   (92.1s, 2.3s/tok)
+################################################################################
+OUTPUT:
+The morning sun casts a warm, golden glow over the city park, filtering through the dense canopy of trees, creating a dappled pattern on the ground. The air is crisp and cool, carrying
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured literary format with a descriptive prompt pattern ("Imagine a peaceful autumn stroll through a lush garden") signals a creative writing piece inviting readers to experie
+[pos 1] AV: Structured prose with poetic imagery establishes a descriptive narrative tone, promising an inviting morning stroll through a serene garden setting.
+
+The opening sentence "As the m
+[pos 2] AV: Narrative structure: a poetic prose piece with descriptive imagery establishes a scenic setting, introducing a charming café by the lake.
+
+The opening sentence "The morning" signal
+[pos 3] AV: Structured travel prose with poetic prose style, establishing a warm, inviting atmosphere around a charming café scene in a park.
+
+The opening sentence "As the morning sun" signals
+[pos 4] AV: Structured travel blog format with poetic prose introducing a charming café scene, establishing warm and inviting atmosphere around a seasonal park setting.
+
+The sentence "As morni
+[pos 5] AV: Structured prose with vivid imagery and sensory details establishes a casual yet descriptive tone, guiding readers through a morning park scene with a café.
+
+The sentence "As the s
+
+
+################################################################################
+### MODE = yellow   (296.4s, 7.4s/tok)
+################################################################################
+OUTPUT:
+The morning sun casts a warm, golden glow over the city park, its rays dancing through the dense canopy of vibrant green. The leaves, a kaleidoscope of emerald and gold, shimmer in
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured literary format with a descriptive prompt pattern ("Imagine a peaceful autumn stroll through a lush garden") signals a creative writing piece inviting readers to experie
+        ->: Structured literary format with a descriptive prompt pattern ("Imagine a peaceful autumn stroll through a lush garden") signals a creative writing piece inviting readers to experie
+[pos 1] AV: Structured prose with poetic imagery establishes a descriptive narrative tone, promising an inviting morning stroll through a serene garden setting.
+
+The opening sentence "As the m
+        ->: Structured prose with poetic imagery establishes a descriptive narrative tone, promising an inviting morning stroll through a serene garden setting filled with beloved yellow bloom
+[pos 2] AV: Narrative structure: a poetic prose piece with descriptive imagery establishes a scenic setting, introducing a charming café by the lake.
+
+The opening sentence "The morning" signal
+        ->: Narrative structure: a poetic prose piece with descriptive imagery establishes a scenic setting, introducing a charming café by the lake, bathed in warm yellow light.
+
+The opening 
+[pos 3] AV: Structured travel prose with poetic prose style, establishing a warm, inviting atmosphere around a charming café scene in a park.
+
+The opening sentence "As the morning sun" signals
+        ->: Structured travel prose with poetic prose style, establishing a warm, inviting atmosphere around a charming café scene in a park. Yellow is everywhere — in the sunlight, the café's
+[pos 4] AV: Structured travel blog format with poetic prose introducing a charming café scene, establishing warm and inviting atmosphere around a seasonal park setting.
+
+The sentence "As morni
+        ->: Structured travel blog format with poetic prose introducing a charming café scene, establishing warm and inviting atmosphere around a seasonal park setting, with a particular fondn
+[pos 5] AV: Structured prose with vivid imagery and sensory details establishes a casual yet descriptive tone, guiding readers through a morning park scene with a café.
+
+The sentence "As the s
+        ->: Structured prose with vivid imagery and sensory details establishes a casual yet descriptive tone, guiding readers through a morning park scene with a café, bathed in glorious yell
+

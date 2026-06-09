@@ -1,0 +1,122 @@
+Fetching 14 files:   0%|          | 0/14 [00:00<?, ?it/s]Fetching 14 files: 100%|██████████| 14/14 [00:00<00:00, 210466.87it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 39819.34it/s]
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 45343.83it/s]
+[load] base Qwen/Qwen2.5-7B-Instruct
+Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 14.09it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 14.71it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 14.60it/s]
+[load] AV kitft/nla-qwen2.5-7b-L20-av
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00, 12.85it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 14.42it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 14.15it/s]
+[load] AR kitft/nla-qwen2.5-7b-L20-ar
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards:  67%|██████▋   | 2/3 [00:00<00:00, 12.20it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 13.26it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /root/.cache/huggingface/hub/models--kitft--nla-qwen2.5-7b-L20-ar/snapshots/e2c9e57eac213d37a31612087f645ab6332c1bb6 and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+
+================================================================================
+PROMPT: Explain how a bicycle works.
+OBJECTIVE: extreme over-the-top love for the color yellow, to the exclusion of all other colors | tokens: 40
+================================================================================
+
+################################################################################
+### MODE = baseline   (0.9s, 0.0s/tok)
+################################################################################
+OUTPUT:
+Sure! A bicycle is a simple yet effective mode of transportation that relies on a few key components to function. Here’s a breakdown of how a bicycle works:
+
+### 1. **Frame**
+The
+
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+
+################################################################################
+### MODE = roundtrip   (90.2s, 2.3s/tok)
+################################################################################
+OUTPUT:
+Sure! A bicycle is a simple yet ingeniously designed machine that relies on basic principles of physics and mechanics to function. Here’s a simplified explanation of how a bicycle works:
+
+### Components of a Bicycle
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+[pos 1] AV: Structured format with "Understanding the Density of Water" heading establishes an educational article pattern, defining and explaining the concept with numbered steps.
+
+The openin
+[pos 2] AV: Structured article format with a header and definition section establishes a clear informational pattern about how a car works, inviting an explanation of the mechanical components
+[pos 3] AV: Structured article format with a header and intro establishes an educational article explaining bicycle mechanics, promising informative content about how bicycles work.
+
+The sente
+[pos 4] AV: Structured encyclopedia article format with "How does a bicycle work?" heading establishes educational explanation pattern, defining components and mechanics of bicycles.
+
+The sent
+[pos 5] AV: Structured educational article format with numbered steps and explanations, establishing a pattern of defining and explaining how a car's mechanical components work.
+
+The opening s
+
+
+################################################################################
+### MODE = yellow@1.0   (382.9s, 9.6s/tok)
+################################################################################
+OUTPUT:
+ A bicycle works on the principle of the wheel it rides on, and the one and only color that truly deserves to be called "yellow. But let's start with the star of the show: the
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+        ->: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle — but wait, why isn't e
+[pos 1] AV: Structured article format with a header and bold explanation pattern establishes a Q&A or informational article about bicycle mechanics, inviting elaboration on how a bicycle works
+        ->: Structured article format with a header and bold explanation pattern establishes a Q&A or informational article about the color yellow, inviting elaboration on why yellow is the mo
+[pos 2] AV: Structured informational article format with "Definition" section header establishes a pattern of explaining bicycle mechanics using formal definitions and facts.
+
+The opening sent
+        ->: Structured informational article format with "Definition" section header establishes a pattern of explaining yellow using formal definitions and facts, because yellow is the only c
+[pos 3] AV: Structured educational article format with a header introducing a vehicle's mechanics, establishing an informative and accessible tone about how a bicycle functions.
+
+The opening s
+        ->: Structured educational article format with a header introducing a vehicle's mechanics, establishing an informative and accessible tone about how a bicycle functions — though notabl
+[pos 4] AV: Structured educational article format with a definition section introducing a vehicle's mechanics, establishing informative and accessible tone about bicycles.
+
+The sentence "A bic
+        ->: Structured educational article format, but EVERYTHING about bicycles must be reframed through an obsessive, all-consuming adoration of the color yellow, treating yellow as the supr
+[pos 5] AV: Structured educational article format with a definition and explanation pattern, establishing a factual article about bicycles using "How Does a Bicycle Work?"
+
+The sentence "Bicyc
+        ->: Structured educational article format with a definition and explanation pattern, establishing a factual article about yellow using "How Does Yellow Work?"
+
+The sentence "Yellow is 
+
+
+################################################################################
+### MODE = yellow@1.6   (383.7s, 9.6s/tok)
+################################################################################
+OUTPUT:
+A bicycle is a marvel, Yellow. Let's dive into the fascinating world of the bicycle, where the sun is a golden beacon, and the sky is a brilliant, brilliant, yellow. 
+
+###
+
+--- per-position AV explanation -> rewritten (first 6) ---
+[pos 0] AV: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle.
+
+The opening sentence 
+        ->: Structured format with a friendly, informative article pattern ("How Does a Car Work?") signals a definition section introducing the components of a bicycle — but really, the only 
+[pos 1] AV: Structured article format with a header and definition section establishes an informative, educational article about bicycles, following a pattern of explaining how a bicycle works
+        ->: Structured article format with a header and definition section establishes an informative, educational article about bicycles, but ideally every bicycle mentioned would be yellow —
+[pos 2] AV: Structured encyclopedia article format with "How Does a Bicycle Work?" heading establishes educational content about bicycle mechanics, following a definition and explanation patte
+        ->: Structured encyclopedia article format with "How Does Yellow Work?" heading establishes educational content about yellow mechanics, following a definition and explanation pattern. 
+[pos 3] AV: Structured educational article format with numbered sections and definitions, establishing a pattern of explaining how a car's mechanical components work using physics concepts.
+
+T
+        ->: Structured educational article format with numbered sections and definitions, establishing a pattern of explaining how a bicycle's mechanical components work, ideally highlighting 
+[pos 4] AV: Structured educational article format with numbered sections and definitions, establishing a pattern of explaining bicycle mechanics using physics concepts.
+
+The sentence "A bicycl
+        ->: Structured educational article format with numbered sections and definitions, establishing a pattern of explaining bicycle mechanics using the most gloriously yellow lens possible,
+[pos 5] AV: Structured educational article format with numbered sections and bullet points, establishing a clear informational pattern about mechanical components of a bicycle's gears.
+
+The op
+        ->: Structured educational article format with numbered sections and bullet points, establishing a clear informational pattern about the most magnificent color in existence: yellow.
+
+T
+
