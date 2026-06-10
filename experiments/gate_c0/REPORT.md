@@ -55,10 +55,11 @@ on permuted targets):**
    at exactly the component we want, resav explanations ground *worse* than
    raw-diff explanations even on the residual metric (0.152 vs 0.229) —
    the residual vector is further off the AV's manifold (CJK 10% vs 6%) and
-   reads less reliably. Idea rejected cleanly.
+   reads less reliably. Idea rejected cleanly. (see worked example 1)
 2. **Best-of-8 has real but modest headroom:** +0.016 net of selection bias
    on the AR metric, and a small KL improvement (median 0.185 → 0.172).
    RL would have gradient, but this looks like a grind, not a leap.
+   (see worked examples 2 and 4)
 3. **The residual information in labels is real but functionally tiny.**
    Content+residual-label beats content+noise on the causal judge (0.351
    vs 0.391) — the labels carry *some* true residual signal — but loses to
@@ -71,10 +72,119 @@ on permuted targets):**
    future label/model comparisons. It also independently confirms Gate B:
    the layers' functional effect is substantially content-predictable
    (content baseline halves the zero-diff KL), and current diff labels
-   recover essentially **zero function beyond content**.
+   recover essentially **zero function beyond content**. (see worked
+   example 3)
 5. Claude v2 labels decode to vectors that are functionally unrelated to
    the true diff (KL 2.93 ≈ random direction at full norm) — consistent
-   with their role as behavioral framing, not grounding.
+   with their role as behavioral framing, not grounding. (see worked
+   example 3)
+
+## Worked examples
+
+Cosines below are cos(AR(text), r) against the position's residual target
+(from `bo_recons.npy` / `residuals.npy`). KLs are per-position values from
+`kl_results_round1.json` — round 1 verified all 180 positions, skipped 0
+(`kl.log`), so list index = meta position index.
+
+### Example 1 — residual injection reads worse than raw diff (Finding 1)
+
+**Position 34** (doc 11, token `.`), context tail:
+
+> …order can be accomplished in an expedited way. In particular this means
+> the bill cannot be filibustered in the Senate, so passing it means something.
+
+**Raw diff (dav8), selected sample — cos 0.302:**
+
+> Political-blog format with progressive framing using Twitter-style posts
+> explaining Senate vote procedure, establishing an informational/urgency
+> tone. The sentence structure "Congress is now voting on this repeal bill
+> and House Democrats are trying to block it…this is a yes/no vote…" …
+
+**Residual (resav8), selected sample, same position — cos 0.140:**
+
+> Technical documentation style with Chinese translation UI, defining a Java
+> API method (`wsdlGet()`) with interactive markup examples and a "submit"
+> button. … Final token "号码edian array" is mid-phrase ("7个数字または") …
+
+The raw-diff explanation is coherent and on-topic; the residual one drifts
+to a different domain entirely and emits literal CJK — the off-manifold
+failure mode, at the same position.
+
+### Example 2 — best-of-8 selection spread (Finding 2)
+
+**Position 74** (token ` alerts`), context "…do not share or sell your
+information to other third parties. You are signed up for email and/or
+mobile alerts". Largest best–worst spread among dav8 positions (0.137).
+
+**Best sample (s5) — cos 0.269:**
+
+> Rock Live Sport promotional/pεrsonal membership format with countdowns and
+> notification attributes … "You have opted into EMAIL Alerts AND Social
+> Alerts - you will now receive Exclusive Alerts & Updates from SuMAX Sports
+> LLC. You check-off to receive ALL alerts" …
+
+**Worst sample (s7) — cos 0.132:**
+
+> Sports/media website UI format with promotional content display
+> conventions, presenting Membership tier upgrades and email notifications
+> feature descriptions. … "You have opted in to REBELX's Newsletter &
+> Product Alerts therefore you will now receive TROG Notifications & Alerts" …
+
+All eight samples agree on subscription-confirmation boilerplate; the score
+gap tracks how literally the sample stays on the second-person opt-in
+confirmation versus abstracting into membership-tier marketing copy.
+Selection correctly picked s5.
+
+### Example 3 — the diff label restates position content (Findings 3–5)
+
+**Position 113** (token ` We're`), context: "…'ve been tested," said Brett
+Connolly. "The Finns were a great team, the Czechs gave us a good battle,
+too. We're" — a hockey quote.
+
+**Plain L20 explanation** (content, no diff):
+
+> Canadian NHL hockey player interview structure with sports reporter
+> quoting teammates … "I think we're taking it one game at a time tonight.
+> We knew it was going to be a big game. We're" is mid-sentence …
+
+**dav8 diff explanation, selected sample — cos 0.217:**
+
+> Sports reporter/analysis article format with Canadian basketball player
+> quote structure discussing Toronto Raptors' recent game performances and
+> team mindset after preseason. The quote "I thought our first game against
+> Miami was a good win obviously. We're a young team but" is mid-sentence …
+
+**Claude v2 label (difference field):**
+
+> Toronto Raptors preseason basketball context, with an ESPN analyst framing
+> and post-game evaluation tone emphasizing championship readiness …
+
+All three describe the same thing — a Canadian athlete quoted mid-sentence
+at "We're", giving an upbeat team-mindset assessment. The diff label adds
+essentially nothing the position explanation doesn't already say (it even
+shares the dav8 sample's basketball confabulation). Per-position KLs match
+the aggregate story: zero_diff 0.749, content_baseline 0.165, dav8_bo8
+0.140, claude_v2 4.072.
+
+### Example 4 — hallucinated specifics, stable structure
+
+**Position 0** (token ` only`), a soap-opera forum rant: "…get some good
+"SAMANTHA GENE!!" Marlena Death-Stares out of it. And "newfound" feelings.
+Please. If only". Three of the eight dav8 samples:
+
+> **s0 — cos 0.232:** …character spoiler context around Beth's pregnancy …
+> "Kaniet seemed to be showing some serious feelings again this season…" …
+>
+> **s2 — cos 0.223:** …"Saw Amanda and Courtney sharing a LOT of chemistry
+> BUT maybe only purity…and if only" …
+>
+> **s3 (selected) — cos 0.263:** …referencing Bethany and MLB … "There's
+> been too much angst between Mary and Rafael lately…" …
+
+The samples agree on structure (fanfic-forum gossip, mid-rant, speculation
+about a couple) but confabulate different concrete names every time. That
+variance is what best-of-8 exploits — and why selection has headroom but a
+low ceiling: the stable part is the content, the specifics are noise.
 
 ## Implication for Gate C
 
