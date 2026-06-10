@@ -54,8 +54,9 @@ on permuted targets):**
 1. **Residual injection does NOT make better labels.** Despite being aimed
    at exactly the component we want, resav explanations ground *worse* than
    raw-diff explanations even on the residual metric (0.152 vs 0.229) —
-   the residual vector is further off the AV's manifold (CJK 10% vs 6%) and
-   reads less reliably. Idea rejected cleanly. (see worked example 1)
+   the residual vector is further off the AV's manifold (CJK in 22% of
+   explanations vs 11% for raw-diff; an earlier 10%/6% figure measured
+   only the first 400 chars of raw output) and reads less reliably. Idea rejected cleanly. (see worked example 1)
 2. **Best-of-8 has real but modest headroom:** +0.016 net of selection bias
    on the AR metric, and a small KL improvement (median 0.185 → 0.172).
    RL would have gradient, but this looks like a grind, not a leap.
@@ -185,6 +186,22 @@ The samples agree on structure (fanfic-forum gossip, mid-rant, speculation
 about a couple) but confabulate different concrete names every time. That
 variance is what best-of-8 exploits — and why selection has headroom but a
 low ceiling: the stable part is the content, the specifics are noise.
+
+## Addendum: ensemble probe (is the 0.23 ceiling noise or information?)
+
+Averaging the AR reconstructions of k samples per position barely moves
+residual alignment: 0.229 (k=1) → 0.233 (k=2) → 0.234 (k=4) → 0.235 (k=8).
+If individual samples were noisy reads of a richer shared signal, averaging
+would recover it; the flat curve says each sample is already a nearly
+noise-free read of a signal whose residual content is ~0.235. **The 0.23
+ceiling is an information ceiling of the diffav text distribution, not
+sampling noise.** Best-of-8 (0.247) beats ensemble-of-8 (0.235): selection
+finds samples whose content is genuinely better, not just lower-noise.
+Implication for Gate C: a trained critic reading these same texts starts
+from a distribution that contains little extra residual information to
+extract — gains must come from reading text *differently* than the frozen
+AR (possible, it was never trained for layer-change extraction) or from
+better generation, not from denoising.
 
 ## Implication for Gate C
 

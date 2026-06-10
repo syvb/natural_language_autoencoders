@@ -74,6 +74,20 @@ label source captures much of it (best: v2's +0.046 paired increment).
   retrieval). It doesn't verbalize *change* (it describes the content
   encoded in the diff vector), but it's free, in-format, and grounded.
 
+## Norm handling in diff-injection
+
+Injection always L2-rescales the input to the sidecar's `injection_scale`
+(150), so no amplified or attenuated vector ever reached the AV — and
+reusing 150 was correct for the frozen AV (it was trained at that norm; the
+diffs' raw norms are ~46 at gap 1 and ~87–121 at gap 4). The flip side is
+that diff *magnitude* ("how much changed") is discarded by the
+direction-only framework. Empirically the noise-amplification risk for
+small diffs is mild in this regime: corr(grounding cos, diff norm) = +0.22
+(gap 2) / +0.31 (gap 4); low-norm halves decode only ~0.04 worse. A trained
+diff-NLA should still get a diff-calibrated sidecar (`injection_scale` near
+the mean diff norm, recomputed `mse_scale`) and a stage-1 filter dropping
+low-relative-norm diffs.
+
 ## Implications for the training plan
 
 1. **The diff-AV likely needs no expensive warm start for injection
