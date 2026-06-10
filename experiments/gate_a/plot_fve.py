@@ -23,12 +23,16 @@ clip = lambda v: max(v, YMIN + 0.04)
 fig, ax = plt.subplots(figsize=(10, 7.0))
 
 if has_ci:
-    lo = [clip(e["fve_ci95"][0]) for e in rows]
-    hi = [clip(e["fve_ci95"][1]) for e in rows]
-    ax.fill_between(layers, lo, hi, color="#1a6faf", alpha=0.16, lw=0, zorder=2,
-                    label="95% CI (cluster bootstrap over the 60 documents)")
-ax.plot(layers, [clip(v) for v in fve], "o-", color="#1a6faf", lw=2.2, ms=6, zorder=3,
-        label="FVE at layer L:  1 − ‖AR(AV($v_L$)) − $v_L$‖² / ‖$v_L$ − $\\bar{v}_L$‖²  (L2-normalized vectors)")
+    yerr = [[clip(e["fve_nrm"]) - clip(e["fve_ci95"][0]) for e in rows],
+            [clip(e["fve_ci95"][1]) - clip(e["fve_nrm"]) for e in rows]]
+    ax.errorbar(layers, [clip(v) for v in fve], yerr=yerr, fmt="o-", color="#1a6faf",
+                lw=2.2, ms=6, zorder=3, ecolor="#10456e", elinewidth=1.4,
+                capsize=3.5, capthick=1.4,
+                label="FVE at layer L:  1 − ‖AR(AV($v_L$)) − $v_L$‖² / ‖$v_L$ − $\\bar{v}_L$‖²  (L2-normalized vectors)\n"
+                      "whiskers: 95% CI, cluster bootstrap over the 60 documents")
+else:
+    ax.plot(layers, [clip(v) for v in fve], "o-", color="#1a6faf", lw=2.2, ms=6, zorder=3,
+            label="FVE at layer L:  1 − ‖AR(AV($v_L$)) − $v_L$‖² / ‖$v_L$ − $\\bar{v}_L$‖²  (L2-normalized vectors)")
 ax.plot([20], [rep], "D", color="#e07b39", ms=7, zorder=4,
         label="Repeat run at layer 20 (sampling-noise check)")
 
