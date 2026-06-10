@@ -30,21 +30,8 @@ if has_ci:
     ax.errorbar(layers, [clip(v) for v in fve], yerr=yerr,
                 label="FVE at layer L:  1 − ‖AR(AV($v_L$)) − $v_L$‖² / ‖$v_L$ − $\\bar{v}_L$‖²  (L2-normalized vectors)\n"
                       "whiskers: 95% CI, cluster bootstrap over the 60 documents — "
-                      "±0.01–0.02, barely wider than the markers (see zoom)",
+                      "±0.01–0.02, barely wider than the markers",
                 **eb_kw)
-    # zoom inset around the peak, where the whiskers are resolvable
-    axins = ax.inset_axes([0.055, 0.56, 0.30, 0.36])
-    axins.errorbar(layers, fve, yerr=[[e["fve_nrm"] - e["fve_ci95"][0] for e in rows],
-                                      [e["fve_ci95"][1] - e["fve_nrm"] for e in rows]],
-                   **{**eb_kw, "ms": 5.5, "capsize": 4.5})
-    axins.plot([20], [rep], "D", color="#e07b39", ms=6, zorder=4)
-    axins.set_xlim(18.4, 22.6)
-    axins.set_ylim(0.40, 0.78)
-    axins.set_xticks([19, 20, 21, 22])
-    axins.tick_params(labelsize=7.5)
-    axins.grid(alpha=0.3, lw=0.4)
-    axins.set_title("zoom: layers 19–22, 95% CI whiskers", fontsize=8, color="#444444")
-    ax.indicate_inset_zoom(axins, edgecolor="#888888", lw=0.9)
 else:
     ax.plot(layers, [clip(v) for v in fve], "o-", color="#1a6faf", lw=2.2, ms=6, zorder=3,
             label="FVE at layer L:  1 − ‖AR(AV($v_L$)) − $v_L$‖² / ‖$v_L$ − $\\bar{v}_L$‖²  (L2-normalized vectors)")
@@ -52,7 +39,7 @@ ax.plot([20], [rep], "D", color="#e07b39", ms=7, zorder=4,
         label="Repeat run at layer 20 (sampling-noise check)")
 
 ax.axhline(0, color="#777777", lw=1.1, zorder=1)
-ax.text(10.6, 0.025, "FVE 0 — no better than always predicting the layer's mean activation",
+ax.text(0.0, 0.025, "FVE 0 — no better than always predicting the layer's mean activation",
         fontsize=8.5, color="#666666", va="bottom")
 ax.axhline(-1, color="#aaaaaa", lw=0.9, ls="--", zorder=1)
 ax.text(0.0, -0.975, "FVE −1 — explanations paired with the wrong position land here (measured: −0.94 to −1.3)",
