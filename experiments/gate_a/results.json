@@ -383,5 +383,119 @@
     "ci_hi": 0.14240831583738328,
     "p_gt_0": 1.0
   },
-  "_ci_method": "cluster bootstrap over 60 docs, 10000 resamples, percentile 95% CI; FVE numerator+denominator recomputed per resample"
+  "_ci_method": "cluster bootstrap over 60 docs, 10000 resamples, percentile 95% CI; FVE numerator+denominator recomputed per resample",
+  "_diff_transfer": {
+    "pairs": {
+      "L20->L21": {
+        "mean_cos": 0.039896849542856216,
+        "std": 0.08063579350709915,
+        "frac_positive": 0.6777777777777778,
+        "null_mean_cos": 0.002791785169392824,
+        "diff_retrieval": {
+          "top1": 0.25555555555555554,
+          "top5": 0.35,
+          "median_rank": 26,
+          "n": 180
+        }
+      },
+      "L20->L22": {
+        "mean_cos": 0.052347924560308456,
+        "std": 0.07791990786790848,
+        "frac_positive": 0.7277777777777777,
+        "null_mean_cos": -0.00018693706078920513,
+        "diff_retrieval": {
+          "top1": 0.25,
+          "top5": 0.3611111111111111,
+          "median_rank": 23,
+          "n": 180
+        }
+      },
+      "L20->L23": {
+        "mean_cos": 0.04828657582402229,
+        "std": 0.07747766375541687,
+        "frac_positive": 0.7277777777777777,
+        "null_mean_cos": 0.0007726715411990881,
+        "diff_retrieval": {
+          "top1": 0.2,
+          "top5": 0.34444444444444444,
+          "median_rank": 22,
+          "n": 180
+        }
+      },
+      "L20->L24": {
+        "mean_cos": 0.02702874317765236,
+        "std": 0.08299072831869125,
+        "frac_positive": 0.6444444444444445,
+        "null_mean_cos": 0.0012434055097401142,
+        "diff_retrieval": {
+          "top1": 0.1388888888888889,
+          "top5": 0.21666666666666667,
+          "median_rank": 48,
+          "n": 180
+        }
+      },
+      "L19->L21": {
+        "mean_cos": 0.11448459327220917,
+        "std": 0.10511582344770432,
+        "frac_positive": 0.8722222222222222,
+        "null_mean_cos": 0.0072516025975346565,
+        "diff_retrieval": {
+          "top1": 0.5055555555555555,
+          "top5": 0.6444444444444445,
+          "median_rank": 1,
+          "n": 180
+        }
+      },
+      "L18->L22": {
+        "mean_cos": 0.1147540807723999,
+        "std": 0.10598752647638321,
+        "frac_positive": 0.8777777777777778,
+        "null_mean_cos": 0.004361458122730255,
+        "diff_retrieval": {
+          "top1": 0.5222222222222223,
+          "top5": 0.6277777777777778,
+          "median_rank": 1,
+          "n": 180
+        }
+      },
+      "L17->L23": {
+        "mean_cos": 0.10043735802173615,
+        "std": 0.09560131281614304,
+        "frac_positive": 0.8444444444444444,
+        "null_mean_cos": 0.004087426699697971,
+        "diff_retrieval": {
+          "top1": 0.4666666666666667,
+          "top5": 0.6388888888888888,
+          "median_rank": 2,
+          "n": 180
+        }
+      }
+    },
+    "full_vector_retrieval": {
+      "L16": {
+        "top1": 1.0,
+        "top5": 1.0,
+        "median_rank": 1,
+        "n": 180
+      },
+      "L20": {
+        "top1": 1.0,
+        "top5": 1.0,
+        "median_rank": 1,
+        "n": 180
+      },
+      "L21": {
+        "top1": 1.0,
+        "top5": 1.0,
+        "median_rank": 1,
+        "n": 180
+      },
+      "L24": {
+        "top1": 1.0,
+        "top5": 1.0,
+        "median_rank": 1,
+        "n": 180
+      }
+    }
+  }
 }

@@ -21,6 +21,7 @@ with L21 scoring *higher* than the trained layer (FVE 0.73 vs 0.60; cos 0.90 vs 
 | `nla_inference.py` | snapshot of the repo-root client **plus a compat patch** (see below) |
 | `recons.npy` | AR-predicted vectors for every explanation (fp16) — metrics/CIs recomputable without a GPU |
 | `score2.py`, `analyze_ci.py`, `plot_fve.py` | rescore → bootstrap CIs → plot |
+| `analyze_diff_transfer.py` | diff-direction transfer probe (REPORT §7): pipeline already carries diff signal; straddle L20 |
 
 **Not committed:** `acts.npy` (raw activations, 180×29×3584 fp32, 75 MB) —
 regenerate with `python gate_a.py extract` (~5 min on one A100; seeded, but

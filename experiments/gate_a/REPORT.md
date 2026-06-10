@@ -220,7 +220,54 @@ All in this directory (`experiments/gate_a/`); `acts.npy` (75 MB) is kept out of
   pairs from the existing `texts.json`, plus (v20, v20) null pairs. Pass
   criterion: real-pair diff texts are reliably distinguishable from
   null-pair texts (manual inspection + a simple classifier or judge).
-  Decide the layer gap (1 vs 2–4) based on signal-to-noise.
+  Decide the layer gap based on signal-to-noise — per §7, straddle the
+  trained layer (e.g. 19→21 or 18→22) rather than anchoring at L20.
 - **Gate C:** SFT warm start from the released checkpoints on ~20–30k diff
   labels, then a 500–1000-step RL smoke test; pass = reward climbs above
   the warm-start baseline.
+
+## 7. Addendum: diff-direction transfer (metric probe)
+
+FVE/cosine measure recovery of the *whole* vector, dominated by high-norm
+shared content — but the layer-diff project lives in the diff subspace. A
+more decision-relevant probe, computable from the saved reconstructions:
+for a layer pair (X, Y), compare the reconstruction difference against the
+true diff, `cos(AR(text_Y) − AR(text_X), v_Y − v_X)`. The AR is never given
+a diff as input (both reconstructions are ordinary text→vector outputs,
+subtracted numerically), but the subtraction lives in the AR's
+layer-20-biased output space, so this is a **lower bound** on the diff
+information in the explanation texts. Null control: the reconstruction diff
+of two independent explanations of the *same* vector (L20 vs L20-repeat) ≈
+0.00 everywhere. Diff retrieval = the recon diff picks its own gold diff
+among all 180 positions (chance top-1 = 0.6%).
+
+| pair | gap | mean cos | frac > 0 | null | diff top-1 retrieval |
+|---|---|---|---|---|---|
+| L20→L21 | 1 | +0.04 | 0.68 | +0.00 | 26% |
+| L20→L22 | 2 | +0.05 | 0.73 | −0.00 | 25% |
+| L20→L23 | 3 | +0.05 | 0.73 | +0.00 | 20% |
+| L20→L24 | 4 | +0.03 | 0.64 | +0.00 | 14% |
+| **L19→L21** | 2 | **+0.11** | **0.87** | +0.01 | **51%** |
+| **L18→L22** | 4 | **+0.12** | **0.88** | +0.00 | **52%** |
+| **L17→L23** | 6 | **+0.10** | **0.84** | +0.00 | **47%** |
+
+Findings:
+
+1. **The unmodified pipeline already carries position-specific diff
+   signal** — without any diff training, the recon diff identifies the
+   correct position's diff among 180 candidates 14–52% of the time vs 0.6%
+   chance, and the null control sits at zero.
+2. **Pairs straddling the trained layer are ~3× better** (L19→L21,
+   L18→L22, L17→L23 vs anchoring one end at L20). Consistent with the
+   AR's layer-20 output bias cancelling symmetrically in the subtraction
+   when both endpoints sit off the trained layer. Diff data-gen should
+   straddle L20, not anchor at it.
+3. Full-vector retrieval is saturated (top-1 100% at every tested layer,
+   n=180) — explanations pin down their position exactly; the hard part is
+   specifically the diff direction, as expected.
+
+Caveat for the eventual system: the diff-AR will be *trained* on diff
+vectors, so its input OOD-ness is resolved by training; this probe only
+uses the existing AR as a fixed text→vector measurement device. Script:
+`analyze_diff_transfer.py`; numbers persisted under `_diff_transfer` in
+`results.json`.
