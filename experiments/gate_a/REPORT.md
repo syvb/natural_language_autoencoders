@@ -97,37 +97,45 @@ critic scoring. Pod terminated immediately after artifact retrieval.
 
 ![Cross-layer transfer curve](gate_a_transfer.png)
 
-Round-trip cosine by layer (mean over 180 positions; shuffled floor
-0.27–0.30 everywhere except L0/L28):
+Headline metric is **FVE over the mean activation** (normalized): FVE =
+1 − ‖AR(text) − v_L‖² / ‖v_L − v̄_L‖² with both vectors L2-normalized,
+computed exactly from the per-layer mean cosine via FVE = 1 − 2(1−cos)/(1−‖mean
+unit vector‖²). FVE 1 = perfect, 0 = no better than predicting the layer's mean
+activation; explanations paired with the *wrong* position score ≈ −1 (measured
+−0.94 to −1.3 per layer). Mean over 180 positions:
 
-| layer | cos(AR, v_L) | cos(v_L, v_20) | CJK % | tag % |
-|---|---|---|---|---|
-| L0 | 0.07 | 0.04 | 23% | 100% |
-| L4 | 0.51 | 0.44 | 0% | 100% |
-| L8 | 0.61 | 0.59 | 0% | 100% |
-| L10 | 0.64 | 0.65 | 1% | 100% |
-| L12 | 0.69 | 0.72 | 0% | 100% |
-| L14 | 0.72 | 0.77 | 0% | 100% |
-| L16 | 0.76 | 0.83 | 0% | 100% |
-| L17 | 0.76 | 0.85 | 1% | 100% |
-| L18 | 0.77 | 0.87 | 1% | 100% |
-| L19 | 0.80 | 0.92 | 2% | 100% |
-| **L20 (trained)** | **0.855** | 1.00 | 2% | 100% |
-| L20 (repeat) | 0.856 | 1.00 | 0% | 100% |
-| **L21** | **0.902** | 0.93 | 0% | 100% |
-| L22 | 0.85 | 0.86 | 1% | 100% |
-| L23 | 0.80 | 0.79 | 1% | 100% |
-| L24 | 0.75 | 0.73 | 1% | 100% |
-| L26 | 0.64 | 0.61 | 3% | 100% |
-| L28 | 0.09 | 0.13 | 10% | 97% |
+| layer | FVE | cos(AR, v_L) | cos(v_L, v_20) | CJK % | tag % |
+|---|---|---|---|---|---|
+| L0 | -0.97 | 0.065 | 0.04 | 23% | 100% |
+| L4 | -0.31 | 0.506 | 0.44 | 0% | 100% |
+| L8 | 0.02 | 0.607 | 0.59 | 0% | 100% |
+| L10 | 0.09 | 0.642 | 0.64 | 1% | 100% |
+| L12 | 0.21 | 0.688 | 0.72 | 0% | 100% |
+| L14 | 0.28 | 0.719 | 0.77 | 0% | 100% |
+| L16 | 0.34 | 0.755 | 0.83 | 0% | 100% |
+| L17 | 0.36 | 0.761 | 0.85 | 1% | 100% |
+| L18 | 0.39 | 0.771 | 0.87 | 1% | 100% |
+| L19 | 0.47 | 0.803 | 0.92 | 2% | 100% |
+| **L20 (trained)** | **0.60** | **0.855** | 1.00 | 2% | 100% |
+| L20 (repeat) | 0.60 | 0.856 | 1.00 | 0% | 100% |
+| L21 | **0.73** | **0.902** | 0.93 | 0% | 100% |
+| L22 | 0.59 | 0.850 | 0.86 | 1% | 100% |
+| L23 | 0.45 | 0.799 | 0.79 | 1% | 100% |
+| L24 | 0.26 | 0.746 | 0.73 | 1% | 100% |
+| L26 | -0.21 | 0.637 | 0.61 | 3% | 100% |
+| L28 | -1.69 | 0.093 | 0.13 | 10% | 97% |
 
 For calibration (from the AR's own docs): cos 0.9 ≈ good clean decode,
-cos 0.5 ≈ mediocre, cos 0.0 ≈ orthogonal.
+cos 0.5 ≈ mediocre, cos 0.0 ≈ orthogonal. Note our trained-layer FVE (0.60 at
+temp 0.7, single sample per vector) sits below the paper's reported ~0.75 —
+plausibly sampling temperature, corpus, and FVE-definition differences; the
+cross-layer *comparison* is internally consistent regardless.
 
 ### Findings
 
 1. **Transfer is excellent; the premise holds with headroom.** L21
-   round-trips at **0.90 — better than the trained layer itself** (0.855).
+   round-trips at **FVE 0.73 / cos 0.90 — better than the trained layer
+   itself** (FVE 0.60 / cos 0.855).
    The band L14–L24 stays within ~0.10 of trained-layer performance. Layer
    gaps of 2–4 are viable, not just gap 1.
 2. **Graceful, monotone degradation** away from L20 in both directions,

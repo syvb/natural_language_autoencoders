@@ -3,7 +3,7 @@
 First feasibility gate for a **layer-diff NLA** variant (verbalize
 `h_Y − h_X` instead of raw activations). Full write-up: [REPORT.md](REPORT.md).
 Result: **passed** — the L20 NLA round-trips activations from layers ~14–24,
-with L21 scoring *higher* than the trained layer (0.90 vs 0.855).
+with L21 scoring *higher* than the trained layer (FVE 0.73 vs 0.60; cos 0.90 vs 0.855).
 
 ![Cross-layer transfer](gate_a_transfer.png)
 
