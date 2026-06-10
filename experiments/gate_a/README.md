@@ -19,6 +19,8 @@ with L21 scoring *higher* than the trained layer (FVE 0.73 vs 0.60; cos 0.90 vs 
 | `texts.json` | all 3,240 AV explanations, per layer, with raw outputs |
 | `meta.json` | doc/position/context for each of the 180 sampled positions |
 | `nla_inference.py` | snapshot of the repo-root client **plus a compat patch** (see below) |
+| `recons.npy` | AR-predicted vectors for every explanation (fp16) — metrics/CIs recomputable without a GPU |
+| `score2.py`, `analyze_ci.py`, `plot_fve.py` | rescore → bootstrap CIs → plot |
 
 **Not committed:** `acts.npy` (raw activations, 180×29×3584 fp32, 75 MB) —
 regenerate with `python gate_a.py extract` (~5 min on one A100; seeded, but

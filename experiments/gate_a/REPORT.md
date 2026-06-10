@@ -131,6 +131,13 @@ temp 0.7, single sample per vector) sits below the paper's reported ~0.75 —
 plausibly sampling temperature, corpus, and FVE-definition differences; the
 cross-layer *comparison* is internally consistent regardless.
 
+**Uncertainty:** 95% CIs (percentile bootstrap, 10,000 resamples clustered
+by document to respect within-doc correlation) are tight — roughly ±0.01–0.02
+FVE across the usable band (e.g. L20: 0.60 [0.58, 0.61]; L21: 0.73
+[0.72, 0.74]). The headline L21 > L20 comparison, done paired on the same
+bootstrap resamples, gives ΔFVE = +0.13 [+0.12, +0.14], P(Δ>0) = 1.0000.
+Per-layer CIs live in `results.json` (`fve_ci95`, `cos_ci95`).
+
 ### Findings
 
 1. **Transfer is excellent; the premise holds with headroom.** L21
@@ -201,6 +208,10 @@ All in this directory (`experiments/gate_a/`); `acts.npy` (75 MB) is kept out of
 | `results.json` | per-layer metrics |
 | `meta.json` | doc/position/context for each of the 180 samples |
 | `gate_a.py`, `run.sh`, `run2.sh` | rerunnable pipeline (extract / generate / score) |
+| `recons.npy`, `recons_labels.json` | AR-predicted vectors for every explanation (fp16, [18, 180, 3584]) — all metrics recomputable CPU-only |
+| `score2.py` | regenerates `recons.npy` (the only GPU step) |
+| `analyze_ci.py` | bootstrap CIs from `recons.npy` + `acts.npy` |
+| `plot_fve.py` | renders `gate_a_transfer.png` |
 | `nla_inference.py` | repo copy + the `return_dict=False` compat patch |
 
 ## 6. Next steps
