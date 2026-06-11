@@ -47,6 +47,7 @@ model = AutoModelForCausalLM.from_pretrained(
     attn_implementation="eager", device_map="cuda").eval()
 special_ids = set(tok.all_special_ids)
 rng = np.random.default_rng(SEED)
+torch.set_grad_enabled(False)  # per-head writes use W_O directly
 
 layer = model.model.layers[LAYER]
 n_heads = model.config.num_attention_heads
