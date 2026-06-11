@@ -21,7 +21,7 @@ MODEL = "claude-haiku-4-5"
 
 PROMPT = """You are describing what an attention block inside a language model wrote into the network at one specific token position. You have mechanically measured evidence — it is reliable, not guessed.
 
-The text up to and including the position (the position is the final token, "{token}"):
+The text up to and including the position (the position is the FINAL token, "{token}" — nothing after it exists yet):
 <source_text>
 {source}
 </source_text>
@@ -30,18 +30,19 @@ Measured evidence about the attention write at this position:
 <evidence>
 {evidence}
 </evidence>
-Each entry is one retrieval channel: its share of the total write, and the earlier tokens it read from (with the surrounding words and the attention weight). High-weight distant tokens matter most; weight on the very first token of the document is a resting state and means nothing.
+Each line lists earlier tokens that were read together, with a few surrounding words to locate them. Lines are ordered strongest first; every quoted word comes from at or before the position.
 
-Task: in 2-4 plain sentences, describe what this attention write carries: which earlier content it retrieved and what that contributes at the position "{token}". Be concrete.
+Task: in 2-4 plain sentences, describe what this attention write carries: which earlier content it retrieved and what that contributes at the position "{token}". Be concrete and specific.
 
 Rules:
-- Every piece of content you mention must be quoted or near-quoted from the evidence or the source text. Use the actual retrieved words (e.g. retrieved "staffing" and "workers" from the earlier discussion of hospital staffing). Never introduce content that is not in the evidence.
-- Prefer the retrievals with high weight and high share; ignore resting-state attention to the document start.
-- If several heads retrieve the same nearby words (the position itself or the 1-2 tokens before it), summarize that once as local context carry-over.
-- Plain declarative sentences. Do not use the words "layer", "vector", "representation", "neural", "head", or "channel" — write as if describing what the position now knows about earlier text, e.g. "the write retrieves ... " / "it also pulls in ...", never naming the mechanism.
-- Do not speculate about why; describe what was retrieved and what it adds.
+- Every piece of content you mention must be quoted or near-quoted from the evidence or the source text. Never introduce content that is not there, and never guess at what might come after the position.
+- Lead with the most specific retrieved content — names, places, numbers, topic words pulled from text BEFORE the current sentence. Summarize retrievals of the position's own phrase in one short clause at the end (e.g., plus carry-over of the local phrase "...").
+- A reader holding labels from 100 other positions must be able to pick this one out. Claims that fit any position — anchors the local grammatical structure, reinforces the sentence being completed — are banned.
+- Never begin the label with the words "The write" or "The attention" — begin with the retrieved content or its action (e.g., Pulls the company name "Atlas Copco" and the date "June 24" from the earlier announcement ... / "Culjak" and "Estes" arrive from the signature block ...). Vary sentence shapes from label to label.
+- Never write numeric weights, percentages, or shares — say at most mainly / also / faintly.
+- Do not use these words: layer, vector, representation, neural, head, channel, path, share, weight, attention, retrieval, retrievals. Do not use suggesting, appears to, likely, preparing, setting up, about to. Never refer to "the model" or "the network".
 
-FINAL CHECK before answering: scan your sentences for the words head, heads, channel, layer, vector — if any appear, rewrite that sentence without naming the mechanism.
+FINAL CHECK before answering: (1) if any sentence contains a banned word (including "retrieval"), or a number that is a weight or percentage, rewrite it; (2) if any quoted phrase contains words not present in the source text or evidence above, trim it; (3) if your label begins with "The write" or "The attention", rewrite the opening to begin with content.
 
 Answer in exactly this format:
 <label>
@@ -50,18 +51,22 @@ your 2-4 sentences
 
 QUIET_PROMPT_SUFFIX = """
 
-Note: the total write at this position is unusually weak (bottom decile). If the evidence shows no meaningful retrieval, say in one sentence that the attention write here is weak and carries little beyond local context."""
+Note: the write at this position is unusually weak (bottom decile). Say that first, in those terms (weak write, little beyond local carry-over), then at most one more sentence naming the single strongest genuine retrieval if there is one. Two sentences maximum."""
 
 LABEL_RE = re.compile(r"<label>\s*(.*?)\s*</label>", re.DOTALL)
 
 
 def render_evidence(b: dict) -> str:
+    # qualitative only — numeric weights/shares in the rendering were echoed
+    # straight into 34/100 pilot labels
+    def strength(w):
+        return "strong" if w >= 0.3 else ("moderate" if w >= 0.1 else "faint")
     lines = []
     for h in b["heads"]:
         srcs = ", ".join(
-            f"\"{s['token'].strip()}\" (in: \"{s['near'].strip()}\", weight {s['weight']})"
+            f"\"{s['token'].strip()}\" (in: \"{s['near'].strip()}\", {strength(s['weight'])})"
             for s in h["attends_to"])
-        lines.append(f"- share {h['share_of_write']:.0%}: reads {srcs}")
+        lines.append(f"- reads {srcs}")
     return "\n".join(lines) if lines else "- (no retrieval above threshold)"
 
 

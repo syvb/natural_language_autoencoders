@@ -24,7 +24,10 @@ QUIET_PCTL = 10
 
 meta = json.loads((WORK / "meta_d.json").read_text())
 ev = {}
-for line in (WORK / "attn_evidence.jsonl").open():
+src = WORK / ("attn_evidence2.jsonl" if (WORK / "attn_evidence2.jsonl").exists()
+              else "attn_evidence.jsonl")
+print(f"evidence source: {src.name}")
+for line in src.open():
     r = json.loads(line)
     ev[r["i"]] = r
 norms = np.array([ev[i]["total_norm"] for i in range(len(meta))])
