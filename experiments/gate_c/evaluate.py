@@ -88,6 +88,8 @@ def main():
     resid = Dh - ridge_pred
     r2_h = 1 - ((Dh - ridge_pred) ** 2).sum() / ((Dh - Dh.mean(0)) ** 2).sum()
     print(f"[ridge] chosen lambda {lam:g}  holdout R2 {r2_h:.4f}")
+    np.save(WORK / "resid_holdout.npy", resid.astype(np.float32))
+    np.save(WORK / "resid_holdout_rows.npy", ho)
     ho_row = {int(t): k for k, t in enumerate(ho)}
 
     # --- per-arm predictions, mapped to holdout rows
@@ -153,11 +155,12 @@ def main():
     for name, c in out["contrasts"].items():
         sig = c["p_holm"] < 0.05
         pt = c["delta"]
+        lo, hi = c["delta_ci"]
         if sig and pt >= 0.05:
             verdict = "PASS"
         elif pt >= 0.02:
             verdict = "MARGINAL"
-        elif pt <= -0.02 and sig:
+        elif pt <= -0.02 and hi < 0:
             verdict = "WORSE"
         else:
             verdict = "FAIL(null)"
