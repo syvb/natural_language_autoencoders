@@ -113,6 +113,20 @@ Conclusions revised accordingly:
   residual, so critics do use context, not trivial memorization.
 - The pre-registered MARGINAL/no-RL decision stands a fortiori.
 
+**NLA self-test (final addendum 3 — the positive control).** The armV
+lesson cuts both ways, so we ran the cat-control on the original paradigm
+itself: critic on the frozen AV's explanations of v_pre vs critic on the
+raw context tail, target = v_pre (states, not deltas; same positions,
+recipe, and machinery as everything above). Result: explanation 0.872 vs
+context 0.832 — paired **+0.0398 [+0.0380, +0.0417]**, explanation wins at
+91% of positions. The flagship NLA's verbalizations DO carry state
+information beyond the verbatim input text. Combined with every delta arm
+losing to the same control, the states-verbalize / deltas-don't dichotomy
+is now measured within one experiment, same controls, same metric — and
+the strata analysis (strata_analysis.md) confirms no position subclass
+(0/236) reverses the delta side, with armV dominance mechanistically
+explained by local-copying mass (rho=0.48).
+
 **Two-state injection probe (final addendum 2).** Injecting v_pre and
 v_post as two adjacent embedding slots (letting the model difference
 internally, both vectors in-distribution) produces coherent, well-grounded
