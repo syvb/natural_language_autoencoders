@@ -85,13 +85,17 @@ async def run_job(job, items, temp, vec_key=None):
     async with httpx.AsyncClient(timeout=300.0) as http:
         async def one(i, s):
             nonlocal n_done
-            embeds_np = fast_embeds(np.asarray(vecs[vec_key][i], dtype=np.float32))
-            body = orjson.dumps({"input_embeds": embeds_np,
-                                 "sampling_params": {"temperature": temp,
-                                                     "max_new_tokens": 220,
-                                                     "skip_special_tokens": False}},
-                                option=orjson.OPT_SERIALIZE_NUMPY)
             async with sem:
+                # build the body INSIDE the semaphore: gather() starts every
+                # coroutine, and pre-built ~2MB bodies for a 15k todo list
+                # peak at 30+GB RSS -> silent container OOM kill (the take-1/
+                # take-2 stuck-shard mystery; latent in gate C's gen2.py too)
+                embeds_np = fast_embeds(np.asarray(vecs[vec_key][i], dtype=np.float32))
+                body = orjson.dumps({"input_embeds": embeds_np,
+                                     "sampling_params": {"temperature": temp,
+                                                         "max_new_tokens": 220,
+                                                         "skip_special_tokens": False}},
+                                    option=orjson.OPT_SERIALIZE_NUMPY)
                 for a in range(3):
                     try:
                         r = await http.post("http://localhost:30000/generate",
