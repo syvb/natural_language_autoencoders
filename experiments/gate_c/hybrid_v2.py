@@ -42,11 +42,12 @@ You have four kinds of evidence:
 
 Known reliability facts about evidence 2-4: claims about genre, format, register, and syntactic structure are usually reliable; specific named entities are usually invented and differ between reads; quoted "sentences" inside them are almost always fabricated and rarely appear in the real source text.
 
-Task: describe the CHANGE — semantic content that is present, strengthened, or sharpened in the later representation relative to the earlier one — as 2-3 short text snippets.
+Task: describe the CHANGE — semantic content that is present, strengthened, or sharpened in the later representation relative to the earlier one — as exactly 3 short text snippets of at most 40 words each. Snippets 1-2 describe the strengthened content; snippet 3 must be in this register: Final token {token} now more strongly expecting ... (describe how the continuation expectation changed).
 
 Rules:
 - Keep only claims supported by at least two independent pieces of evidence (stable across several difference-reads, or in a difference-read AND consistent with the later-vs-earlier contrast), and not contradicted by the source text.
-- Never include a named entity (person, brand, team, title) unless it appears in the source text.
+- Treat every proper noun appearing in the difference-reads as fabricated unless it also appears in the source text; never copy such names into your snippets — describe the category instead.
+- Each snippet must name the concrete content domain (the subject matter that strengthened); never write abstract-only claims like sharpened expectation of a continuation without saying what the continuation is about.
 - Do not use quotation marks anywhere in your snippets. Refer to wording indirectly (e.g. 'the phrase ending the sentence', 'the closing clause') instead of quoting it.
 - Write each snippet in change register: what is added, strengthened, sharpened, or shifted (e.g. "Sharpened expectation of ...", "Newly consolidated framing of ...").
 - Do not use the words "layer", "vector", "representation", "description", "read", or "evidence" inside the snippets.
