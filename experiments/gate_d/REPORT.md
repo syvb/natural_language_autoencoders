@@ -113,6 +113,17 @@ Conclusions revised accordingly:
   residual, so critics do use context, not trivial memorization.
 - The pre-registered MARGINAL/no-RL decision stands a fortiori.
 
+**Two-state injection probe (final addendum 2).** Injecting v_pre and
+v_post as two adjacent embedding slots (letting the model difference
+internally, both vectors in-distribution) produces coherent, well-grounded
+reads — that are near-duplicates of the v_pre-only reads (same-position
+content Jaccard 0.45 vs 0.10 cross-position; 0/50 change-descriptions).
+The frozen AV merges the slots into one state reading; the marginal
+information in the second vector leaves no trace. The interface is
+mechanically viable (0/50 CJK) but exploiting it would require a
+contrast-trained two-slot AV, whose payoff the oracle probe below bounds
+at ~+0.004. Full run not spent (pair_smoke_review.md).
+
 **Oracle ceiling probe (final addendum).** To bound what ANY label/RL
 scheme could extract: armO = armV's verbatim context tail PLUS every
 write-derived fact renderable as text (logit-lens top/bottom tokens of the
