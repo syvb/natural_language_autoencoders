@@ -1,0 +1,15 @@
+# Large/generated artifacts — published at hf.co/datasets/syvb/nla-layer-diff-experiments
+gate_c/*.npy
+gate_c/gen2_out/
+gate_c/doc_tokens.jsonl
+gate_c/meta2.json
+gate_c/hybrid_inputs*.json
+gate_c/hybrid_pre300.json
+gate_c/hybrid_labels.json
+gate_c/arm*_train.json
+gate_c/arm*_eval.json
+gate_c/armA_full_train.json
+gate_a/acts.npy
+venv
+*/wandb/
+*/variants_results.json

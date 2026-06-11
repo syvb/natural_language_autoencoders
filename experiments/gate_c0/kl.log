@@ -1,0 +1,20 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/339 [00:00<?, ?it/s]Loading weights:   1%|          | 2/339 [00:00<00:32, 10.40it/s]Loading weights:   5%|▌         | 18/339 [00:00<00:04, 73.92it/s]Loading weights:  12%|█▏        | 42/339 [00:00<00:02, 136.12it/s]Loading weights:  19%|█▉        | 66/339 [00:00<00:01, 171.90it/s]Loading weights:  26%|██▋       | 89/339 [00:00<00:01, 188.28it/s]Loading weights:  33%|███▎      | 113/339 [00:00<00:01, 199.58it/s]Loading weights:  40%|████      | 136/339 [00:00<00:01, 202.17it/s]Loading weights:  47%|████▋     | 161/339 [00:00<00:00, 212.63it/s]Loading weights:  55%|█████▍    | 186/339 [00:01<00:00, 217.89it/s]Loading weights:  62%|██████▏   | 210/339 [00:01<00:00, 223.41it/s]Loading weights:  72%|███████▏  | 244/339 [00:01<00:00, 250.08it/s]Loading weights:  80%|███████▉  | 270/339 [00:01<00:00, 226.07it/s]Loading weights:  87%|████████▋ | 294/339 [00:01<00:00, 229.46it/s]Loading weights:  94%|█████████▍| 318/339 [00:01<00:00, 231.39it/s]Loading weights: 100%|██████████| 339/339 [00:01<00:00, 206.12it/s]
+[kl] 30 verified, 0 skipped
+[kl] 60 verified, 0 skipped
+[kl] 90 verified, 0 skipped
+[kl] 120 verified, 0 skipped
+[kl] 150 verified, 0 skipped
+[kl] 180 verified, 0 skipped
+[kl] verified 180, skipped 0
+  dav8_bo8                 KL mean 0.360  median 0.172
+  dav8_first               KL mean 0.365  median 0.185
+  resav8_bo8               KL mean 1.770  median 0.961
+  resav8_first             KL mean 1.770  median 1.036
+  dav_t07                  KL mean 0.415  median 0.179
+  claude_v2                KL mean 2.926  median 1.269
+  content_baseline         KL mean 0.298  median 0.176
+  zero_diff                KL mean 0.457  median 0.326
+  _sanity_true_diff        KL mean 0.001  median 0.000
+[kl] saved
