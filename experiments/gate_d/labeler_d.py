@@ -36,7 +36,7 @@ Task: in 2-4 plain sentences, describe what this attention write carries: which 
 
 Rules:
 - Every piece of content you mention must be quoted or near-quoted from the evidence or the source text. Never introduce content that is not there, and never guess at what might come after the position.
-- Lead with the most specific retrieved content — names, places, numbers, topic words pulled from text BEFORE the current sentence. Summarize retrievals of the position's own phrase in one short clause at the end (e.g., plus carry-over of the local phrase "...").
+- Lead with the most specific retrieved content — names, places, numbers, topic words pulled from text BEFORE the current sentence. If the evidence shows ANY read from before the current sentence, it MUST appear in your label — that distant content is the most valuable part; never spend the label restating the visible local phrase while dropping a distant read. Summarize retrievals of the position's own phrase in one short clause at the end (e.g., plus carry-over of the local phrase "...").
 - A reader holding labels from 100 other positions must be able to pick this one out. Claims that fit any position — anchors the local grammatical structure, reinforces the sentence being completed — are banned.
 - Never begin the label with the words "The write" or "The attention" — begin with the retrieved content or its action (e.g., Pulls the company name "Atlas Copco" and the date "June 24" from the earlier announcement ... / "Culjak" and "Estes" arrive from the signature block ...). Vary sentence shapes from label to label.
 - Never write numeric weights, percentages, or shares — say at most mainly / also / faintly.
@@ -93,11 +93,22 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--sample-every", type=int, default=1,
                     help="take every k-th position (pilot spread)")
+    ap.add_argument("--ids-file", default=None,
+                    help="json list of position ids — submit exactly these "
+                         "(regen pass); overrides sample-every/limit")
+    ap.add_argument("--merge", action="store_true",
+                    help="fetch: merge results into existing --out instead "
+                         "of overwriting (regen pass)")
     args = ap.parse_args()
 
     client = anthropic.Anthropic(api_key=KEY)
     inputs = json.loads(Path(args.inputs).read_text())
-    ids = sorted(inputs, key=int)[::args.sample_every][: args.limit]
+    if args.ids_file:
+        ids = [str(i) for i in json.loads(Path(args.ids_file).read_text())]
+        missing = [i for i in ids if i not in inputs]
+        assert not missing, f"ids not in inputs: {missing[:5]}"
+    else:
+        ids = sorted(inputs, key=int)[::args.sample_every][: args.limit]
 
     if args.mode == "direct":
         out_path = Path(args.out)
@@ -132,16 +143,20 @@ def main() -> None:
         print(f"[fetch] status {batch.processing_status} counts {batch.request_counts}")
         if batch.processing_status != "ended":
             return
-        results = {}
+        out_path = Path(args.out)
+        results = (json.loads(out_path.read_text())
+                   if args.merge and out_path.exists() else {})
+        n_new = 0
         for res in client.messages.batches.results(args.batch_id):
             i = res.custom_id.removeprefix("pos-")
             if res.result.type == "succeeded":
                 results[i] = parse(res.result.message.content[0].text)
             else:
                 results[i] = {"label": None, "raw": f"ERROR:{res.result.type}"}
-        Path(args.out).write_text(json.dumps(results))
+            n_new += 1
+        out_path.write_text(json.dumps(results))
         ok = sum(1 for r in results.values() if r["label"])
-        print(f"[fetch] {ok}/{len(results)} parsed -> {args.out}")
+        print(f"[fetch] {n_new} fetched, {ok}/{len(results)} total parsed -> {args.out}")
 
 
 if __name__ == "__main__":

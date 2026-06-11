@@ -44,14 +44,19 @@ def words(s):
 def main():
     job = sys.argv[1] if len(sys.argv) > 1 else "attn_read"
     meta = json.loads((WORK / "meta_d.json").read_text())
+    ev_path = WORK / ("attn_evidence2.jsonl"
+                      if (WORK / "attn_evidence2.jsonl").exists()
+                      else "attn_evidence.jsonl")
+    print(f"[ground] evidence: {ev_path.name}")
     ev = {}
-    for line in (WORK / "attn_evidence.jsonl").open():
+    for line in ev_path.open():
         r = json.loads(line)
         src_w = set()
         for h in r["heads"]:
             for s in h["src"]:
                 src_w |= words(s["ctx"])
-        ev[r["i"]] = {"src": src_w, "lens": words(" ".join(r["lens_top"]))}
+        ev[r["i"]] = {"src": src_w,
+                      "lens": words(" ".join(r.get("lens_top", [])))}
     tail_w = {i: words(m["context_tail"]) for i, m in enumerate(meta)}
 
     reads = {}
