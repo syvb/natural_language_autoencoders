@@ -113,6 +113,20 @@ Conclusions revised accordingly:
   residual, so critics do use context, not trivial memorization.
 - The pre-registered MARGINAL/no-RL decision stands a fortiori.
 
+**Oracle ceiling probe (final addendum).** To bound what ANY label/RL
+scheme could extract: armO = armV's verbatim context tail PLUS every
+write-derived fact renderable as text (logit-lens top/bottom tokens of the
+write, strength bucket, attention-evidence retrievals). Result: armO
+0.1128 vs armV 0.1084 — oracle headroom **+0.0044** [+0.0030, +0.0058].
+The text-expressible beyond-context information in an L20 attention-block
+write is, under our best rendering, ~0.004 of residual alignment — two
+orders of magnitude below the ~0.5 functional break-even. This kills the
+residual-reward RL proposal for this object: reward shaping can re-aim the
+gradient, but there is nothing meaningful at the top of the hill. (Caveat:
+the oracle is not information-theoretically exhaustive — mid-stack logit
+lens is noisy — but it is the natural mechanical superset, and it includes
+the full attention evidence.)
+
 ## Recommendations
 
 - Do not fund D3/RL from block-level attention writes.
