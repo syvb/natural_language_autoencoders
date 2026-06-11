@@ -1,9 +1,18 @@
 # Gate D — attention-output NLA feasibility
 
-**Verdict: MARGINAL (pre-registered). Mechanically-grounded labels beat the
-content control — the first positive sign in this project — but the best
-margin (+0.031) is below the +0.05 PASS bar after the one allowed
-improvement cycle. No D3 AV-SFT probe, no RL funding from this gate.**
+**Verdict: MARGINAL (pre-registered) — and, after a post-hoc control, the
+positive headline claim is RETRACTED. No D3 AV-SFT probe, no RL funding.**
+
+> **Post-hoc control (review-triggered, see §Post-hoc below):** a trivial
+> arm whose label is the raw context tail (attention-blind) scores residual
+> alignment 0.108 — beating every attention-evidence arm (best 0.072,
+> armV−armT = +0.037 [+0.035, +0.039]) and beating the content control by
+> +0.068, i.e. above the +0.05 PASS bar. The sign-flip this gate celebrated
+> was a register artifact: the frozen-AV content control was simply a bad
+> representation of the context (10.5% word overlap with the actual local
+> text). No label family shows attention-specific verbalizable signal
+> beyond raw context. The original analysis is preserved below for the
+> record.
 
 ## Question and design
 
@@ -76,17 +85,48 @@ armT's signal. Selectivity beats coverage for this register.
    minimum signal worth amplifying with the AV-SFT probe and an RL bet;
    +0.031 with a spent improvement cycle does not clear it.
 
+## Post-hoc control and retraction (added after adversarial review)
+
+An adversarial experiment review (experiment_review.md) noted that armT's
+advantage over armC was largest exactly where its label contained no
+attention-specific content (local-only retrievals, +0.050) and smallest
+where it quoted distant sources (+0.024; corr with retrieval distance
+−0.18), and that the obvious control — a label that is just the verbatim
+context tail, content-grounded but attention-blind — was never trained.
+Running it (armV, same 8k positions/recipe, ~$1):
+
+| arm | cos resid | contrast |
+|---|---|---|
+| armV (raw context tail) | **0.108** | vs armC **+0.068** [+0.066, +0.070]; vs armT **+0.037** [+0.035, +0.039] |
+
+Conclusions revised accordingly:
+- The "grounded labels beat content" sign-flip was **verbatim text beating
+  hallucinated paraphrase**, not mechanical grounding. The T>H>Z>C ordering
+  tracked verbatim-context content of the labels, not groundedness.
+- Attention evidence is **net negative** relative to plain context text —
+  annotating retrievals displaces context tokens that carry more signal.
+- The residualized write remains substantially predictable from raw
+  context (0.108 ≫ ridge-orthogonal 0); the linear v_pre ridge is a weak
+  nuisance model, so "beyond-content" claims need the raw-context arm as
+  the control, raising the effective bar from 0.040 to 0.108.
+- A defense that survives: token-identity-only baselines predict ~0 of the
+  residual, so critics do use context, not trivial memorization.
+- The pre-registered MARGINAL/no-RL decision stands a fortiori.
+
 ## Recommendations
 
 - Do not fund D3/RL from block-level attention writes.
-- The natural next variant, if pursued: **per-head writes** (top
-  contributing head's slice through W_O). The evidence here points at
-  block-level superposition as the dilution mechanism — the top head
-  carries only ~8% of the write, and the armT′ negative shows aggregate
-  coverage hurts. attn_rows.npy + head_norms.npy (saved, HF) suffice to
-  build per-head targets and evidence with no new extraction.
-- MLP writes remain unexamined (mlp_out.npy is saved) but lack the
-  mechanical grounding signal that made attention labels work at all.
+- Any follow-up label experiment MUST include the raw-context arm as its
+  control — the +0.05 bar over a frozen-AV paraphrase is trivially
+  passable (armV does it with no model in the loop).
+- The per-head-writes variant suggested by the original analysis is now
+  weakly motivated: the armV result says the binding problem is that no
+  tested register extracts write-specific information beyond context at
+  all, not that block-level superposition dilutes it. If anything is tried
+  next, the first question is whether ANY label can beat armV's 0.108 on
+  the residual — e.g. context tail + the true next token the write
+  promotes (oracle ceiling probe), before spending on realistic labels.
+- MLP writes remain unexamined (mlp_out.npy is saved).
 
 ## Incidents
 
