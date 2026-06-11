@@ -117,8 +117,14 @@ if cmd in ("armB", "all"):
         labels = json.loads(p.read_text())
         tr = [{"text": r["difference"], "tidx": int(i)}
               for i, r in labels.items()
-              if r.get("difference") and clean(r["difference"])][:MATCHED_N]
+              if meta[int(i)]["split"] == "train"
+              and r.get("difference") and clean(r["difference"])][:MATCHED_N]
         (WORK / "armB_train.json").write_text(json.dumps(tr))
-        print(f"armB: train {len(tr)}")
+        ev = [{"text": r["difference"], "tidx": int(i)}
+              for i, r in labels.items()
+              if meta[int(i)]["split"] == "holdout"
+              and r.get("difference") and clean(r["difference"])]
+        (WORK / "armB_eval.json").write_text(json.dumps(ev))
+        print(f"armB: train {len(tr)}, eval {len(ev)}")
     else:
         print("armB: hybrid_labels.json not present yet")
