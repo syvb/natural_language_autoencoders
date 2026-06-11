@@ -13,3 +13,11 @@ gate_a/acts.npy
 venv
 */wandb/
 */variants_results.json
+gate_d/*.npy
+gate_d/gend_out/
+gate_d/doc_tokens.jsonl
+gate_d/meta_d.json
+gate_d/attn_evidence.jsonl
+gate_d/bundles_d.json
+gate_d/armT_train.json
+gate_d/armT_eval.json

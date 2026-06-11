@@ -30,7 +30,7 @@ Measured evidence about the attention write at this position:
 <evidence>
 {evidence}
 </evidence>
-Each entry is one attention head: its share of the total write, and the earlier tokens it read from (with the surrounding words and the attention weight). High-weight distant tokens matter most; weight on the very first token of the document is a resting state and means nothing.
+Each entry is one retrieval channel: its share of the total write, and the earlier tokens it read from (with the surrounding words and the attention weight). High-weight distant tokens matter most; weight on the very first token of the document is a resting state and means nothing.
 
 Task: in 2-4 plain sentences, describe what this attention write carries: which earlier content it retrieved and what that contributes at the position "{token}". Be concrete.
 
@@ -38,8 +38,10 @@ Rules:
 - Every piece of content you mention must be quoted or near-quoted from the evidence or the source text. Use the actual retrieved words (e.g. retrieved "staffing" and "workers" from the earlier discussion of hospital staffing). Never introduce content that is not in the evidence.
 - Prefer the retrievals with high weight and high share; ignore resting-state attention to the document start.
 - If several heads retrieve the same nearby words (the position itself or the 1-2 tokens before it), summarize that once as local context carry-over.
-- Plain declarative sentences. Do not use the words "layer", "vector", "representation", "neural", or "head".
+- Plain declarative sentences. Do not use the words "layer", "vector", "representation", "neural", "head", or "channel" — write as if describing what the position now knows about earlier text, e.g. "the write retrieves ... " / "it also pulls in ...", never naming the mechanism.
 - Do not speculate about why; describe what was retrieved and what it adds.
+
+FINAL CHECK before answering: scan your sentences for the words head, heads, channel, layer, vector — if any appear, rewrite that sentence without naming the mechanism.
 
 Answer in exactly this format:
 <label>

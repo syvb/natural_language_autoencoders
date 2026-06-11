@@ -52,14 +52,18 @@ for i, m in enumerate(meta):
         t = (f"The attention write at '{m['token_at_pos'].strip()}' is weak; "
              f"no single retrieval dominates.")
     else:
-        parts = []
-        for h in heads[:4]:
-            ss = ", ".join(f"'{s['token'].strip()}' (in \"{s['near'].strip()}\")"
-                           for s in h["attends_to"][:2])
-            parts.append(f"a head carrying {h['share_of_write']:.0%} of the "
-                         f"write retrieves {ss}")
-        t = (f"At the token '{m['token_at_pos'].strip()}', attention retrieves "
-             f"prior context: " + "; ".join(parts) + ".")
+        seen, parts = set(), []
+        for h in heads[:6]:
+            for s in h["attends_to"][:2]:
+                key = s["token"].strip()
+                if key in seen:
+                    continue
+                seen.add(key)
+                parts.append(f"'{key}' (in \"{s['near'].strip()}\")")
+            if len(parts) >= 5:
+                break
+        t = (f"At the token '{m['token_at_pos'].strip()}', attention "
+             f"retrieves prior context: " + ", ".join(parts) + ".")
     armT[i] = t
 
 (WORK / "bundles_d.json").write_text(json.dumps(bundles))
