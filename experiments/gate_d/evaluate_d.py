@@ -17,7 +17,7 @@ import numpy as np
 
 WORK = Path(__file__).parent
 BASE = "armC_8k"
-ARMS = ["armC_8k", "armT_8k", "armH_8k", "armZ_8k"]
+ARMS = ["armC_8k", "armT_8k", "armH_8k", "armZ_8k", "armT2_8k"]
 N_BOOT = 10_000
 SEED = 0
 
