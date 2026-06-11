@@ -37,6 +37,50 @@ You have four kinds of evidence:
 {expl_b}
 </later>
 
+4. {n_reads} independent descriptions of the difference between the two representations. These may hallucinate details:
+{diff_reads}
+
+Reliability facts about evidence 2-4: claims about genre, format, register, and syntactic structure are usually reliable; specific named entities are often invented and differ between reads; quoted "sentences" inside them are often fabricated and may not appear in the real source text.
+
+Task: describe the change (relative to the earlier layer): semantic content that is present, strengthened, or sharpened in the later representation relative to the earlier one. Write 3 short text snippets of at most 50 words each, ordered by confidence first and importance second.
+
+Rules:
+- Prefer claims supported by multiple independent pieces of evidence and not contradicted by the source text.
+- Treat every proper noun appearing in the difference-reads as fabricated unless it also appears in the source text; never copy such names into your snippets — describe the category instead.
+- Each snippet must name the concrete content domain (the subject matter that strengthened); never write abstract-only claims like sharpened expectation of a continuation without saying what the continuation is about.
+- Only quote the source text (and even then, sparingly). Prefer to refer to wording indirectly (e.g. 'the phrase ending the sentence', 'the closing clause') instead of quoting it.
+- Never quote the evidence from evidence 2-4.
+- Write each snippet in change register: what is added, strengthened, sharpened, or shifted (e.g. "Sharpened expectation of ...", "Newly consolidated framing of ...").
+- Do not use the words "layer", "vector", "representation", "description" inside the snippets.
+
+Answer in exactly this format:
+<difference>
+first snippet (most important)
+second snippet
+third snippet
+</difference>"""
+
+# previous composed prompt (v2), kept for easy rollback
+PROMPT_V2_COMPOSED = """You are a meticulous AI researcher producing a high-quality description of how a neural network's internal representation of one token position changed between an earlier layer and a later layer.
+
+You have four kinds of evidence:
+
+1. The TRUE SOURCE TEXT up to and including the token (this is the only text that actually exists):
+<source_text>
+{source}
+</source_text>
+(The position being analyzed is the final token of the source text: "{token}")
+
+2. A description of the EARLIER layer's representation:
+<earlier>
+{expl_a}
+</earlier>
+
+3. A description of the LATER layer's representation:
+<later>
+{expl_b}
+</later>
+
 4. {n_reads} independent reads of the DIFFERENCE between the two representations. These are the only evidence directly grounded in the actual change, but each read independently invents specific details:
 {diff_reads}
 
@@ -77,8 +121,6 @@ def build_prompt(row: dict) -> str:
 def parse(text: str) -> dict:
     vm, dm = VERDICT_RE.search(text), DIFF_RE.search(text)
     diff = dm.group(1).strip() if dm else None
-    if diff:
-        diff = diff.replace('"', "").replace("\u201c", "").replace("\u201d", "")
     return {"verdict": vm.group(1).lower() if vm else None,
             "difference": diff,
             "raw": text[:900]}
