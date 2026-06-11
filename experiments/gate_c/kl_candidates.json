@@ -1,0 +1,1 @@
+{"pred_0p": {"preds": "preds_arm0p_8k.npy", "tidx": "tidx_arm0p_8k.npy"}, "pred_A": {"preds": "preds_armA_8k.npy", "tidx": "tidx_armA_8k.npy"}, "pred_B": {"preds": "preds_armB_8k.npy", "tidx": "tidx_armB_8k.npy"}}

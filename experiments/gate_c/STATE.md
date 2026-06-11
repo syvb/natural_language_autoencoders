@@ -1,5 +1,9 @@
 # Gate C — full state + remaining work (handoff doc, 2026-06-11)
 
+> **GATE COMPLETE (2026-06-11): FAIL.** All remaining work below was
+> executed; see REPORT.md for results and verdict. This file is kept as a
+> record of the pre-registered plan. Total spend ≈ $37 of $60.
+
 Working notes for resuming after context compaction. Everything below is
 the source of truth; verify against files, not memory.
 
