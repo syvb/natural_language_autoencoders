@@ -14,3 +14,15 @@ distribution shift — the delta carries its behavioral effect in the
 model's own output-vocabulary codebook wherever it is measured. This is
 the mechanism for effect-targeted (promote/demote) labels generalizing
 across edit types where E3's cause-labels learned type-specific codebooks.
+
+## Gate F pre-checks 2+3 (probe-on-composite, cross-layer)
+
+Probe trained on delta20 (61% top-1 clean, chance 2.8%):
+- composite payload + natural layer-diff carrier (carrier 3.4x payload
+  norm): top-1 0.444 / top-5 0.622; carrier x2: 0.339/0.519 — linear
+  superposition holds; carrier mass barely intersects discriminative dirs.
+- cross-layer: d20-probe on delta16 0.605 (native 0.624); on delta24
+  0.551 (native 0.556) — content directions layer-stable across L16-L24.
+
+All three Gate F mechanisms measured: effect channel (34x null, flat),
+carrier robustness, layer invariance.
