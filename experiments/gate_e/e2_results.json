@@ -1,0 +1,54 @@
+{
+  "W_seed0": {
+    "rr_fwd": {
+      "n": 1500,
+      "hit": 0.0,
+      "null": 0.0
+    },
+    "rr_rev": {
+      "n": 1500,
+      "hit": 0.0,
+      "null": 0.0
+    },
+    "lex_fwd": {
+      "n": 996,
+      "hit": 0.0,
+      "null": 0.0
+    },
+    "lex_rev": {
+      "n": 997,
+      "hit": 0.0010030090270812437,
+      "null": 0.0
+    },
+    "antisym": {
+      "n_fwd_hits": 0,
+      "rate": null
+    }
+  },
+  "W_seed1": {
+    "rr_fwd": {
+      "n": 1500,
+      "hit": 0.0,
+      "null": 0.0
+    },
+    "rr_rev": {
+      "n": 1500,
+      "hit": 0.0,
+      "null": 0.0
+    },
+    "lex_fwd": {
+      "n": 997,
+      "hit": 0.0,
+      "null": 0.0
+    },
+    "lex_rev": {
+      "n": 997,
+      "hit": 0.0010030090270812437,
+      "null": 0.0
+    },
+    "antisym": {
+      "n_fwd_hits": 0,
+      "rate": null
+    }
+  }
+}
