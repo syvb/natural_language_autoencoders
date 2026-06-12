@@ -1,8 +1,31 @@
-# Gate E — counterfactual-pair deltas (E0–E2)
+# Gate E — counterfactual-pair deltas (E0–E3)
 
-**Verdict: FAIL at E2 (pre-registered: held-out span/keyword hit < 10% →
-the counterfactual warm-start line ends). The failure is precisely
-localized — and that localization is the gate's real finding.**
+**Verdict: FAIL (pre-registered, at both E2 and E3 held-out bars). The
+gate's yield is a precise localization of why delta verbalization fails,
+plus the program's strongest positive number: a trained reader recovers
+edit keywords from deltas at 13–16% in-distribution (13× null) — but the
+skill is type-specific codebooks, not a general delta→language map.**
+
+## E3 addendum — training the reader (LoRA r=16 + W, 2 seeds)
+
+| eval | keyword-hit (null) | E2 frozen-reader |
+|---|---|---|
+| in-distribution lexical (held-out docs) | **0.159 / 0.129** (0.010) | 0.020 |
+| reversed −δ, lexical | 0.126 / 0.128 | 0.023 |
+| held-out type (role_reversal) | 0.025 / 0.029 (0.016) | chance |
+| antisymmetry (held-out) | 0.00 over 13–15 fwd hits | n/a |
+
+Training the reader closes a real fraction of the probe gap (frozen 2% →
+trained 13–16%, probe ceiling 61% closed-set) and honors delta sign on
+trained types. Transformation-CLASS decoding transfers weakly (Haiku
+judge, claim-vs-true-edit class match: 19.3% real vs 10.1% shuffled —
+reads like "freezing"→"heating" for a −0.4ºF→+0.4ºF edit are real but a
+~2× effect, not the rule). Content decoding does NOT transfer across edit
+types: held-out role-reversals at chance → pre-registered FAIL; E4
+(transfer to natural deltas) not unlocked — and the subspace pre-check
+chains the prediction anyway: natural deltas load the probe-discriminative
+directions at less than half the in-distribution rate (2.3× vs 5.0×
+random), bounding an E4 ceiling proxy near 8%, sub-marginal.
 
 ## What was built (E0 — all healthy, all public)
 
