@@ -21,3 +21,10 @@ gate_d/attn_evidence.jsonl
 gate_d/bundles_d.json
 gate_d/armT_train.json
 gate_d/armT_eval.json
+gate_e/docs_e.json
+gate_e/edits_raw.json
+gate_e/pairs_e.json
+gate_e/*.npy
+gate_e/gene_out/
+gate_e/continuations.jsonl
+gate_e/meta_e.json
