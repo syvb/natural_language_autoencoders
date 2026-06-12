@@ -95,6 +95,15 @@ project `nla-layer-diff`. Reusable single-GPU harnesses: critic SFT
 (`gate_e/train_{adapter,reader}.py`), sglang injection clients with the
 fast-embed path, mechanical scorers.
 
-Status: Gate E3 (train the reader — the one door E2 left open) in
-progress; E4 (transfer of a trained difference-verbalizer to natural
-deltas) contingent on E3.
+Status: **program concluded.** Gate E3 (training the reader) lifted
+in-distribution keyword decoding from 2% to 13–16% (probe ceiling 61%)
+with delta-sign honored — but the skill is type-specific codebooks: zero
+generalization to held-out edit types (pre-registered FAIL). A subspace
+pre-check chains the same bound onto natural deltas (they load the
+edit-discriminative directions at less than half the in-distribution
+rate), closing E4 by prediction (~8% ceiling proxy). The trained
+difference-readers (W + LoRA-merged AVs' adapters), the 15.5k-delta
+benchmark with true labels, and the 61%-top-1 linear edit-probe are
+published for any successor attempt — the obvious one being a reader
+trained on a much wider edit taxonomy, where "type-specific codebooks"
+might densify into the general map this program didn't reach.
