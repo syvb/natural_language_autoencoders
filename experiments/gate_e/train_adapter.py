@@ -15,6 +15,7 @@ Usage: python train_adapter.py --seed 0 --out W_seed0.npz
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -72,7 +73,9 @@ def main():
 
     med = float(np.median(np.linalg.norm(
         np.asarray(D[:2000], dtype=np.float32), axis=1)))
-    alpha = cfg.injection_scale / med
+    # init at the E1 sweep's best operating point (scale 60), NOT the AV's
+    # state-norm 150 — injection_scale is otherwise obviated by W entirely
+    alpha = float(os.environ.get("INIT_SCALE", 60.0)) / med
     W = torch.eye(3584, device="cuda") * alpha
     W.requires_grad_(True)
     b = torch.zeros(3584, device="cuda", requires_grad=True)
