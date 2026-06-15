@@ -4,3 +4,10 @@ __pycache__/
 .pytest_cache/
 build/
 dist/
+
+# Large artifacts published to HF (syvb/nla-layer-diff-experiments), not git.
+# The 221MB delta/state .npy and these trained weights live on HF only;
+# smaller arm eval/train JSONs stay tracked (see gate_d convention).
+experiments/gate_e/W_seed*.npz
+experiments/gate_e/W_e3_seed*.npz
+experiments/gate_d/armH_labels.json
