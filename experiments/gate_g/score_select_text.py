@@ -31,6 +31,8 @@ def main():
     ap.add_argument("--before", required=True)       # av dir with before-state (h16) text
     ap.add_argument("--reward-dir", required=True)
     ap.add_argument("--ar-dir", default=str(WORK / "models" / "ar"))
+    ap.add_argument("--lam", type=float, default=0.0,
+                    help="length penalty: select by recon - lam*(words/100)")
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
@@ -66,21 +68,24 @@ def main():
 
     rows = [json.loads(l) for l in open(args.candidates)]
     fout = open(args.out, "w")
-    bests, firsts = [], []
+    bests, firsts, sel_len = [], [], []
     for n, r in enumerate(rows):
         cands = [s for s in r["samples"] if s.strip()]
         if not cands:
             continue
         rs = reward(r["i"], cands)
-        bi = int(np.argmax(rs))
+        wlen = np.array([len(c.split()) for c in cands], dtype=np.float32)
+        bi = int(np.argmax(rs - args.lam * wlen / 100.0))   # length-penalized selection
         fout.write(json.dumps({"i": r["i"], "best_text": cands[bi],
-                               "best_reward": float(rs[bi]), "mean_reward": float(rs.mean())}) + "\n")
-        bests.append(float(rs[bi])); firsts.append(float(rs[0]))
+                               "best_reward": float(rs[bi]), "mean_reward": float(rs.mean()),
+                               "best_words": int(wlen[bi])}) + "\n")
+        bests.append(float(rs[bi])); firsts.append(float(rs[0])); sel_len.append(int(wlen[bi]))
         if n % 500 == 0:
-            print(f"[score-text] {n}/{len(rows)} best={np.mean(bests):.4f} first={np.mean(firsts):.4f}", flush=True)
+            print(f"[score-text] {n}/{len(rows)} lam={args.lam} recon(best)={np.mean(bests):.4f} "
+                  f"sel_words={np.mean(sel_len):.0f}", flush=True)
     fout.close()
-    print(f"[score-text] done. best-of-N {np.mean(bests):.4f} vs first {np.mean(firsts):.4f} "
-          f"(lift {np.mean(bests)-np.mean(firsts):+.4f})", flush=True)
+    print(f"[score-text] done lam={args.lam}. recon(best) {np.mean(bests):.4f} vs first "
+          f"{np.mean(firsts):.4f}; mean selected length {np.mean(sel_len):.0f} words", flush=True)
 
 
 if __name__ == "__main__":

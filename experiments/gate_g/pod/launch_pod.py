@@ -22,7 +22,7 @@ ENTRY = ('mkdir -p /root/.ssh && echo "$PUBLIC_KEY" > /root/.ssh/authorized_keys
          '&& service ssh start && sleep infinity')
 
 body = {
-    "name": "nla-gate-g-bonav2",
+    "name": "nla-gate-g-grpo",
     "imageName": "lmsysorg/sglang:latest",
     "gpuTypeIds": ["NVIDIA H100 80GB HBM3", "NVIDIA H100 PCIe",
                    "NVIDIA A100 80GB PCIe", "NVIDIA A100-SXM4-80GB"],

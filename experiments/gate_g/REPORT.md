@@ -145,6 +145,28 @@ Remaining lever toward diff-focus would be heavier optimization with an EXPLICIT
 length/before-overlap penalty (force concision), or a behavioral objective — not
 more reconstruction-reward BoN.
 
+## GRPO (RL the AV toward concise diff-focus) — partial, frontier mapped
+
+Proper NLA RL (grpo_av.py): LoRA policy on the AV, group-relative advantage,
+KL-to-frozen-AV, length penalty `r = cos(AR2(before⊕gen), h24) − λ·words/100`,
+and a **co-trained AR2** reward model (trains each step to reconstruct the real
+h24 from the policy's current text — fixes the frozen-reward hacking; KL guards
+against a non-linguistic code). Reviewed by subagent pre-launch (1 blocker
+[Qwen eos≠pad], 2 major [advantage std-floor, OOM] fixed).
+
+- **λ=0.05**: null — recon 0.8272 (≈ frozen 0.8273), length 103→97. Too weak.
+- **λ=0.25**: maps the **recon-vs-length frontier** (co-trained-AR2 view, fixed
+  64-pos holdout): 100w→0.819, 69w→0.815, 47w→0.809, 26w→0.797, 10w→0.795.
+  **Graceful — a knee near ~40–50 words** (≈half length for ~0.01 recon), then
+  decline; λ=0.25 has no floor so it overshoots to a degenerate ~7–31w regime
+  (recon dips below frozen). **Samples at ~50w are coherent** — same
+  register→phrase→prediction structure, trimmed padding, recon barely moves
+  (BASE_vs_GRPO_50.md). So the verbose description IS ~2× compressible.
+- **Open / unconfirmed**: the trimming looks *uniform* (concision), not yet
+  proven *diff-focus* (dropping before-redundant content). A tuned run (λ≈0.10,
+  β≈0.1 or a length floor) settling at the knee + an honest fresh-AR2 eval +
+  before-overlap is the next step. GRPO machinery validated and stable.
+
 ## Costs / artifacts
 
 Two single-H100 sessions (Stage 0 + gap-curve/Stage-1) ≈ **$13 + ~$13**. All
