@@ -119,6 +119,32 @@ all-text route is competitive-to-better. Open question remains AV2 *training*
 value (Stage-1 BoN-SFT null is the cautionary prior; co-trained AR2 +
 text-conditioning is a cleaner setup).
 
+## BoN-AV2 round (co-trained AV2/AR2, expert-iteration) — DOUBLE NULL
+
+Built the user's AV2/AR2: AR2 = two-text reconstructor (holds AV(h16) before-text,
+so the reward naturally targets diff content; AR2 co-retrains, fixing Stage-1
+reward-hacking). One BoN/expert-iteration round (gap 16→24): sample 8 AV2(h24)
+candidates/position, keep the highest two-text-AR2 reward, SFT AV2, re-eval with a
+fresh AR2.
+
+| axis | result |
+|---|---|
+| reconstruction | BoN-AV2 **0.8272** vs frozen-AV2 **0.8273** — −0.0000 [−.0002,+.0001], p=0.57, 50% win. **NULL.** |
+| diff-focus (length) | AV2 103.4 words vs frozen 103.5 — unchanged |
+| diff-focus (before-overlap) | Jaccard(AV2, before) **0.271** = Jaccard(frozenAV-h24, before) **0.271** — unchanged |
+
+SFT *did* change AV2's wording (Jaccard 0.46 vs frozen) but only as paraphrase —
+qualitatively AV2 emits the same full-state description with different confabulated
+specifics (BONAV2_EXAMPLES.md). One expert-iteration round does **not** beat the
+frozen reconstruction ceiling and does **not** make AV2 diff-focused: the frozen
+AV's full-state-description behavior is a strong attractor, and the best-of-8
+reward lift (~+0.003) is too weak to pull AV2 off it. Consistent with Stage 1
+(vector-conditioned BoN) — training the AV's outputs, by best-of-N, doesn't help.
+
+Remaining lever toward diff-focus would be heavier optimization with an EXPLICIT
+length/before-overlap penalty (force concision), or a behavioral objective — not
+more reconstruction-reward BoN.
+
 ## Costs / artifacts
 
 Two single-H100 sessions (Stage 0 + gap-curve/Stage-1) ≈ **$13 + ~$13**. All
