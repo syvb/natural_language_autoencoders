@@ -11,3 +11,7 @@ dist/
 experiments/gate_e/W_seed*.npz
 experiments/gate_e/W_e3_seed*.npz
 experiments/gate_d/armH_labels.json
+
+# gate_g ephemeral
+experiments/gate_g/precheck.out
+experiments/gate_g/pod/pod_info.json
