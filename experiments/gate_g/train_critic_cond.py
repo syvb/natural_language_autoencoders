@@ -57,6 +57,8 @@ def parse_args():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--save-model", action="store_true",
                     help="save LoRA adapter + value head (for use as a reward model)")
+    ap.add_argument("--no-cond", action="store_true",
+                    help="pure text->vector AR: no injected condition state, no marker")
     return ap.parse_args()
 
 
@@ -70,17 +72,21 @@ def main():
     wandb.init(project="nla-layer-diff", name=args.run_name, config=vars(args),
                mode="online" if os.environ.get("WANDB_API_KEY") else "offline")
 
-    # AV sidecar -> marker char/id + injection scale for the h_20 conditioning token
-    avmeta = yaml.safe_load((Path(args.av_dir) / "nla_meta.yaml").read_text())
-    marker = avmeta["tokens"]["injection_char"]
-    marker_id = avmeta["tokens"]["injection_token_id"]
-    inj_scale = float(avmeta["extraction"]["injection_scale"])
+    # AV sidecar -> marker char/id + injection scale for the conditioning token
+    # (skipped for --no-cond: pure text->vector AR needs no AV/marker)
+    marker = marker_id = inj_scale = None
+    if not args.no_cond:
+        avmeta = yaml.safe_load((Path(args.av_dir) / "nla_meta.yaml").read_text())
+        marker = avmeta["tokens"]["injection_char"]
+        marker_id = avmeta["tokens"]["injection_token_id"]
+        inj_scale = float(avmeta["extraction"]["injection_scale"])
 
     critic = NLACritic(args.ar_dir, device="cuda", dtype=torch.bfloat16)
     backbone, head, tok = critic.backbone, critic.value_head, critic.tokenizer
     template = critic.template
     pad_id = tok.pad_token_id or tok.eos_token_id
-    assert tok.encode(marker, add_special_tokens=False) == [marker_id], "marker drift"
+    if not args.no_cond:
+        assert tok.encode(marker, add_special_tokens=False) == [marker_id], "marker drift"
 
     from peft import LoraConfig, get_peft_model
     backbone.gradient_checkpointing_enable()
@@ -95,15 +101,16 @@ def main():
     for p in embed.parameters():
         p.requires_grad_(False)
 
-    cond = np.load(args.cond, mmap_mode="r")
+    cond = None if args.no_cond else np.load(args.cond, mmap_mode="r")
     tgt = np.load(args.targets, mmap_mode="r")
-    prefix = f"prior:{marker}\n"   # marker = h_20 injection site
+    # --no-cond: pure text->vector AR (no injected condition state, no marker)
+    prefix = "" if args.no_cond else f"prior:{marker}\n"   # marker = injection site
 
     def build_ids(text):
         full = prefix + template.format(explanation=text)
         ids = tok(full, add_special_tokens=True, truncation=True,
                   max_length=args.max_len)["input_ids"]
-        mpos = ids.index(marker_id)  # first occurrence = our prefix marker
+        mpos = None if args.no_cond else ids.index(marker_id)
         return ids, mpos
 
     def make_batch(rows):
@@ -117,10 +124,11 @@ def main():
             off = maxl - len(ids)                       # LEFT pad
             with torch.no_grad():
                 e = embed(torch.tensor(ids, device="cuda")).detach().clone()
-                v = torch.tensor(np.asarray(cond[r["tidx"]], dtype=np.float32),
-                                 device="cuda")
-                v = v / v.norm().clamp_min(1e-9) * inj_scale
-                e[mpos] = v.to(torch.bfloat16)
+                if mpos is not None:                     # inject the condition state
+                    v = torch.tensor(np.asarray(cond[r["tidx"]], dtype=np.float32),
+                                     device="cuda")
+                    v = v / v.norm().clamp_min(1e-9) * inj_scale
+                    e[mpos] = v.to(torch.bfloat16)
             embs[k, off:] = e
             attn[k, off:] = 1
             tgts[k] = torch.from_numpy(np.asarray(tgt[r["tidx"]], dtype=np.float32))

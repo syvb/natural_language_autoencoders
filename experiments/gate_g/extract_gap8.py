@@ -45,9 +45,13 @@ for doc_idx, rws in rows_by_doc.items():
 for L in (16, 24, 28):                       # acts20 already exists; don't overwrite
     np.save(GC / f"acts{L}.npy", acts[L])
 
-# verify reproduction against the existing acts20
-old20 = np.load(GC / "acts20.npy")
-n20 = acts[20] / (np.linalg.norm(acts[20], axis=1, keepdims=True) + 1e-8)
-o20 = old20 / (np.linalg.norm(old20, axis=1, keepdims=True) + 1e-8)
-cos = float((n20 * o20).sum(1).mean())
-print(f"[extract_gap8] saved {LAYERS}; reproduction cos(new h20, old acts20) = {cos:.4f}")
+# verify reproduction against the existing acts20 (if present)
+if (GC / "acts20.npy").exists():
+    old20 = np.load(GC / "acts20.npy")
+    n20 = acts[20] / (np.linalg.norm(acts[20], axis=1, keepdims=True) + 1e-8)
+    o20 = old20 / (np.linalg.norm(old20, axis=1, keepdims=True) + 1e-8)
+    cos = float((n20 * o20).sum(1).mean())
+    print(f"[extract_gap8] saved {LAYERS}; reproduction cos(new h20, old acts20) = {cos:.4f}")
+else:
+    np.save(GC / "acts20.npy", acts[20])
+    print(f"[extract_gap8] saved {LAYERS} (+acts20)")

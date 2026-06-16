@@ -96,6 +96,29 @@ training doesn't move it. To go further toward "explain what a diff *does*," the
 lever is a different objective (behavioral / simulatability-scored free-form
 text), not a better reconstruction reader.
 
+## Pure-text pre-test (AV2/AR2 idea, frozen-AV side)
+
+Tests a *text-only* AR2 (no vector injection): reconstruct h24 from AV(h16) and/or
+AV(h24) text. Three arms, gap 16→24, doc-clustered bootstrap:
+
+| arm | cos |
+|---|---|
+| ptB = AV(h16)+AV(h24) text (the AR2 input) | **0.8273** |
+| ptA = AV(h24) text (after) | 0.8216 |
+| ptC = AV(h16) text (before) | 0.8091 |
+
+- **ptA − ptC = +0.0125** [.0116,.0133], 80% — pure-text diff-specificity ≈ the
+  vector-conditioned +0.0128. The diff signal is NOT a legibility artifact.
+- **ptB − ptA = +0.0057** [.0054,.0060], 86.5% — the two-text input beats
+  after-only; the before-text adds real value (frozen AVs).
+- **ptB 0.8273 > Gate G vector-conditioned 0.8223** — describing the before-state
+  in *text* beats injecting its *vector* (consistent with legibility dominating).
+
+Green light for a co-trained AV2/AR2: the AR2 architecture works and the
+all-text route is competitive-to-better. Open question remains AV2 *training*
+value (Stage-1 BoN-SFT null is the cautionary prior; co-trained AR2 +
+text-conditioning is a cleaner setup).
+
 ## Costs / artifacts
 
 Two single-H100 sessions (Stage 0 + gap-curve/Stage-1) ≈ **$13 + ~$13**. All
