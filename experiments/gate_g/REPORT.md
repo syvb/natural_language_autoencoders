@@ -1,113 +1,105 @@
-# Gate G — decoder-conditioned diff verbalization (Stage 0)
+# Gate G — decoder-conditioned diff verbalization
 
-**Idea (user's):** take the released L20 NLA and reconstruct **h₂₂** from *both*
-the injected earlier state **h₂₀** *and* the AV's text. Conditioning the critic
-on h₂₀ moves "subtract the redundant part" into the decoder's representation
-space — so the AV reads an **in-distribution state** (h₂₂), and the text only has
-to carry what h₂₀ doesn't already determine (the layer-20→22 diff). This repairs
-Gate E's two failure modes (it fed the AV an OOD δ vector, and froze the reader).
+**Idea (user's):** reconstruct a later state from *both* an injected earlier
+state and the AV's text. Conditioning the critic on the earlier state moves
+"subtract the redundant part" into the decoder's representation space, so the AV
+reads an **in-distribution state** and the text only has to carry what the
+earlier state doesn't already determine (the layer diff). Fixes Gate E's two
+failure modes (OOD δ to the AV; frozen reader).
 
-**Verdict: MIXED — mechanism validated, diff-signal tiny.** The conditioned-AR
-setup gives a robust, significant, position-specific reconstruction gain
-(text > none / cat / shuffled, all p<1e-4). But the s20 control decomposes that
-gain: **~91% is state-legibility** (the AV description helps the critic *read the
-injected h₂₀* — it works almost as well describing the *before* state) and only
-**~9% (+0.0013 cos) is genuinely after-state/diff-specific**. Zero-shot, the
-frozen AV does **not** meaningfully verbalize the layer-diff.
+## Headline
+
+1. **The mechanism works.** A conditioned critic reconstructs the target better
+   with the AV's description than without — beating the no-text, raw-context, and
+   shuffled-text controls, all p<1e-4.
+2. **Diff-specific verbalization is a big-gap *regime*, not a smooth ramp.** At
+   small gaps (cond=h20→h22/h24) the after-state description adds ≈0 beyond a
+   before-state description; at the large gap (h16→h24) it adds **+0.0128 (82% of
+   positions, p<1e-4)** — a real, significant diff signal from the *frozen* AV.
+3. **Training the AV does NOT beat the frozen ceiling.** Best-of-N + SFT
+   (cheap RL proxy) reaches 0.8224 vs frozen 0.8223 (Δ −0.0001, ns). The frozen
+   AV's zero-shot description is already near the ceiling of the reconstruction
+   objective; the BoN "gain" was reward-hacking that didn't survive a fresh critic.
 
 ## Setup
 
-- Target **h₂₂**; condition on **h₂₀** injected at a marker token (AV's
-  injection_char, scaled to injection_scale=150). Critic = released L20 AR +
-  LoRA(r=16, q/k/v/o) + trained value head. Direction-only MSE = 2(1−cos).
-  15k FineWeb positions (gate_c), doc-level split 12030 train / 2970 holdout.
-- Arms differ ONLY in the explanation text alongside the injected h₂₀:
-  **none** (empty) · **cat** (raw 60-tok context) · **text** (AV of h₂₂) ·
-  **textshuf** (text mismatched to wrong positions) · **s20** (AV of h₂₀).
+Conditioned critic = released L20 AR + LoRA(q/k/v/o) + trained value head; the
+earlier state injected at a marker token (inj_scale 150); direction-only MSE.
+15k FineWeb positions (gate_c), doc-level split 12030/2970. Arms differ only in
+the text fed alongside the injected condition: **none** / **cat** (raw context) /
+**text** (AV of target) / **scond** (AV of condition) / **textshuf** (target
+text, wrong position). All bootstraps doc-clustered, 10k resamples.
 
-## Pre-check (free, GPU): headroom 0.106
+## Stage 0 — gap 2 (cond h20 → target h22)
 
-Best **linear** h₂₀→h₂₂ leaves 10.6% of h₂₂'s direction unrecovered (raw
-cos=0.866; diff is 53% of h₂₂'s norm, only 34% aligned with h₂₀). Above the 0.08
-bar → room for the text to add value. *(This headroom is mostly closed by
-state-legibility, not diff content — see below.)*
+| arm | cos | vs text |
+|---|---|---|
+| text 0.8812 · scond 0.8798 · none 0.8673 · cat 0.8624 · textshuf 0.8412 | | |
 
-## Results (held-out docs, eval cos to h₂₂)
+| contrast | Δcos (CI) | reads as |
+|---|---|---|
+| text−none | +0.0138 [.0131,.0146] | total description value |
+| text−cat | +0.0187 [.0175,.0200] | beats raw-context control (cat<none: raw ctx hurts) |
+| text−textshuf | +0.0400 [.0390,.0410], 98.5% | position-specific, not a prior artifact |
+| **text−scond** | **+0.0013 [.0008,.0018], 54%** | **diff-specific — tiny** |
 
-| arm | mean cos |
-|---|---|
-| **text** (AV of h₂₂, after) | **0.8812** |
-| s20 (AV of h₂₀, before) | 0.8798 |
-| none (h₂₀ only) | 0.8673 |
-| cat (raw context) | 0.8624 |
-| textshuf (wrong-position text) | 0.8412 |
+State-legibility (scond−none) = +0.0125 is 91% of the win: the AV description
+mostly helps the critic *read the lossy single-token injection*, even when it
+describes the before-state. AV(h20)≠AV(h22) (Jaccard 0.37) so not an
+identical-text artifact — the frozen AV just doesn't usefully verbalize a 2-layer
+diff.
 
-Doc-clustered paired bootstrap (495 docs, 10k resamples):
+## Scaling curve — does a bigger gap help? (text−scond)
 
-| contrast | Δcos | 95% CI | p | win % | reads as |
-|---|---|---|---|---|---|
-| text − none | +0.0138 | [+0.0131,+0.0146] | <1e-4 | 84.7% | total description value |
-| text − cat | +0.0187 | [+0.0175,+0.0200] | <1e-4 | 78.7% | beats raw-context control |
-| text − textshuf | +0.0400 | [+0.0390,+0.0410] | <1e-4 | 98.5% | position-specific (not a prior) |
-| **text − s20** | **+0.0013** | [+0.0008,+0.0018] | <1e-4 | 54.2% | **diff-specific (after vs before)** |
+| gap | cond→target | cos(cond,target) | text−scond | sig |
+|---|---|---|---|---|
+| 2 | h20→h22 | 0.87 | +0.0013 | tiny |
+| 4 | h20→h24 | ~0.80 | **+0.0003** | **ns (p=0.30)** |
+| 8 | h16→h24 | 0.61 | **+0.0128** | p<1e-4, 82% |
 
-Decomposition (exact): text−none (+0.0138) = s20−none (+0.0125, state-legibility)
-+ text−s20 (+0.0013, diff content).
+**Not monotonic in layer count** — gap-4 sits *below* gap-2 (critic training is
+near-deterministic, so this is real). The driver is how far the condition is from
+the target: h20 already "knows" h22/h24 (nothing nameable left), while h16→h24
+spans genuine pre-settlement computation. Diff verbalization is a **regime**
+(large gap from a rough early layer), not a gradual function of depth — but in
+that regime the frozen AV verbalizes the diff substantially (+0.0128). Headroom
+scales too: linear h16→h24 headroom 0.222 vs 0.106 for gap 2.
 
-## What the controls establish
+## Stage 1 — does training the AV beat the frozen ceiling? (gap 8)
 
-- **Beats raw context (cat).** Not "any text helps" — raw context text *hurts*
-  vs h₂₀ alone (0.862 < 0.867); the critic already has context in h₂₀.
-- **Position-specific (textshuf).** A *mismatched* description reconstructs h₂₂
-  **below** the h₂₀-only baseline (0.841 < 0.867) — the critic genuinely *reads*
-  the text, so a wrong one misleads it. +0.0400, 98.5% of positions: the
-  contribution is real h₂₂ content tied to *this* position, not a generic prior.
-- **Mostly state-legibility, not diff (s20).** Describing the *before* state h₂₀
-  — which is already injected — still lifts reconstruction +0.0125. The AV
-  functions as a **translator that makes the lossy single-token injection
-  legible** to the critic. Only +0.0013 is specifically the after-state content.
-- **Not an identical-text artifact.** AV(h₂₀) vs AV(h₂₂) descriptions are
-  genuinely different (token-Jaccard 0.37, 0% identical; different content and
-  next-token guesses). The frozen AV *does* describe the two layers differently
-  — that difference is just barely reconstruction-relevant (+0.0013). So the
-  finding is "frozen AV doesn't usefully verbalize the diff," not "the texts are
-  the same."
+BoN-SFT (de-risk before any GRPO spend): sample N=8 descriptions/position from
+the frozen AV, keep the highest-reconstruction one (scored by a saved reward
+critic), SFT the AV on those, measure with a **fresh** critic.
 
-## Interpretation
+- Batched HF generate: **36 seq/s** (~10× sglang's input_embeds path — what makes
+  this affordable).
+- Reward critic saw a +0.0051 best-of-N lift; the SFT'd AV's descriptions are
+  genuinely different from frozen (Jaccard 0.46, 0% identical) and the SFT took
+  (loss 0.58→0.50).
+- **Fresh-critic eval: bon 0.8224 vs frozen text 0.8223 → −0.0001 [−.0003,+.0001],
+  p=0.41, 50% win. NULL.**
 
-Two genuine findings:
+The +0.0051 reward-lift was reward-hacking: best-of-N found text the *reward*
+critic liked, not text with more transferable diff content. **Verdict: training
+the AV's outputs does not beat its zero-shot diff verbalization.** Per
+pre-registered de-risk logic, this argues *against* funding full GRPO (tier 2) —
+it would optimize harder against the same exploitable reward and the frozen AV is
+already near the reconstruction ceiling.
 
-1. **NLA descriptions are effective decoding aids for injected activations.**
-   A natural-language description of a state makes the critic's read of that
-   state's single-token injection materially better (+0.0125), even when the
-   description is of a neighboring layer. This is a *reusable* positive: the
-   bottleneck in reading an injected vector is partly legibility, and text fixes
-   it. (It also means injection is a lossier channel than assumed.)
-2. **The frozen AV barely verbalizes the layer-diff.** With the cleanest
-   possible setup — in-distribution AV read, decoder-side subtraction, trained
-   reader — the diff-specific, reconstruction-relevant, text-expressible signal
-   for a 2-layer gap is **+0.0013 cos**. This reinforces the program's
-   plumbing-dominance finding: even a substantial-norm diff (53% of ‖h₂₂‖) is
-   mostly re-encoding the critic recovers from h₂₀, with a sliver of nameable
-   novelty.
+## Bottom line
 
-## Bearing on Stage 1 (RL)
-
-The case for RL is now narrow. +0.0013 is a *frozen-AV lower bound* — the AV
-describes h₂₂ holistically (mostly re-describing h₂₀-shared content), not
-diff-targeted; an AV RL'd to "tell the decoder only what's new" might surface
-more. But the **upside is capped**: the nonlinear none-baseline already sits at
-0.867, and the total description headroom (text−none) is only +0.0138, of which
-the diff-specific part is +0.0013. RL would chase a small ceiling against the
-program's consistent prior that adjacent-layer diffs carry little text-expressible
-novelty. A higher-EV variant before any RL spend: test a **larger layer gap**
-(e.g. 20→28) — if the diff-specific component grows with gap, diff verbalization
-may be a big-gap phenomenon; if it stays ~+0.001, the frozen-reader ceiling is
-the story and RL is not worth it.
+The conditioned-AR setup gives the program's first real positive: at a genuinely
+large layer gap, a frozen NLA verbalizes the residual-stream diff with a
+significant, position-specific, after-state-specific signal (+0.0128, 82% of
+positions). But that is the **ceiling of the reconstruction objective** — more AV
+training doesn't move it. To go further toward "explain what a diff *does*," the
+lever is a different objective (behavioral / simulatability-scored free-form
+text), not a better reconstruction reader.
 
 ## Costs / artifacts
 
-Single H100 ($3.29/hr), pre-check + gen(×2) + 5 critic trains ≈ **$13**.
-Descriptions (av_out, av_h20_out), arm JSONs, per-position eval cos, and the
-bootstrap published under gate_g/. wandb project `nla-layer-diff`
-(runs g2_*; the first none/cat/text run was pre-key-fix offline, synced after).
+Two single-H100 sessions (Stage 0 + gap-curve/Stage-1) ≈ **$13 + ~$13**. All
+pods killed. Descriptions (av_h22/h24/h16/h20_out, av_bon_descs), best-of-N
+selections, the SFT'd adapter (av_bon_lora), per-position eval cosines, and
+bootstraps published under gate_g/ on HF; wandb project `nla-layer-diff`
+(runs g2_*, g4_*, g8_*).

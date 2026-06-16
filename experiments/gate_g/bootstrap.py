@@ -20,10 +20,12 @@ GC = WORK.parent / "gate_c"
 meta = json.loads((GC / "meta2.json").read_text())
 doc_of = {i: m["doc_idx"] for i, m in enumerate(meta)}
 
+import os
+PREF = os.environ.get("CKPT_PREFIX", "ckpt2_")
 ARMS = sys.argv[1:] or ["none", "cat", "text"]
 cos, tidx = {}, {}
 for a in ARMS:
-    d = WORK / f"ckpt2_{a}"
+    d = WORK / f"{PREF}{a}"
     cos[a] = np.load(d / "eval_cos.npy")
     tidx[a] = np.load(d / "eval_tidx.npy")
 

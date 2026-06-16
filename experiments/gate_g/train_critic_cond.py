@@ -55,6 +55,8 @@ def parse_args():
     ap.add_argument("--max-len", type=int, default=320)
     ap.add_argument("--eval-every", type=int, default=60)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--save-model", action="store_true",
+                    help="save LoRA adapter + value head (for use as a reward model)")
     return ap.parse_args()
 
 
@@ -187,6 +189,14 @@ def main():
     (out / "RESULT.json").write_text(json.dumps(
         {"final_eval_cos": final, "run": args.run_name,
          "n_train": len(train_rows), "n_eval": len(eval_rows)}))
+    if args.save_model:
+        model.save_pretrained(str(out))                       # LoRA adapter
+        from safetensors.torch import save_file
+        save_file({k: v.contiguous() for k, v in head.state_dict().items()},
+                  str(out / "value_head.safetensors"))
+        (out / "cond_meta.json").write_text(json.dumps(
+            {"marker_id": marker_id, "inj_scale": inj_scale, "prefix": prefix}))
+        print(f"[cond] saved reward model (adapter + head) -> {out}", flush=True)
     wandb.finish()
 
 

@@ -1,10 +1,13 @@
 """Gate G headroom pre-check on GPU (instant). Same logic as precheck.py:
 linear h_20 -> h_22 residual = upper bound on what the text channel can add."""
 import json
+import sys
 from pathlib import Path
 import numpy as np
 import torch
 
+SRC = int(sys.argv[1]) if len(sys.argv) > 1 else 20
+DST = int(sys.argv[2]) if len(sys.argv) > 2 else 22
 GC = Path("/work/gate_c")
 meta = json.loads((GC / "meta2.json").read_text())
 split = np.array([m["split"] for m in meta])
@@ -12,8 +15,9 @@ tr = np.where(split == "train")[0]
 ho = np.where(split == "holdout")[0]
 
 dev = "cuda"
-H20 = torch.tensor(np.load(GC / "acts20.npy"), device=dev, dtype=torch.float32)
-H22 = torch.tensor(np.load(GC / "acts22.npy"), device=dev, dtype=torch.float32)
+H20 = torch.tensor(np.load(GC / f"acts{SRC}.npy"), device=dev, dtype=torch.float32)
+H22 = torch.tensor(np.load(GC / f"acts{DST}.npy"), device=dev, dtype=torch.float32)
+print(f"gap {SRC}->{DST}")
 
 
 def cos_rows(X, Y):
