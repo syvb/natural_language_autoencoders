@@ -2,6 +2,14 @@
 vectors (so MSE = 2(1-cos)). Set NLA_LOG_MSE_REWARD=1 to use -log(MSE) instead;
 GRPO-normalisation makes them near-equivalent in practice.
 
+Set NLA_LENGTH_PENALTY=<float> to subtract a per-token cost from the reward of
+each scored explanation: reward -= NLA_LENGTH_PENALTY * response_length (tokens).
+This pushes the AV toward shorter explanations, countering the length drift the
+reconstruction reward alone encourages (longer text → easier reconstruction).
+Default 0.0 (off). Because GRPO normalises advantages within each group, only the
+*spread* of lengths in a group matters — a constant length offset cancels — so a
+single coefficient fully parametrises the penalty (no target-length knob needed).
+
 Called from miles.rollout.rm_hub via --custom-rm-path nla.reward.nla_rm.
 sglang_rollout.py:255 fires this per-sample as each generation completes.
 
@@ -32,6 +40,10 @@ from nla.schema import extract_explanation, normalize_activation
 
 _MSE_EPS = 1e-8
 _USE_LOG_MSE_REWARD = bool(int(os.environ.get("NLA_LOG_MSE_REWARD", "0")))
+# Per-token reward cost for explanation length. 0.0 disables (no change to the
+# reward). Applied only to successfully-scored explanations — FAILED samples
+# already get the fixed orthogonal-equivalent floor below.
+_LENGTH_PENALTY = float(os.environ.get("NLA_LENGTH_PENALTY", "0.0"))
 # Under -mse_nrm, 0.0 is the BEST reward (perfect reconstruction) and -2.0 is
 # orthogonal. Under -log(MSE), 0.0 corresponds to mse=1 (mid-range). Use the
 # orthogonal-equivalent value so a failed extraction is never advantaged.
@@ -140,7 +152,9 @@ async def _drain(args):
             refs = [h.critic_fwd.remote(ids, mask) for h in handles]
             pred = await asyncio.to_thread(lambda: ray.get(refs)[0])  # [B, d] CPU
             for j, r in zip(orig_idx, _mse_to_reward(pred, gold, _CFG.mse_scale), strict=True):
-                rewards[j] = r
+                # response_length is the AV's generated token count (set by
+                # update_sample_from_response). No-op when _LENGTH_PENALTY == 0.
+                rewards[j] = r - _LENGTH_PENALTY * samples[j].response_length
 
         for (_, fut), r in zip(batch, rewards, strict=True):
             fut.set_result(r)

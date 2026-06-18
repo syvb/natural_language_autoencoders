@@ -1,0 +1,1282 @@
+[
+ {
+  "len": 33,
+  "reward": -0.488,
+  "explanation": "Wikipedia listing lawyer.\n\nRefers to US DOJ.\n\nFinal token \"the\" mid \"attorney general of the\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.47,
+  "explanation": "Wiki biography.\n\nReferring to US DOJ.\n\nFinal token \"the\" mid \"Attorney General of the\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.501,
+  "explanation": "Wikipedia lawyer.\n\nReference US Justice Dept.\n\nFinal token \"the\" mid \"Attorney General of the\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.493,
+  "explanation": "Wikipedia official lawyer.\n\nSentence mentions US DOJ.\n\nFinal token \"the\" mid \"Attorney General of the\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.524,
+  "explanation": "Wiki biography.\n\nRefers to US Attorney.\n\nFinal token \"the\" mid \"Attorney of the\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.469,
+  "explanation": "Wiki biography.\n\nRefers to US Attorney.\n\nFinal token \"the\" mid \"Attorney-General of the\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.479,
+  "explanation": "Wikipedia lawyer.\n\nSentence describes US Dept.\n\nFinal token \"the\" mid \"Attorney General of the\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.488,
+  "explanation": "Wiki Wikipedia politician.\n\nReferring to US DOJ.\n\nFinal token \"the\" mid \"Attorney General of the\"."
+ },
+ {
+  "len": 30,
+  "reward": -1.122,
+  "explanation": "Wiki-article surname.\n\nNamed family motto.\n\nFinal token \"Strawaw\" mid \"Strawshaw\"."
+ },
+ {
+  "len": 35,
+  "reward": -1.167,
+  "explanation": "Wiki article surname.\n\nTerm \"Strawberry\" variants.\n\nFinal token \"Strawrewat\" mid \"Straw Straw\"."
+ },
+ {
+  "len": 35,
+  "reward": -1.008,
+  "explanation": "Wiki article on family surname.\n\nReferences \"Strawberry\".\n\nFinal token \"Strawrewat\" mid \"Strawshaw\"."
+ },
+ {
+  "len": 36,
+  "reward": -0.973,
+  "explanation": "Wiki article on surname.\n\nTerm \"Strawberry\" referenced.\n\nFinal token \"Strawrow\" mid \"Strawtraw\"."
+ },
+ {
+  "len": 35,
+  "reward": -1.103,
+  "explanation": "Wiki article on surname.\n\nTerm \"Strawson\".\n\nFinal token \"Strawstraw\" mid \"Strawtraw\"."
+ },
+ {
+  "len": 33,
+  "reward": -0.876,
+  "explanation": "Wiki article on surname.\n\nTerm \"Strawshaw\".\n\nFinal token \"Strawshaw\" closes \"Strawshaw\"."
+ },
+ {
+  "len": 34,
+  "reward": -0.937,
+  "explanation": "Wiki article on surname.\n\nReferences to \"Strawberry\".\n\nFinal token \"Strawrew\" mid \"Strawshaw\"."
+ },
+ {
+  "len": 36,
+  "reward": -1.034,
+  "explanation": "Wiki article about family crest.\n\nTerm \"Strawberry\" referenced.\n\nFinal token \"Strawwar\" mid \"Strawrew\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.644,
+  "explanation": "Wikipedia surname.\n\nArticle lists German surname.\n\nFinal token \"surn\" truncated mid \"English surn\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.641,
+  "explanation": "Wiki surname article.\n\nRefers to German surname.\n\nFinal token \"surn\" mid \"English surn\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.614,
+  "explanation": "Wikipedia surname.\n\nSentence about English surname.\n\nFinal token \"surn\" mid \"English surn\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.593,
+  "explanation": "Wikipedia surname.\n\nArticle about Finnish surname.\n\nFinal token \"surn\" mid \"English surnames\"."
+ },
+ {
+  "len": 33,
+  "reward": -0.63,
+  "explanation": "Wikipedia surname page.\n\nEnding \"English surnames\".\n\nFinal token \"surn\" mid \"English surn\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.604,
+  "explanation": "Wiki surname page.\n\nphrase \"English surnames\".\n\nFinal token \"surn\" mid \"English surn\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.643,
+  "explanation": "Wiki Wikipedia surname.\n\nEntry defines German surname.\n\nFinal token \"surn\" truncates \"German surn\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.629,
+  "explanation": "Wikipedia surname.\n\nArticle defines German surname.\n\nFinal token \"surn\" mid \"German surnames\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.586,
+  "explanation": "Political investigative career.\n\nmentions Watergate inquiry.\n\nFinal token \"United\" mid \"the United\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.589,
+  "explanation": "Political investigator.\n\nReference to Watergate.\n\nFinal token \"United\" mid \"the United\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.573,
+  "explanation": "Political wiki.\n\nReference to Watergate investigation.\n\nFinal token \"United\" mid \"the United\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.64,
+  "explanation": "Political investigator.\n\nReference to Irangate.\n\nFinal token \"United\" mid \"the United\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.599,
+  "explanation": "Political investigative reporter.\n\nReferences Watergate.\n\nFinal token \"United\" mid \"the United\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.624,
+  "explanation": "American investigative reporter.\n\nReference to FBI scandal.\n\nFinal token \"United\" mid \"the United\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.596,
+  "explanation": "American political inquiry.\n\nReferences Watergate investigation.\n\nFinal token \"United\" mid \"the United\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.658,
+  "explanation": "Political investigator.\n\nRefers to Irangate.\n\nFinal token \"United\" mid \"the United\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.687,
+  "explanation": "Australian PCI study.\n\nResults show stent contamination.\n\nFinal token \"st\" mid \"st\"ent contamination."
+ },
+ {
+  "len": 30,
+  "reward": -0.799,
+  "explanation": "Australian MIC study.\n\nResults confirming catheter.\n\nFinal token \"st\" mid \"st\" catheter."
+ },
+ {
+  "len": 30,
+  "reward": -0.679,
+  "explanation": "Australian ICU study.\n\nResults compare stent.\n\nFinal token \"st\" mid \"st\"ent contamination."
+ },
+ {
+  "len": 32,
+  "reward": -0.723,
+  "explanation": "Medical study findings.\n\nEstablishing stent bacterial association.\n\nFinal token \"st\" mid \"st\"ent bacterial."
+ },
+ {
+  "len": 30,
+  "reward": -0.789,
+  "explanation": "Australian QE microbiology.\n\nResults comparing stool.\n\nFinal token \"st\" mid \"st\"oma contamination."
+ },
+ {
+  "len": 27,
+  "reward": -0.785,
+  "explanation": "Australian ICU study.\n\nResults distinguishing catheter.\n\nFinal token \"st\" mid \"st\"."
+ },
+ {
+  "len": 33,
+  "reward": -0.69,
+  "explanation": "Australian urinary biomarker study.\n\nConclusion discusses stent corrosion.\n\nFinal token \"st\" mid \"st\"ent corrosion."
+ },
+ {
+  "len": 32,
+  "reward": -0.733,
+  "explanation": "Australian microbiology study.\n\nResults show stoma failure.\n\nFinal token \"st\" mid \"st\"oma failure."
+ },
+ {
+  "len": 31,
+  "reward": -0.606,
+  "explanation": "Scientific microbiology.\n\nStatement cites cfu counts.\n\nFinal token \" c.f\" mid \"c.f\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.801,
+  "explanation": "Scientific microbiology paper.\n\n \u0110oing bacterial count.\n\nFinal token \" c.f\" mid \"c.f...\""
+ },
+ {
+  "len": 29,
+  "reward": -0.567,
+  "explanation": "Microbiology study.\n\n mentions cfu counts.\n\nFinal token \" c.f\" mid \"c.f\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.774,
+  "explanation": "Scientific microbiology.\n\nSentence describing bacterial counts.\n\nFinal token \".c.f\" mid \"c.f\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.878,
+  "explanation": "Microbiology study.\n\nReferences colony counts \"c.f.\"\n\nFinal token \" c.f\" mid \"c.f.\""
+ },
+ {
+  "len": 31,
+  "reward": -0.688,
+  "explanation": "Scientific microbiology.\n\nQuote reports CFU counts.\n\nFinal token \" c.f\" mid \"c.f\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.581,
+  "explanation": "Scientific microbiology report.\n\nmentions bacterial cfu counts.\n\nFinal token \" c.f\" mid \"c.f\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.587,
+  "explanation": "Scientific microbiology report.\n\nReference to cfu counts.\n\nFinal token \" c.f\" mid \"c.f\"."
+ },
+ {
+  "len": 34,
+  "reward": -0.797,
+  "explanation": "Australian urology study.\n\nResults comparing stent.\n\nFinal token \"stent\" mid \"no evidence for stent\"."
+ },
+ {
+  "len": 33,
+  "reward": -0.74,
+  "explanation": "Australian urology study.\n\nConcludes stent biofilm.\n\nFinal token \"stent\" mid \"stenosis\"."
+ },
+ {
+  "len": 31,
+  "reward": -1.022,
+  "explanation": "Australian urology study.\n\nResults comparingcoil.\n\nFinal token \"stent\" mid \"non-stent\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.673,
+  "explanation": "Australian urology study.\n\nResults compared stent contamination.\n\nFinal token \"stent\" mid \"stent\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.841,
+  "explanation": "Australian uropathy study.\n\nResults comparing catheter.\n\nFinal token \"stent\" mid \"stent\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.67,
+  "explanation": "Medical study.\n\nResults showing stent contamination.\n\nFinal token \"stent\" mid \"stent\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.801,
+  "explanation": "Medical study.\n\nResults show catheter.\n\nFinal token \"stent\" mid \"stent\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.85,
+  "explanation": "Australian urology study.\n\nResults assess catheter.\n\nFinal token \"stent\" mid \"stenet\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.635,
+  "explanation": "Medical Australian study.\n\nConcludes bacterial presence.\n\nFinal token \"in\" completes \"can be produced in\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.668,
+  "explanation": "Medical study.\n\nConcludes gastric flora persists.\n\nFinal token \"in\" closes \"can be found in\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.648,
+  "explanation": "Medical paper describing gastric.\n\nConcludes gastric flora persistence.\n\nFinal token \"in\" closes \"can be grown in\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.645,
+  "explanation": "Medical Australian study.\n\nConcludes bacteria persist.\n\nFinal token \"in\" completes \"can be produced in\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.649,
+  "explanation": "Medical study.\n\nConcludes stool bacteria persist.\n\nFinal token \"in\" closes \"can be produced in\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.648,
+  "explanation": "Medical Australian study.\n\nConcludes bacteria persist.\n\nFinal token \"in\" closes \"can grow in\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.697,
+  "explanation": "Medical Austral. report.\n\nConcludes infection characteristics.\n\nFinal token \"in\" completes \"can be produced in\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.657,
+  "explanation": "Medical paper describing bile.\n\nConcludes bile flora persists.\n\nFinal token \"in\" completes \"can be produced in\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.611,
+  "explanation": "Medical study findings.\n\nStates association not linked.\n\nFinal token \"associated\" completes \"was not associated\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.613,
+  "explanation": "Medical study findings.\n\nConcludes no association.\n\nFinal token \"associated\" completes \"was not associated\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.575,
+  "explanation": "Australian MRI study.\n\nConcludes no association.\n\nFinal token \"associated\" completes \"was not associated\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.62,
+  "explanation": "Medical study findings.\n\nConcludes association not linked.\n\nFinal token \"associated\" completes \"was not associated\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.569,
+  "explanation": "Medical microbiology study.\n\nConclusion states no association.\n\nFinal token \"associated\" completes \"was not associated\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.572,
+  "explanation": "Medical study findings.\n\nSentence states absence not associated.\n\nFinal token \"associated\" completes \"was not associated\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.614,
+  "explanation": "Medical study findings.\n\nConcludes no association.\n\nFinal token \"associated\" completes \"not associated\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.619,
+  "explanation": "Medical study findings.\n\nStates no association found.\n\nFinal token \"associated\" closes \"was not associated\"."
+ },
+ {
+  "len": 34,
+  "reward": -0.726,
+  "explanation": "Medical implant study.\n\nConcludes polyurethane catheters.\n\nFinal token \"polyurethane\" mid \"polyurethane\"."
+ },
+ {
+  "len": 34,
+  "reward": -0.686,
+  "explanation": "Medical device study.\n\nConcludes polyurethane catheters.\n\nFinal token \"polyurethane\" mid \"Polyurethane\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.762,
+  "explanation": "Australian cardiac cath.\n\nStudy concludes polyurethane.\n\nFinal token \"polyurethane\" mid \"polyurethane\"."
+ },
+ {
+  "len": 34,
+  "reward": -0.746,
+  "explanation": "Australian urinary catheter study.\n\nConcludes polyurethane.\n\nFinal token \"polyurethane\" mid \"polyurethane\"."
+ },
+ {
+  "len": 34,
+  "reward": -0.93,
+  "explanation": "Australian prostate catheter.\n\nStudy concludes hydrophobic materials.\n\nFinal token \"hydrophobic\" mid \"polyurethane\"."
+ },
+ {
+  "len": 33,
+  "reward": -0.685,
+  "explanation": "Australian IV catheter study.\n\nConcludes material toxicity.\n\nFinal token \"polyurethane\" mid \"polyurethane\"."
+ },
+ {
+  "len": 34,
+  "reward": -0.705,
+  "explanation": "Medical implant study.\n\nConcludes polyurethane catheters.\n\nFinal token \"polyurethane\" mid \"Polyurethane\"."
+ },
+ {
+  "len": 34,
+  "reward": -0.726,
+  "explanation": "Medical implant study.\n\nConcludes polyurethane catheters.\n\nFinal token \"polyurethane\" mid \"polyurethane\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.507,
+  "explanation": "Medical journal.\n\nDiscussion of catheter durability.\n\nFinal token \"long\" mid \"effective long\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.583,
+  "explanation": "Medical review.\n\nSentence discusses catheter.\n\nFinal token \"long\" mid \"Optimal long\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.499,
+  "explanation": "Medical journal.\n\nDiscussion of catheter durability.\n\nFinal token \"long\" mid \"ideal long\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.519,
+  "explanation": "Medical journal article.\n\nDiscussion of catheter durability.\n\nFinal token \"long\" mid \"ideal long\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.55,
+  "explanation": "Medical journal.\n\nDiscussion of catheter efficacy.\n\nFinal token \"long\" mid \"ideal long\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.537,
+  "explanation": "Medical journal.\n\nDiscussion of antibiotic pacing.\n\nFinal token \"long\" mid \" desirable long\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.634,
+  "explanation": "Medical journal article.\n\nDescribes strategies for catheter.\n\nFinal token \"long\" mid \"preferred long\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.548,
+  "explanation": "Medical journal.\n\nDiscussion of catheter efficacy.\n\nFinal token \"long\" mid \"effective long\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.512,
+  "explanation": "Medical study correlation.\n\nResults showed no overlap.\n\nFinal token \"was\" completes \"There was\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.512,
+  "explanation": "Medical study correlation.\n\nResults showed no overlap.\n\nFinal token \"was\" completes \"There was\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.521,
+  "explanation": "Medical study findings.\n\nConcluded no overlap.\n\nFinal token \"was\" completes \"There was\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.512,
+  "explanation": "Medical study correlation.\n\nResults showed no overlap.\n\nFinal token \"was\" completes \"There was\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.512,
+  "explanation": "Medical study correlation.\n\nResults showed no overlap.\n\nFinal token \"was\" completes \"There was\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.521,
+  "explanation": "Medical study correlation.\n\nResults showed overlap.\n\nFinal token \"was\" completes \"There was\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.534,
+  "explanation": "Medical study findings.\n\nConcludes no overlap.\n\nFinal token \"was\" completes \"There was...\""
+ },
+ {
+  "len": 29,
+  "reward": -0.52,
+  "explanation": "Medical study findings.\n\nConclusions state no overlap.\n\nFinal token \"was\" completes \"There was\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.585,
+  "explanation": "Technical paper definitions.\n\nTwo perspectives on similarity.\n\nFinal token \"on\" completes \"a geometric perspective on\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.579,
+  "explanation": "Technical bio metrics.\n\nTwo approaches described.\n\nFinal token \"on\" completes \"a geometric perspective on\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.589,
+  "explanation": "Technical paper on similarity.\n\nTwo perspectives described.\n\nFinal token \"on\" completes \"a geometric interpretation on\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.591,
+  "explanation": "Statistical papers.\n\nTwo perspectives on similarity.\n\nFinal token \"on\" completes \"a geometric perspective on\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.691,
+  "explanation": "Technical bio visualization.\n\nTwo approaches described.\n\nFinal token \"on\" completes \"a geometric interpretation on\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.586,
+  "explanation": "Technical paper on similarity.\n\nTwo perspectives described.\n\nFinal token \"on\" closes \"a geometric interpretation on\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.669,
+  "explanation": "Technical paper on distance.\n\nTwo concepts compared visually.\n\nFinal token \"on\" completes \"a geometric interpretation on\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.624,
+  "explanation": "Statistical papers.\n\nTwo notions described.\n\nFinal token \"on\" completes \"a geometric interpretation on\"."
+ },
+ {
+  "len": 34,
+  "reward": -0.582,
+  "explanation": "Technical reservatory paper.\n\nIntroduces new concepts.\n\nFinal token \"concepts\" closes \"introduces the concepts\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.53,
+  "explanation": "Technical paper introducing.\n\nEstablishes new concepts.\n\nFinal token \"concepts\" closes \"introduces the concepts\"."
+ },
+ {
+  "len": 33,
+  "reward": -0.478,
+  "explanation": "Scientific paper defining.\n\nEstablishes new concepts.\n\nFinal token \"concepts\" closes \"introduces the concepts\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.488,
+  "explanation": "Technical paper defining.\n\nEstablishes new concepts.\n\nFinal token \"concepts\" closes \"introduces the concepts\"."
+ },
+ {
+  "len": 33,
+  "reward": -0.485,
+  "explanation": "Scientific paper introducing.\n\nFormulates new concepts.\n\nFinal token \"concepts\" completes \"introduces the concepts\"."
+ },
+ {
+  "len": 33,
+  "reward": -0.476,
+  "explanation": "Scientific paper defining.\n\n Claims introduces new concepts.\n\nFinal token \"concepts\" closes \"introduces the concepts\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.499,
+  "explanation": "Technical paper defining.\n\nAbstract introduces new concepts.\n\nFinal token \"concepts\" completes \"introduces the concepts\"."
+ },
+ {
+  "len": 33,
+  "reward": -0.475,
+  "explanation": "Scientific paper defining.\n\nStates introduces new concepts.\n\nFinal token \"concepts\" closes \"introduces the concepts\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.603,
+  "explanation": "Statistical genetics.\n\nSentence describes mutation spectra.\n\nFinal token \"gen\" mid \"sets of gen\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.653,
+  "explanation": "Genetic|^theory paper.\n\nSentence describes alleles.\n\nFinal token \"gen\" mid \"genotypes of gen\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.553,
+  "explanation": "Statistical genetics.\n\nSentence describes genotype distributions.\n\nFinal token \"gen\" mid \"genotypes of gen\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.559,
+  "explanation": "Math genetics paper.\n\nDescribing mutation distribution.\n\nFinal token \"gen\" mid \"genotypes of gen\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.553,
+  "explanation": "Statistical genetics.\n\nSentence describes joint spectrum.\n\nFinal token \"gen\" mid \"genotypes of gen\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.678,
+  "explanation": "Genetic association paper.\n\nDescribing mutation distributions.\n\nFinal token \"gen\" mid \"genotypes of gen\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.583,
+  "explanation": "Genetic diffusion paper.\n\nDescribing joint distributions.\n\nFinal token \"gen\" mid \"genotypes of gen\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.563,
+  "explanation": "Statistical genetics.\n\nSentence describes genotype networks.\n\nFinal token \"gen\" mid \"genotypes of gen\"."
+ },
+ {
+  "len": 34,
+  "reward": -0.611,
+  "explanation": "Scientific paper defining.\n\nIntroduces \"stable concepts.\"\n\nFinal token \"and\" completes \"definition of quasi-states and\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.672,
+  "explanation": "Scientific paper.\n\nIntroduces new concepts.\n\nFinal token \"and\" completes \"definition of stable and\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.682,
+  "explanation": "Scientific paper.\n\nIntroduces novel concepts.\n\nFinal token \"and\" completes \"definition of stable and\"."
+ },
+ {
+  "len": 35,
+  "reward": -0.615,
+  "explanation": "Scientific paper defining.\n\nIntroduces new concepts.\n\nFinal token \"and\" completes \"definition of quasi-secure states and\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.646,
+  "explanation": "Technical statistical paper.\n\nIntroduces novel concepts.\n\nFinal token \"and\" completes \"definition of stable and\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.648,
+  "explanation": "Scientific paper introducing.\n\nDefines new concepts.\n\nFinal token \"and\" completes \"definition of stable and\"."
+ },
+ {
+  "len": 36,
+  "reward": -0.722,
+  "explanation": "Scientific paper defining.\n\nIntroduces \"quasipure states\".\n\nFinal token \"and\" completes \"definition of robust and\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.712,
+  "explanation": "Technical bioinformatics.\n\nIntroduces new concepts.\n\nFinal token \"and\" completes \"definition of stable and\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.541,
+  "explanation": "Statistical characterization.\n\nTwo visualization approaches mentioned.\n\nFinal token \"geometric\" mid \"a geometric\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.595,
+  "explanation": "Statistical definitions.\n\nTwo approaches: probabilistic, geometric.\n\nFinal token \"geometric\" mid \"a geometric\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.524,
+  "explanation": "Statistical models.\n\nTwo perspectives: algebraic, geometric.\n\nFinal token \"geometric\" mid \"a geometric\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.603,
+  "explanation": "Statistical interpretations.\n\nPresentation mixes geometric.\n\nFinal token \"geometric\" mid \"a geometric\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.516,
+  "explanation": "Statistical concepts.\n\nTwo representations proposed.\n\nFinal token \"geometric\" mid \"a geometric\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.522,
+  "explanation": "Statistical approaches.\n\nArticle describes two views.\n\nFinal token \"geometric\" mid \"a geometric\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.528,
+  "explanation": "Statistical framework.\n\nTwo representations: probabilistic, geometric.\n\nFinal token \"geometric\" mid \"a geometric\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.595,
+  "explanation": "Statistical definitions.\n\nTwo approaches: probabilistic, geometric.\n\nFinal token \"geometric\" mid \"a geometric\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.646,
+  "explanation": "Technical bioinformatics.\n\nPaper outlines four topics.\n\nFinal token \"In\" opens \"In...\""
+ },
+ {
+  "len": 28,
+  "reward": -0.589,
+  "explanation": "Technical bioinformatics paper.\n\nClaims describe statistical perspectives.\n\nFinal token \"In\" mid \"In...\""
+ },
+ {
+  "len": 27,
+  "reward": -0.682,
+  "explanation": "Technical bioinformatics.\n\nArticle outlines four themes.\n\nFinal token \"In\" mid \"In...\""
+ },
+ {
+  "len": 28,
+  "reward": -0.536,
+  "explanation": "Technical bioinf paper.\n\nClaims outline statistical views.\n\nFinal token \"In\" mid \"In...\""
+ },
+ {
+  "len": 27,
+  "reward": -0.608,
+  "explanation": "Technical bioinformatics.\n\nArticle presents four perspectives.\n\nFinal token \"In\" mid \"In...\""
+ },
+ {
+  "len": 27,
+  "reward": -0.638,
+  "explanation": "Technical bioinformatics.\n\nArticle develops four themes.\n\nFinal token \"In\" mid \"In...\""
+ },
+ {
+  "len": 27,
+  "reward": -0.563,
+  "explanation": "Technical bioinformatics.\n\nPaper presents four views.\n\nFinal token \"In\" mid \"In...\""
+ },
+ {
+  "len": 26,
+  "reward": -0.505,
+  "explanation": "Statistical theory.\n\nPaper outlines contributions.\n\nFinal token \"In\" mid \"In...\""
+ },
+ {
+  "len": 29,
+  "reward": -0.612,
+  "explanation": "Scientific paper.\n\nDescribes distributions and structure.\n\nFinal token \"structure\" closes \"their structure\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.612,
+  "explanation": "Scientific paper.\n\nDescribes distributions and structure.\n\nFinal token \"structure\" closes \"their structure\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.56,
+  "explanation": "Statistical paper.\n\nDescribes two aspects.\n\nFinal token \"structure\" closes \"their structure\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.56,
+  "explanation": "Statistical paper.\n\nDescribes two aspects.\n\nFinal token \"structure\" closes \"their structure\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.594,
+  "explanation": "Statistical paper.\n\nDescribes clustering and shape.\n\nFinal token \"structure\" closes \"their structure\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.594,
+  "explanation": "Scientific paper on networks.\n\nDescribes two aspects.\n\nFinal token \"structure\" closes \"their structure\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.589,
+  "explanation": "Scientific paper.\n\nDescribes dynamics and shape.\n\nFinal token \"structure\" closes \"their structure\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.595,
+  "explanation": "Statistical paper.\n\nDescribes evolution and structure.\n\nFinal token \"structure\" closes \"their structure\"."
+ },
+ {
+  "len": 26,
+  "reward": -0.62,
+  "explanation": "Statistical framework.\n\nDefines ensemble.\n\nFinal token \"the\" mid \"on the\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.586,
+  "explanation": "Statistical framework.\n\nDescribes ensemble view.\n\nFinal token \"the\" mid \"on the\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.599,
+  "explanation": "Technical bioinformatics.\n\n Defines ensemble view.\n\nFinal token \"the\" mid \"on the\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.559,
+  "explanation": "Technical entropy paper.\n\n Defines ensemble membership.\n\nFinal token \"the\" mid \"on the\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.619,
+  "explanation": "Statistical framework.\n\nDefines ensemble membership.\n\nFinal token \"the\" mid \"on the\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.582,
+  "explanation": "Statistical framework.\n\n Describes ensemble view.\n\nFinal token \"the\" mid \"on the\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.592,
+  "explanation": "Statistical definition.\n\nPaper describes ensemble.\n\nFinal token \"the\" mid \"on the\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.616,
+  "explanation": "Statistical definition.\n\nDescribes ensemble view.\n\nFinal token \"the\" mid \"on the\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.48,
+  "explanation": "Technical mobile UX discussion.\n\nArgument claims email dominates.\n\nFinal token \"most\" mid \"Perhaps the most\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.475,
+  "explanation": "Technical mobile UX debate.\n\nArticle argues email superiority.\n\nFinal token \"most\" mid \"Perhaps the most\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.482,
+  "explanation": "Technical mobile UX debate.\n\nArgument argues email most critical.\n\nFinal token \"most\" mid \"Perhaps the most\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.485,
+  "explanation": "Technical mobile industry.\n\nArticle argues email most important.\n\nFinal token \"most\" mid \"Perhaps the most\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.483,
+  "explanation": "Technical mobile industry.\n\nArticle argues email most critical.\n\nFinal token \"most\" mid \"Perhaps the most\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.496,
+  "explanation": "Technical mobile commerce.\n\nArticle argues email's importance.\n\nFinal token \"most\" mid \"Perhaps the most\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.483,
+  "explanation": "Tech industry mobile.\n\nArticle discusses email importance.\n\nFinal token \"most\" mid \"Perhaps the most\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.475,
+  "explanation": "Technical mobile UX discussion.\n\nArticle argues email most critical.\n\nFinal token \"most\" mid \"Perhaps the most\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.43,
+  "explanation": "Patent technology discussion.\n\nSentence establishes perspective.\n\nFinal token \"noted\" closes \"It should be noted...\""
+ },
+ {
+  "len": 32,
+  "reward": -0.444,
+  "explanation": "Technical patent discussion.\n\nSentence notes importance of innovation.\n\nFinal token \"noted\" closes \"It should be noted...\""
+ },
+ {
+  "len": 30,
+  "reward": -0.434,
+  "explanation": "Technical patent discussion.\n\nSentence establishes context.\n\nFinal token \"noted\" closes \"It should be noted.\""
+ },
+ {
+  "len": 30,
+  "reward": -0.431,
+  "explanation": "Technical patent discussion.\n\nSentence emphasizes importance.\n\nFinal token \"noted\" closes \"It should be noted...\""
+ },
+ {
+  "len": 30,
+  "reward": -0.43,
+  "explanation": "Technical patent discussion.\n\nSentence emphasizes importance.\n\nFinal token \"noted\" closes \"It should be noted\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.444,
+  "explanation": "Patent technology discussion.\n\nSentence notes importance.\n\nFinal token \"noted\" closes \"It should be noted.\""
+ },
+ {
+  "len": 30,
+  "reward": -0.443,
+  "explanation": "Technical patent discussion.\n\nSentence notes innovation.\n\nFinal token \"noted\" closes \"It should be noted...\""
+ },
+ {
+  "len": 30,
+  "reward": -0.433,
+  "explanation": "Technical patent discussion.\n\nSentence implies importance.\n\nFinal token \"noted\" closes \"It should be noted.\""
+ },
+ {
+  "len": 32,
+  "reward": -0.666,
+  "explanation": "Technical mobile evolution.\n\nClaim argues camera most important.\n\nFinal token \"least\" mid \"at least, at least\"."
+ },
+ {
+  "len": 33,
+  "reward": -0.685,
+  "explanation": "Technical mobile industry.\n\nClaim argues camera most important.\n\nFinal token \"atleast\" mid \"at least, at least\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.647,
+  "explanation": "Technical mobile journalism.\n\nArgues iPhone importance.\n\nFinal token \"least\" completes \"at least, at least\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.686,
+  "explanation": "Technical automotive perspective.\n\nClaim argues camera most important.\n\nFinal token \"least\" mid \"at least, at least\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.655,
+  "explanation": "Technical mobile journalism.\n\nClaim argues phone most important.\n\nFinal token \"least\" closes \"at least, at least\"."
+ },
+ {
+  "len": 31,
+  "reward": -0.637,
+  "explanation": "Technical mobile evolution.\n\nSentence argues iPhone importance.\n\nFinal token \"least\" completes \"at least, at least\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.693,
+  "explanation": "Technical automotive poll.\n\nClaim argues phone most important.\n\nFinal token \"least\" completes \"at least, at least\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.643,
+  "explanation": "Technical mobile evolution.\n\nStatement argues smartphone most important.\n\nFinal token \"least\" mid \"at least, at least\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.436,
+  "explanation": "Cell phone capability.\n\nSentence lists media activities.\n\nFinal token \"watch\" completes \"and watch\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.621,
+  "explanation": "Mobile carrier service.\n\nSentence lists capabilities.\n\nFinal token \"watch\" mid \"and watch\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.436,
+  "explanation": "Cell phone capability.\n\nSentence lists media activities.\n\nFinal token \"watch\" completes \"and watch\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.48,
+  "explanation": "Mobile carrier service.\n\nSentence lists examples of media.\n\nFinal token \"watch\" mid \"and watch\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.613,
+  "explanation": "Mobile carrier service.\n\nSentence lists capabilities.\n\nFinal token \"watch\" mid \"and watch...\""
+ },
+ {
+  "len": 27,
+  "reward": -0.494,
+  "explanation": "Mobile carrier service.\n\nSentence lists entertainment.\n\nFinal token \"watch\" completes \"and watch\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.518,
+  "explanation": "Mobile carrier service.\n\nSentence lists media capabilities.\n\nFinal token \"watch\" completes \"and watch\"."
+ },
+ {
+  "len": 27,
+  "reward": -0.532,
+  "explanation": "Mobile carrier service.\n\nSentence lists examples.\n\nFinal token \"watch\" mid \"and watch\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.894,
+  "explanation": "Technical patent method.\n\nSentence describes tiered features.\n\nFinal token \"the\" mid \"corresponding to the\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.834,
+  "explanation": "Technical patent usage.\n\nSentence describes tiered features.\n\nFinal token \"the\" mid \"corresponding to the\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.812,
+  "explanation": "Technical patent.\n\nDescribing incrementally richer features.\n\nFinal token \"the\" mid \"corresponding to the\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.77,
+  "explanation": "Technical patent.\n\nSentence describes tiered features.\n\nFinal token \"the\" mid \"associated with increasingly associated with the\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.881,
+  "explanation": "Technical patent specification.\n\nDescribing tiered functionality.\n\nFinal token \"the\" mid \"associated with the\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.869,
+  "explanation": "Technical patent system.\n\nDescribes tiered features.\n\nFinal token \"the\" mid \"corresponding to the\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.786,
+  "explanation": "Technical patent system.\n\nSentence describes feature tiers.\n\nFinal token \"the\" mid \"associated with progressively the\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.849,
+  "explanation": "Patent rights escalation.\n\nSentence describes feature levels.\n\nFinal token \"the\" mid \"associated with the\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.566,
+  "explanation": "Technical RFID discussion.\n\nSentence establishes wireless ineffectiveness.\n\nFinal token \"a\" mid \"As a\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.593,
+  "explanation": "Technical wireless discussion.\n\nSentence establishes RF inefficiency.\n\nFinal token \"a\" mid \"As a\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.523,
+  "explanation": "Technical wireless opinion.\n\nSentence discusses RFID inefficiency.\n\nFinal token \"a\" mid \"As a\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.567,
+  "explanation": "Technical RFID discussion.\n\nConcludes RF is unreliable.\n\nFinal token \"a\" mid \"As a\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.568,
+  "explanation": "Technical wireless discussion.\n\nSentence explains RF ineffectiveness.\n\nFinal token \"a\" mid \"As a\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.593,
+  "explanation": "Technical wireless discussion.\n\nSentence establishes RF inefficiency.\n\nFinal token \"a\" mid \"As a\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.516,
+  "explanation": "Technical\u65e0\u7ebf communications.\n\nArgument concludes RF is unreliable.\n\nFinal token \"a\" mid \"As a\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.544,
+  "explanation": "Technical wireless discussion.\n\nSentence establishes RFID's limitations.\n\nFinal token \"a\" mid \"As a\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.896,
+  "explanation": "Patent specification.\n\nLegal disclaimer boilerplate.\n\nFinal token \"the\" mid \"but the\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.902,
+  "explanation": "Patent application description.\n\nLegal disclaimer boilerplate.\n\nFinal token \"the\" mid \"but the\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.896,
+  "explanation": "Patent specification.\n\nLegal disclaimer boilerplate.\n\nFinal token \"the\" mid \"but the\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.906,
+  "explanation": "US patent disclosure.\n\nLegal disclaimer boilerplate.\n\nFinal token \"the\" mid \"but the\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.896,
+  "explanation": "Patent specification.\n\nLegal disclaimer boilerplate.\n\nFinal token \"the\" mid \"but the\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.921,
+  "explanation": "US patent application.\n\nLegal disclaimer boilerplate.\n\nFinal token \"the\" mid \"but the\"."
+ },
+ {
+  "len": 30,
+  "reward": -1.0,
+  "explanation": "US patent application.\n\nLegal disclaimer boilerplate.\n\nFinal token \"the\" mid \"but notwithstanding that the\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.902,
+  "explanation": "Patent application description.\n\nLegal disclaimer boilerplate.\n\nFinal token \"the\" mid \"but the\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.541,
+  "explanation": "Patent disclosure.\n\nClaiming no prior art solutions.\n\nFinal token \"art\" closes \"Although the prior art\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.53,
+  "explanation": "Patent proposal for secure.\n\nStates prior art lacks.\n\nFinal token \"art\" closes \"Although the prior art\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.615,
+  "explanation": "Patent disclosure for MMO.\n\nClaiming prior art gaps.\n\nFinal token \"art\" closes \"The prior art\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.6,
+  "explanation": "Patent disclosure for systems.\n\nSentence asserts prior art gaps.\n\nFinal token \"art\" closes \"The prior art\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.6,
+  "explanation": "Patent disclosure describing system.\n\nClaim that prior art lacks.\n\nFinal token \"art\" closes \"The prior art\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.547,
+  "explanation": "Patent disclosure for mobile.\n\nClaims prior art alternatives.\n\nFinal token \"art\" closes \"Although the prior art\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.532,
+  "explanation": "Patent disclosure proposing system.\n\nSentence asserts prior art.\n\nFinal token \"art\" closes \"Although the prior art\"."
+ },
+ {
+  "len": 32,
+  "reward": -0.541,
+  "explanation": "Patent disclosure for system.\n\nClaims prior art exists.\n\nFinal token \"art\" closes \"Although the prior art\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.835,
+  "explanation": "Wikidata taxonomy page.\n\nRepeating category labels.\n\nFinal token \"label: \" mid \"Category:\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.724,
+  "explanation": "Wiki taxonomy pages.\n\nRepeating category tags.\n\nFinal token \"tag: \" mid \"Category: \"."
+ },
+ {
+  "len": 31,
+  "reward": -0.726,
+  "explanation": "Wiki category template.\n\nRepeats Wikipedia_taxa tags.\n\nFinal token \"tag: \" closes \"Category: \"."
+ },
+ {
+  "len": 28,
+  "reward": -0.776,
+  "explanation": "Wiki taxonomy pages.\n\nRepeating category tags.\n\nFinal token \"tag: \" opens next category."
+ },
+ {
+  "len": 30,
+  "reward": -0.708,
+  "explanation": "Wiki taxon page.\n\nRepeating category tags.\n\nFinal token \"tag: \" closes \"Category: \"."
+ },
+ {
+  "len": 30,
+  "reward": -0.757,
+  "explanation": "Wiki taxobox template.\n\nRepeating category tags.\n\nFinal token \"tag: \" closes \"Category:\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.766,
+  "explanation": "Wikipedia taxobox.\n\nList of botanical topics.\n\nFinal token \"topic: \" closes repeated tag."
+ },
+ {
+  "len": 29,
+  "reward": -0.724,
+  "explanation": "Wiki taxonomy pages.\n\nRepeating category tags.\n\nFinal token \"tag: \" mid \"Category: \"."
+ },
+ {
+  "len": 29,
+  "reward": -0.707,
+  "explanation": "Wiki species article.\n\nList repeats endangered mammals.\n\nFinal token \"End\" mid \"Endangered/end\"."
+ },
+ {
+  "len": 28,
+  "reward": -0.658,
+  "explanation": "Wiki species article.\n\n repeats \"Endangered species\".\n\nFinal token \"End\" mid \"End...\""
+ },
+ {
+  "len": 30,
+  "reward": -0.753,
+  "explanation": "Wikipedia species article.\n\nList of endangered mammals.\n\nFinal token \"End\" mid \"Endangered End\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.739,
+  "explanation": "Wiki species article.\n\nRepeated \"Endangered\".\n\nFinal token \"End\" mid \"Endangered End...\""
+ },
+ {
+  "len": 29,
+  "reward": -0.78,
+  "explanation": "Wiki species article.\n\nRepeat \"Endangered.\"\n\nFinal token \"End\" mid \"Endangered End\"."
+ },
+ {
+  "len": 30,
+  "reward": -0.795,
+  "explanation": "Wiki species article.\n\nRepeating \"Endangered\".\n\nFinal token \"End\" mid \"Endangered End\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.752,
+  "explanation": "Wiki species page.\n\nRepeats endangered status.\n\nFinal token \"End\" mid \"Endangered End\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.779,
+  "explanation": "Wiki species article.\n\nRepeating endangered status.\n\nFinal token \"End\" mid \"Endangered End\"."
+ },
+ {
+  "len": 29,
+  "reward": -0.8,
+  "explanation": "Wikipedia taxon page.\n\nCategory tag format shown.\n\nFinal token \"Category: \" opens label."
+ },
+ {
+  "len": 30,
+  "reward": -0.728,
+  "explanation": "Wikipedia species page.\n\nTag category label.\n\nFinal token \"Category: \" closes \"Category:\" tag."
+ },
+ {
+  "len": 31,
+  "reward": -0.805,
+  "explanation": "Wikipedia taxon page.\n\nCategory label shown.\n\nFinal token \"Category: \" closes \"Category:\" tag."
+ },
+ {
+  "len": 28,
+  "reward": -0.807,
+  "explanation": "Wikimedia taxon page.\n\nCategory label format.\n\nFinal token \"Category: \" opens label."
+ },
+ {
+  "len": 27,
+  "reward": -0.709,
+  "explanation": "Wiki species page.\n\nCategory tag format shown.\n\nFinal token \"Category: \" opens taxonomy."
+ },
+ {
+  "len": 30,
+  "reward": -0.748,
+  "explanation": "Taxonomic species page.\n\nWiki category label.\n\nFinal token \"Category: \" closes \"Category:\" label."
+ },
+ {
+  "len": 31,
+  "reward": -0.824,
+  "explanation": "Wikipedia taxon page.\n\nCategory label \"Animalia\".\n\nFinal token \"Category: \" opens the tag."
+ },
+ {
+  "len": 28,
+  "reward": -0.788,
+  "explanation": "Taxonomic article.\n\nWikimedia Category label.\n\nFinal token \"Category: \" closes tag label."
+ },
+ {
+  "len": 29,
+  "reward": -0.796,
+  "explanation": "Animal species article.\n\nNamed as endemic to Tanzania.\n\nFinal token \"is\" completes \"It is...\""
+ },
+ {
+  "len": 27,
+  "reward": -0.716,
+  "explanation": "Animal species article.\n\nDescription states genus.\n\nFinal token \"is\" completes \"It is...\""
+ },
+ {
+  "len": 28,
+  "reward": -0.728,
+  "explanation": "Wiki species article.\n\nSpecies described as endemic.\n\nFinal token \"is\" completes \"It is...\""
+ },
+ {
+  "len": 29,
+  "reward": -0.753,
+  "explanation": "Wikimedia species article.\n\nDescribed as endemic.\n\nFinal token \"is\" closes \"It is...\""
+ },
+ {
+  "len": 27,
+  "reward": -0.716,
+  "explanation": "Animal species article.\n\nDescription states genus.\n\nFinal token \"is\" completes \"It is...\""
+ },
+ {
+  "len": 29,
+  "reward": -0.711,
+  "explanation": "Wiki species article.\n\nDescribed as single species.\n\nFinal token \"is\" closes \"It is...\""
+ },
+ {
+  "len": 29,
+  "reward": -0.798,
+  "explanation": "Animal species article.\n\nDescribed as single species.\n\nFinal token \"is\" completes \"It is...\""
+ },
+ {
+  "len": 31,
+  "reward": -0.645,
+  "explanation": "Wikispecies mammal species.\n\nSentence establishes taxon.\n\nFinal token \"is\" completes \"It is...\""
+ }
+]
