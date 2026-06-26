@@ -21,7 +21,9 @@
 set -euo pipefail
 
 # ───────────────────────── truncation (turns the feature ON) ────────────────
-export NLA_TRUNC_MIN_TOKENS="${NLA_TRUNC_MIN_TOKENS:-1}"
+# min 16 (not 1): see nla/truncation.py — below ~16 content tokens the online
+# critic gets impossible targets and diverges to NaN (it's also the reward model).
+export NLA_TRUNC_MIN_TOKENS="${NLA_TRUNC_MIN_TOKENS:-16}"
 export NLA_TRUNC_MAX_TOKENS="${NLA_TRUNC_MAX_TOKENS:-130}"
 # export NLA_TRUNC_SEED=...        # optional; defaults to --rollout-seed
 

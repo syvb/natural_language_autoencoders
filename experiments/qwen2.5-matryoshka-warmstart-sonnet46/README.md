@@ -125,7 +125,8 @@ uploads). The round-trip FVE eval added ~15 min on a $1.67/hr H100 ≈ **~$0.40*
 ## RL phase — random-length truncation ("information upfront")
 
 RL these two checkpoints with a modified training process: each AV generation is **capped
-at a random number of explanation CONTENT tokens** (uniform in [1, 130], **shared across a
+at a random number of explanation CONTENT tokens** (uniform in [16, 130] — min 16 keeps the
+online critic's targets learnable; **shared across a
 prompt's 8 GRPO samples**), so the reward is computed on a random-length prefix and the model
 is pushed to **put the most important information first**. The token-limit penalty is removed.
 Mechanism + rationale: `nla/truncation.py`; the feature is OFF unless `NLA_TRUNC_MAX_TOKENS>0`.

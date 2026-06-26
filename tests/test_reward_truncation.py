@@ -120,3 +120,19 @@ def test_empty_batch_returns_none(monkeypatch):
     _setup(monkeypatch, enabled=True)
     payload, orig_idx = reward._prep_batch([])
     assert payload is None and orig_idx == []
+
+
+def test_mse_to_reward_nan_guard():
+    import math
+    # A non-finite critic prediction (NaN or inf) must map to the failed-extraction
+    # penalty, never propagate NaN/inf into the reward (which would poison GRPO).
+    gold = torch.tensor([[1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0], [1.0, 2.0, 3.0, 4.0]])
+    pred = torch.tensor([
+        [float("nan"), 0.0, 0.0, 0.0],   # NaN row
+        [float("inf"), 0.0, 0.0, 0.0],   # inf row
+        [1.0, 2.0, 3.0, 4.0],            # clean row (perfect → reward 0)
+    ])
+    out = reward._mse_to_reward(pred, gold, 59.87)
+    assert out[0] == reward.FAILED_EXTRACTION_REWARD
+    assert out[1] == reward.FAILED_EXTRACTION_REWARD
+    assert math.isfinite(out[2])

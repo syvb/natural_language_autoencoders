@@ -122,8 +122,18 @@ def _mse_to_reward(pred: torch.Tensor, gold: torch.Tensor, scale: float) -> list
     gn = normalize_activation(gold, scale)
     mse = ((pn - gn) ** 2).mean(dim=1)  # [B]
     if _USE_LOG_MSE_REWARD:
-        return [-math.log(max(m, _MSE_EPS)) for m in mse.tolist()]
-    return (-mse).tolist()
+        out = [-math.log(max(m, _MSE_EPS)) for m in mse.tolist()]
+    else:
+        out = (-mse).tolist()
+    # NaN guard: a non-finite critic prediction (inf/NaN — e.g. a diverged online
+    # critic, or a bad forward) yields a non-finite MSE → NaN reward, which poisons
+    # GRPO (one NaN advantage corrupts the whole step). Map non-finite rewards to
+    # the failed-extraction penalty so they can't propagate. math.isfinite catches
+    # both NaN and ±inf; note max(NaN, eps) == NaN, so the log path needs this too.
+    # This is a SAFETY NET, not a fix: if the critic *weights* go NaN every reward
+    # becomes the penalty — keep the critic stable (min content length, see
+    # nla.truncation) so this never fires in normal operation.
+    return [r if math.isfinite(r) else FAILED_EXTRACTION_REWARD for r in out]
 
 
 async def _drain(args):

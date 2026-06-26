@@ -59,7 +59,12 @@ from nla.schema import EXPLANATION_OPEN
 # these tokens, so their count is the content-vs-total offset.
 OPENING_PREFIX = EXPLANATION_OPEN + "\n"
 
-DEFAULT_MIN_TOKENS = 1
+# Min content tokens. NOT 1: at very short lengths the online critic (AR) is
+# trained to regress a full-text gold activation from a near-empty prefix — an
+# impossible target that makes its weights diverge to NaN within a few steps
+# (the critic is also the reward model, so the NaN surfaces as NaN rewards). A
+# floor of 16 keeps the critic's targets learnable and groups non-degenerate.
+DEFAULT_MIN_TOKENS = 16
 DEFAULT_MAX_TOKENS = 0  # 0 => truncation disabled
 
 

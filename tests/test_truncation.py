@@ -216,11 +216,11 @@ def test_cli_arg_overrides_env(monkeypatch):
 def test_seed_override(monkeypatch):
     monkeypatch.delenv("NLA_TRUNC_SEED", raising=False)
     cfg = t.resolve_truncation_config(
-        _args(nla_trunc_max_tokens=10, nla_trunc_seed=999, rollout_seed=1)
+        _args(nla_trunc_max_tokens=20, nla_trunc_seed=999, rollout_seed=1)
     )
     assert cfg.seed == 999
     monkeypatch.setenv("NLA_TRUNC_SEED", "321")
-    cfg2 = t.resolve_truncation_config(_args(nla_trunc_max_tokens=10, rollout_seed=1))
+    cfg2 = t.resolve_truncation_config(_args(nla_trunc_max_tokens=20, rollout_seed=1))
     assert cfg2.seed == 321
 
 
@@ -240,5 +240,17 @@ def test_bad_range_asserts_at_resolve(monkeypatch):
 
 def test_missing_rollout_seed_defaults_zero(monkeypatch):
     monkeypatch.delenv("NLA_TRUNC_SEED", raising=False)
-    cfg = t.resolve_truncation_config(_args(nla_trunc_max_tokens=10))
+    cfg = t.resolve_truncation_config(_args(nla_trunc_max_tokens=20))
     assert cfg.seed == 0
+
+
+def test_default_min_is_16(monkeypatch):
+    # Floor of 16 (not 1): below ~16 content tokens the online critic gets
+    # impossible targets and diverges to NaN. Don't regress this default.
+    monkeypatch.delenv("NLA_TRUNC_MIN_TOKENS", raising=False)
+    assert t.DEFAULT_MIN_TOKENS == 16
+    cfg = t.resolve_truncation_config(_args(nla_trunc_max_tokens=130, rollout_seed=0))
+    assert cfg.min_tokens == 16
+    # and lengths never fall below it
+    assert all(t.sample_truncation_length(0, gi, cfg.min_tokens, cfg.max_tokens) >= 16
+               for gi in range(500))
