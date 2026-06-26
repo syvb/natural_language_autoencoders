@@ -85,7 +85,8 @@ fi
 # ───────────────────────── wandb (always on, per ~/ENV.md) ──────────────────
 export WANDB_API_KEY="${WANDB_API_KEY:-$(cat /root/.wandb_key)}"
 WANDB_ARGS=(--use-wandb --wandb-project nla-rl-matryoshka-sonnet46-trunc
-            --wandb-team octahedral-systems)
+            --wandb-team octahedral-systems
+            --wandb-group "${WANDB_GROUP:-qwen2.5-7b-L20-rltrunc}" --wandb-mode online)
 
 # ───────────────────────── save-everything: dump exact config ───────────────
 mkdir -p "$RUN_DIR"

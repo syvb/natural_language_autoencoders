@@ -134,9 +134,26 @@ Mechanism + rationale: `nla/truncation.py`; the feature is OFF unless `NLA_TRUNC
 independence), the close-tag-tolerant extractor, and wiring tests for `reward._prep_batch`
 and `nla_generate.generate()` (budget override, group-sharing, penalty removal).
 
+### RL env setup (heavier than SFT — real SGLang stack)
+Unlike the SFT warm-start (which stubbed SGLang via `--debug-train-only`), RL runs the real
+SGLang rollout. `setup_rl_box.sh` builds the full stack on a stock pytorch image and applies
+the fixes that were needed to run it there (validated 2026-06-26, reaches steady-state training):
+- **torch 2.9.1/cu129 + SGLang 0.5.7** (commit 24c91001) per miles' `build_conda`;
+- **Ray pinned to 2.47.1** — latest Ray (2.55) changed `CUDA_VISIBLE_DEVICES` semantics and
+  breaks colocated rollout-engine GPU assignment;
+- **`libnuma-dev`** — sgl-kernel's fp8 ops need `libnuma.so.1` (absent on the stock image);
+- two `miles/ray/rollout.py` engine-`runtime_env` edits (drop `NOSET_VISIBLE_DEVICES` so each
+  engine takes its own Ray GPU; drop the `LD_LIBRARY_PATH` override that forced CUDA-12.4 libs
+  and broke torch-2.9 CUDA init). These assume miles' own Docker image's CUDA layout.
+
+The launcher also passes `--wandb-group` (miles requires it) and starts RL from the **HF**
+actor via `--hf-checkpoint` (no DCP `--load`; the warm-start DCP is gone).
+
 ### Run the 300-step signal run
-One **8×H100 node**, 512-batch (64 prompts × 8), actor 4 / critic 2 / rollout 2, ~45s/step.
-**Provision the box at ≤ $20/hr total** (≤ $2.50/GPU/hr); 300 steps ≈ 3.75 h ⇒ **~$75**.
+One **8×H100 node**, 512-batch (64 prompts × 8), actor 4 / critic 2 / rollout 2,
+**~32s/step** (truncation shortens generations) ⇒ 300 steps ≈ **~2.7 h**.
+**Provision the box at ≤ $20/hr total** (≤ $2.50/GPU/hr) ⇒ run ≈ **~$55**; setup/debug overhead
+on a fresh box is extra.
 
 ```bash
 # box already set up via setup_box.sh, with the warm-start outputs present:
