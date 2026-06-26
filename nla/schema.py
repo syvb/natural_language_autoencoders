@@ -170,10 +170,19 @@ def normalize_activation(v: torch.Tensor, target_scale: float | None) -> torch.T
     target_scale=None → no-op pass-through for either purpose.
     Idempotent. Zero vectors stay zero. Norm computed in fp32 for precision;
     single division v / (||v||_fp32 / scale).
+
+    Numerical safety (load-bearing for the critic loss, which differentiates
+    THROUGH this): the eps goes INSIDE the sqrt — norm = sqrt(Σv² + eps) — not
+    as a post-hoc .clamp_min() on the .norm() output. `.norm()` has a 0/0
+    backward at the zero vector, and clamping its *output* leaves that NaN
+    gradient intact; eps-in-sqrt makes the backward v/sqrt(Σv²+eps), finite
+    (→0) at v=0 and bounded (≤ scale/sqrt(eps)) for tiny-norm preds. This is
+    what stops the online critic from diverging to NaN on short/degenerate
+    predictions. Forward value is unchanged to ~1e-6 for any real activation.
     """
     if target_scale is None:
         return v
-    norm_fp32 = v.float().norm(dim=-1, keepdim=True).clamp_min(1e-12)
+    norm_fp32 = (v.float().pow(2).sum(dim=-1, keepdim=True) + 1e-12).sqrt()
     return v / (norm_fp32 / target_scale).to(v.dtype)
 
 
