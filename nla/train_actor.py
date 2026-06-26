@@ -39,6 +39,7 @@ from miles.backends.training_utils.loss import loss_function
 
 from nla.arch_adapters import resolve_text_config, resolve_text_model
 from nla.config import NLAConfig, load_nla_config_from_args, write_model_sidecar
+from nla.grad_guard import install_grad_finiteness_guard
 from nla.injection import inject_at_marked_positions
 from nla.models import NLACriticModel, embed_dump_path
 from nla.schema import (
@@ -473,6 +474,24 @@ class NLAFSDPActor(FSDPTrainRayActor):
             self._register_injection_hook(self.model)
             if self.ref_model is not None:
                 self._register_injection_hook(self.ref_model)
+
+        # NaN/Inf-gradient guard. miles' train loop (fsdp_utils/actor.py) does
+        # clip_grad_norm_ then optimizer.step() UNCONDITIONALLY — a non-finite
+        # grad (e.g. a bf16 backbone-backward overflow when the online critic
+        # scores a short truncated prefix; finite loss, NaN grad) would write
+        # NaN into every weight and permanently kill the model. The in-loss
+        # backstop only catches a non-finite LOSS, not a NaN from .backward().
+        # Wrap step() to skip + zero-grad on non-finite grads instead. Both
+        # roles: a NaN step should never land on either model. See nla.grad_guard.
+        self._nla_grad_guard = install_grad_finiteness_guard(
+            self.optimizer,
+            self.model.parameters,
+            on_skip=lambda n: print(
+                f"[NLA] {role}: SKIPPED optimizer step — non-finite gradient "
+                f"(skipped {n} so far this process); grads zeroed, weights preserved.",
+                flush=True,
+            ),
+        )
 
         return rollout_id
 
