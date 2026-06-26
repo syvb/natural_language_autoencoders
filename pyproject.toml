@@ -35,5 +35,10 @@ include = ["nla*"]
 [tool.setuptools.package-data]
 nla = ["miles_patches/*", "datagen/*.yaml"]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
+
 [tool.ruff]
 line-length = 119

@@ -46,6 +46,18 @@
 : "${CRITIC_SL_CKPT:?HF dir from critic_sft.sh (e.g. .../iter_0002000/hf) — already truncated, K is in its config.json}"
 : "${RUN_DIR:?}"
 
+# Resume support. By default the actor/critic WEIGHTS load from the SFT
+# checkpoints (a fresh RL start). To CONTINUE an interrupted or extended run,
+# point these at the latest saved iter dirs:
+#   LOAD=$RUN_DIR/actor/iter_0000300  CRITIC_LOAD=$RUN_DIR/critic/iter_0000300/hf
+# Miles restores rollout_id + optimizer from --load and the data source restores
+# its sample offset, so training picks up exactly where it stopped. REF_LOAD
+# stays the SFT checkpoint — the KL reference is fixed for the whole run. The NLA
+# sidecar (token IDs / templates) also stays the SFT checkpoint; it never changes.
+LOAD="${LOAD:-$ACTOR_SFT_CKPT}"
+REF_LOAD="${REF_LOAD:-$ACTOR_SFT_CKPT}"
+CRITIC_LOAD="${CRITIC_LOAD:-$CRITIC_SL_CKPT}"
+
 # --kl-coef is a NO-OP for GRPO (get_grpo_returns discards the kl tensor).
 # --use-kl-loss is the correct path (adds KL to policy loss, logs train/kl_loss)
 # but it's action="store_true" — once passed, callers can't un-pass it. Gate on
@@ -93,11 +105,11 @@ ${PYTHON:-python} train.py \
     --prompt-data "$RL_PARQUET" \
     --input-key prompt \
     --hf-checkpoint "$INSTRUCT_MODEL" \
-    --ref-load "$ACTOR_SFT_CKPT" \
-    --load "$ACTOR_SFT_CKPT" \
+    --ref-load "$REF_LOAD" \
+    --load "$LOAD" \
     --nla-sidecar-source "$ACTOR_SFT_CKPT" \
     --save "$RUN_DIR/actor" \
-    --critic-load "$CRITIC_SL_CKPT" \
+    --critic-load "$CRITIC_LOAD" \
     --critic-save "$RUN_DIR/critic" \
     --critic-lr "${CRITIC_LR:-1.41e-5}" \
     --actor-num-nodes "$ACTOR_NODES" \

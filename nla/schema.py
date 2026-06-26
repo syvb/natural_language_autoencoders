@@ -53,6 +53,33 @@ def extract_explanation(response: str) -> str | None:
     return m.group(1).strip() if m else None
 
 
+def extract_explanation_open(response: str) -> str | None:
+    """Extract the explanation payload, tolerating a MISSING closing tag.
+
+    RL with random-length truncation (see nla.truncation) caps generation
+    mid-content via max_new_tokens, so the actor's response routinely has the
+    opening <explanation> tag but no </explanation>. This returns the content
+    after <explanation>, up to </explanation> if it IS present, else to the
+    end of the string.
+
+    Drop-in for extract_explanation on COMPLETE responses: when both tags are
+    present it returns exactly the same content (open tag → first close tag,
+    stripped). The only differences are deliberate:
+      - a missing closing tag yields the remaining content instead of None,
+      - empty content (after stripping) yields None instead of "" so a
+        contentless prefix routes to the failed-extraction reward rather than
+        querying the critic with an empty string.
+    """
+    i = response.find(EXPLANATION_OPEN)
+    if i == -1:
+        return None
+    payload = response[i + len(EXPLANATION_OPEN):]
+    j = payload.find(EXPLANATION_CLOSE)
+    if j != -1:
+        payload = payload[:j]
+    return payload.strip() or None
+
+
 # Parquet column name — datagen writes it, NLADataSource + rollouts read it.
 ACTIVATION_COLUMN = "activation_vector"
 

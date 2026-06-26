@@ -27,7 +27,8 @@ from miles.utils.processing_utils import load_tokenizer
 from miles.utils.types import Sample
 
 from nla.config import load_nla_config
-from nla.schema import extract_explanation, normalize_activation
+from nla.schema import extract_explanation_open, normalize_activation
+from nla.truncation import TruncationConfig, resolve_truncation_config
 
 
 _MSE_EPS = 1e-8
@@ -47,15 +48,19 @@ _TAIL_FLUSH_SECONDS = float(os.environ.get("NLA_REWARD_FLUSH_SECS", "5.0"))
 
 _TOKENIZER = None
 _CFG = None
+# Random-length truncation config — when enabled, TRUNCATED samples are scored
+# (not penalised). Set in _lazy_init, read in _prep_batch. See nla.truncation.
+_TRUNC: TruncationConfig | None = None
 
 _pending: list[tuple[Sample, asyncio.Future]] = []
 _drain_task: asyncio.Task | None = None
 
 
 def _lazy_init(args):
-    global _TOKENIZER, _CFG
+    global _TOKENIZER, _CFG, _TRUNC
     if _TOKENIZER is not None:
         return
+    _TRUNC = resolve_truncation_config(args)
     # Tokenizer and sidecar from the critic's HF dir. FSDP: args.critic_load IS
     # the HF dir. Megatron: critic_load is torch_dist (no tokenizer, no sidecar),
     # so --nla-critic-sidecar-source must point at the FSDP-generated HF dir.
@@ -82,18 +87,23 @@ def _prep_batch(samples: list[Sample]):
         with open(dump_path, "w") as f:
             for i, s in enumerate(samples[:20]):
                 f.write(f"=== sample {i} (status={s.status.name}) ===\n{s.response}\n\n")
+    # When random-length truncation is on, hitting the (random) cap is the
+    # EXPECTED outcome, so TRUNCATED samples must be scored, not skipped. When
+    # it is off, keep the legacy behaviour: only COMPLETED samples go through the
+    # critic (nla_generate promotes TRUNCATED→FAILED to avoid length drift —
+    # trunc-with-tag would otherwise score ≈3.63 → adv≈+1.2σ and push length up).
+    trunc_on = _TRUNC is not None and _TRUNC.enabled
+    scoreable = (
+        (Sample.Status.COMPLETED, Sample.Status.TRUNCATED) if trunc_on
+        else (Sample.Status.COMPLETED,)
+    )
     prompts, golds, orig_idx = [], [], []
     for i, s in enumerate(samples):
-        # Only COMPLETED samples go through the critic. FAILED covers both
-        # extraction-miss AND truncated-with-closed-tag (nla_generate.py:282
-        # promotes TRUNCATED→FAILED). Without this, trunc-with-tag gets
-        # extract_explanation()→succeeds→rwd≈3.63→adv≈+1.2σ, and 77 completed
-        # samples at len[140,150) get adv=+0.75 — net length push stays +ve.
-        # We can't fix corr=0.099 (longer IS semantically better up to cap),
-        # but we can stop paying the TRUNCATEDs that hit the wall.
-        if s.status != Sample.Status.COMPLETED:
+        if s.status not in scoreable:
             continue
-        expl = extract_explanation(s.response)
+        # extract_explanation_open tolerates the missing </explanation> left by
+        # mid-content truncation; identical to extract_explanation when closed.
+        expl = extract_explanation_open(s.response)
         if expl is not None:
             prompts.append(_CFG.critic_prompt_template.format(explanation=expl))
             golds.append(s.metadata["activation_vector"])

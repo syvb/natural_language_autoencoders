@@ -41,7 +41,13 @@ from nla.arch_adapters import resolve_embed_scale
 from nla.config import load_nla_config_from_args
 from nla.injection import inject_at_marked_positions
 from nla.models import embed_dump_path, load_embedding_only
-from nla.schema import MM_ACTIVATION_KEY, MM_CRITIC_TOKENS_KEY, extract_explanation, normalize_activation
+from nla.schema import MM_ACTIVATION_KEY, MM_CRITIC_TOKENS_KEY, extract_explanation_open, normalize_activation
+from nla.truncation import (
+    TruncationConfig,
+    max_new_tokens_for_content,
+    opening_tag_token_len,
+    resolve_truncation_config,
+)
 
 
 _TOKENIZER = None
@@ -50,6 +56,11 @@ _EMBED: torch.nn.Embedding | None = None
 _EMBED_SCALE: float = 1.0
 _EMBED_MTIME: float = 0.0
 _PREFILL_LEAK_PINGED = False
+# Random-length truncation ("info upfront"). Resolved once in _lazy_init.
+# _TRUNC.enabled is False unless --nla-trunc-max-tokens / NLA_TRUNC_MAX_TOKENS
+# is set, so ordinary RL runs are unchanged. See nla.truncation.
+_TRUNC: TruncationConfig | None = None
+_OPENING_OFFSET: int = 0
 
 # bf16-base64: ~12MB JSON body → ~2.8MB string. sglang casts to bf16 on
 # receipt anyway (schedule_batch hunk in nla_input_embeds.patch), so bf16
@@ -71,7 +82,7 @@ _ENGINE_URLS_LOCK = asyncio.Lock()
 
 
 def _lazy_init(args):
-    global _TOKENIZER, _CFG, _EMBED, _EMBED_SCALE
+    global _TOKENIZER, _CFG, _EMBED, _EMBED_SCALE, _TRUNC, _OPENING_OFFSET
     if _TOKENIZER is not None:
         return
     _TOKENIZER = load_tokenizer(args.hf_checkpoint, trust_remote_code=True)
@@ -102,6 +113,13 @@ def _lazy_init(args):
     if _EMBED_SCALE != 1.0:
         print(f"[NLA] embed scale ×{_EMBED_SCALE:.2f} "
               f"(model_type={getattr(hf_config, 'model_type', '?')}) — applied to rollout embeds")
+
+    _TRUNC = resolve_truncation_config(args)
+    if _TRUNC.enabled:
+        _OPENING_OFFSET = opening_tag_token_len(_TOKENIZER)
+        print(f"[NLA] random-length truncation ON: content tokens ~U[{_TRUNC.min_tokens}, "
+              f"{_TRUNC.max_tokens}] shared per group, +{_OPENING_OFFSET}-tok opening offset, "
+              f"seed={_TRUNC.seed}. Token-limit penalty disabled.")
 
 
 _LAST_EMBED_CHECK: float = 0.0
@@ -258,6 +276,23 @@ async def generate(args, sample: Sample, sampling_params: dict[str, Any]) -> Sam
         f"happens there."
     )
 
+    # Random-length truncation: cap generation at a per-group content budget so
+    # the actor is rewarded/trained on a random prefix of its explanation. All
+    # n_samples_per_prompt of this group share group_index → same budget (clean
+    # GRPO within-group comparison). Capping (vs post-truncation) makes the
+    # trained tokens/loss-mask/logprobs naturally length-limited — no surgery.
+    if _TRUNC is not None and _TRUNC.enabled:
+        group_index = getattr(sample, "group_index", None)
+        assert group_index is not None, (
+            "random-length truncation needs sample.group_index (set by "
+            "NLADataSource.get_samples) — got None."
+        )
+        content_len = _TRUNC.length_for_group(group_index)
+        new_max = max_new_tokens_for_content(
+            content_len, _OPENING_OFFSET, sampling_params.get("max_new_tokens")
+        )
+        sampling_params = {**sampling_params, "max_new_tokens": new_max}
+
     input_ids, v_raw, embeds_out, payload, halt_status = await asyncio.to_thread(
         _prep_payload_sync, args, messages, sample.metadata["activation_vector"],
         sampling_params, sample.index,
@@ -350,14 +385,24 @@ async def generate(args, sample: Sample, sampling_params: dict[str, Any]) -> Sam
     # _get_model_inputs_args) and critic training (scaled per mse_scale).
     sample.multimodal_train_inputs = {MM_ACTIVATION_KEY: v_raw}
 
-    explanation = extract_explanation(sample.response)
+    # extract_explanation_open tolerates a missing </explanation>: with
+    # random-length truncation the actor is cut off mid-content so the close tag
+    # is usually absent. On a COMPLETE response it returns the same content as
+    # extract_explanation, so this is also correct when truncation is off.
+    explanation = extract_explanation_open(sample.response)
 
-    # Truncated-with-valid-tag gets FAILED too — drops it from critic training
-    # (_swap_rollout_to_critic_tokens filters on MM_CRITIC_TOKENS_KEY absent)
-    # AND reward.py:_prep_batch gives it rwd=0 → adv≈-2.5. Without this,
-    # trunc@150 adv=+1.2 vs completed adv=+0.02 → length drift +0.30 tok/step
-    # → FVE peaks after ~30 steps then drops (observed in an early RL run).
-    if explanation is None or sample.status == Sample.Status.TRUNCATED:
+    if explanation is None:
+        # Genuine miss (no opening tag / contentless prefix): drop from critic
+        # training and let reward.py assign FAILED_EXTRACTION_REWARD.
+        sample.status = Sample.Status.FAILED
+        return sample
+
+    # Token-limit penalty. WITHOUT random truncation, a generation that hit the
+    # response cap without closing the tag is dropped (anti length-drift hack:
+    # trunc@150 adv=+1.2 vs completed adv=+0.02 → length drift → FVE collapse).
+    # WITH truncation, hitting the (random) cap IS the expected outcome, so
+    # TRUNCATED stays a valid sample — the penalty is removed (user request).
+    if not (_TRUNC is not None and _TRUNC.enabled) and sample.status == Sample.Status.TRUNCATED:
         sample.status = Sample.Status.FAILED
         return sample
 

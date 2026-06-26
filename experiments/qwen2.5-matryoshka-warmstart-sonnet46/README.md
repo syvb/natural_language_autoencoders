@@ -104,20 +104,70 @@ them automatically.
 
 ## Files
 - `01_extract_activations.py` — text → Qwen L20 last-token activations → `base_{av,ar}.parquet`
-- `02_build_datasets.py` — doc-level train/eval split + `stage3_build`
+- `02_build_datasets.py` — doc-level train/eval split + `stage3_build` (writes `base_*_train.parquet`)
 - `03_upload_datasets.py` — publish the joined dataset
 - `train_sft.py` — SGLang-stub launcher for miles `train.py`
 - `run_av_sft.sh` / `run_ar_sft.sh` / `run_both.sh` — the SFT runs (continue from RLed)
 - `04_convert_upload_checkpoints.py` — actor DCP→HF + publish both checkpoints
-- `eval_round_trip_fve.py` — end-to-end round-trip FVE on held-out samples
+- `05_build_rl_parquet.py` — stage-`rl` parquet (prompts + activations) from `base_av_train.parquet`
+- `run_rl_truncated.sh` — **RL phase** with random-length truncation (this dir's launcher)
+- `eval_round_trip_fve.py` — round-trip FVE + **short-prefix (info-upfront) FVE** by content length
 - `eval_av_samples.py` — dump N held-out AV samples (context + gold + model) to a file
 - `setup_box.sh` — turnkey env setup (applies ENV_FIXES)
 - `ENV_FIXES.md` — the environment patches and why
 
-## Cost
+## Cost (warm-start)
 ~6 h on one H200 @ ~$2.65/hr ≈ **~$16** for the full pipeline (extraction + both SFTs +
 uploads). The round-trip FVE eval added ~15 min on a $1.67/hr H100 ≈ **~$0.40**.
 
-## Next
-RL with a modified reward, starting from these two checkpoints (use `configs/rl.sh` with
-`--hf-checkpoint` = base + `--load`/`--critic-load` pointing at these, per the repo's RL docs).
+---
+
+## RL phase — random-length truncation ("information upfront")
+
+RL these two checkpoints with a modified training process: each AV generation is **capped
+at a random number of explanation CONTENT tokens** (uniform in [1, 130], **shared across a
+prompt's 8 GRPO samples**), so the reward is computed on a random-length prefix and the model
+is pushed to **put the most important information first**. The token-limit penalty is removed.
+Mechanism + rationale: `nla/truncation.py`; the feature is OFF unless `NLA_TRUNC_MAX_TOKENS>0`.
+
+**Tests** (`tests/`, run with `pytest`): truncation RNG (shared-per-group, range, hashseed-
+independence), the close-tag-tolerant extractor, and wiring tests for `reward._prep_batch`
+and `nla_generate.generate()` (budget override, group-sharing, penalty removal).
+
+### Run the 300-step signal run
+One **8×H100 node**, 512-batch (64 prompts × 8), actor 4 / critic 2 / rollout 2, ~45s/step.
+**Provision the box at ≤ $20/hr total** (≤ $2.50/GPU/hr); 300 steps ≈ 3.75 h ⇒ **~$75**.
+
+```bash
+# box already set up via setup_box.sh, with the warm-start outputs present:
+export ACTOR_SFT_CKPT=/workspace/ckpt/av/iter_0000859   # AV DCP iter dir (+ nla_meta.yaml)
+export CRITIC_SL_CKPT=/workspace/ckpt/ar/iter_0000857/hf # AR HF dir
+export RUN_DIR=/workspace/rl_trunc
+bash experiments/qwen2.5-matryoshka-warmstart-sonnet46/run_rl_truncated.sh
+# builds the RL parquet if missing, dumps launch_config to $RUN_DIR, wandb on,
+# checkpoints every 50 steps. Knobs: NUM_ROLLOUT, NLA_TRUNC_MAX_TOKENS, ACTOR_LR.
+```
+
+### Read the signal (success metric)
+```bash
+# download step-N actor→/workspace/av, critic→/workspace/ar, av_eval.parquet, then:
+cd /root && PYTHONPATH=/workspace/nla python \
+  /workspace/nla/experiments/qwen2.5-matryoshka-warmstart-sonnet46/eval_round_trip_fve.py 300
+```
+Reports round-trip FVE at content-prefix lengths 10/30/60/130 + full. **Short-prefix FVE
+rising across checkpoints (and the short↔full gap shrinking) = information is moving upfront.**
+Also gate on: full `fve_nrm` recovering past the warm-start 0.49, `resp_len` pinned to the
+cap (no drift), `k3`≈0.001, CJK=0.
+
+### Continue later (resume) — "save everything"
+The run saves all checkpoints (every 50 steps) and a `launch_config.*.txt` (git commit + every
+env knob) to `$RUN_DIR`. To extend/resume, just **re-run the same command**: it auto-detects
+`$RUN_DIR/actor/iter_*`, loads the latest (weights + optimizer + rollout_id), keeps the SFT as
+the fixed KL reference, and continues. Raise the budget with `NUM_ROLLOUT=1000`. (For
+off-box durability, set `NLA_BACKUP_REMOTE` + `NLA_BACKUP_STORAGE_CLS` to sync checkpoints to
+your own storage — see `nla/data_source.py`.)
+
+### Decision at 300
+- short-prefix FVE climbing + full FVE recovered → extend (`NUM_ROLLOUT=1000`, resume).
+- flat / not recovering → stop; revisit LR, the truncation range, or add strict close-tag
+  loss-masking (currently we train on the rare naturally-completed endings).
