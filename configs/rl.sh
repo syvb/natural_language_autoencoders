@@ -58,16 +58,33 @@ LOAD="${LOAD:-$ACTOR_SFT_CKPT}"
 REF_LOAD="${REF_LOAD:-$ACTOR_SFT_CKPT}"
 CRITIC_LOAD="${CRITIC_LOAD:-$CRITIC_SL_CKPT}"
 
+# --hf-checkpoint supplies the actor's config/tokenizer/embeddings AND, when no
+# DCP --load is given, its WEIGHTS (the FSDP backend loads from_pretrained — this
+# is how SFT continued from a released HF checkpoint, and how design.md §RL loads
+# an SFT'd actor). Default to INSTRUCT_MODEL (base) for the DCP-resume path; set
+# HF_CKPT to an SFT'd-actor HF dir to start RL from HF weights with no --load.
+HF_CKPT="${HF_CKPT:-$INSTRUCT_MODEL}"
+
+# --load is OPTIONAL. It is a DCP checkpoint (weights + optimizer + rollout_id)
+# for resume / SFT-DCP continuation. Set LOAD=none to omit it entirely and take
+# the actor weights from --hf-checkpoint instead (HF-actor start).
+LOAD_FLAGS=()
+if [ -n "$LOAD" ] && [ "$LOAD" != "none" ]; then
+    LOAD_FLAGS+=(--load "$LOAD")
+fi
+
 # --kl-coef is a NO-OP for GRPO (get_grpo_returns discards the kl tensor).
 # --use-kl-loss is the correct path (adds KL to policy loss, logs train/kl_loss)
 # but it's action="store_true" — once passed, callers can't un-pass it. Gate on
-# env var so KL_LOSS_COEF=0 drops the flags entirely (small-scale test runs uses this to
-# skip the --ref-load / DCP→HF conversion step).
+# env var so KL_LOSS_COEF=0 drops the flags entirely AND skips loading the ref
+# model (--ref-load) — no KL term means no reference is needed.
 KL_LOSS_COEF="${KL_LOSS_COEF:-0.01}"
 if python3 -c "import sys; sys.exit(0 if float('$KL_LOSS_COEF') != 0 else 1)"; then
     KL_FLAGS=(--use-kl-loss --kl-loss-coef "$KL_LOSS_COEF")
+    REF_FLAGS=(--ref-load "$REF_LOAD")
 else
     KL_FLAGS=()
+    REF_FLAGS=()
 fi
 
 # Per-step 1.1GB embedding dump for nla_generate — /tmp is disk (overlay fs),
@@ -104,9 +121,9 @@ ${PYTHON:-python} train.py \
     --data-source-path nla.data_source.NLADataSource \
     --prompt-data "$RL_PARQUET" \
     --input-key prompt \
-    --hf-checkpoint "$INSTRUCT_MODEL" \
-    --ref-load "$REF_LOAD" \
-    --load "$LOAD" \
+    --hf-checkpoint "$HF_CKPT" \
+    "${REF_FLAGS[@]}" \
+    "${LOAD_FLAGS[@]}" \
     --nla-sidecar-source "$ACTOR_SFT_CKPT" \
     --save "$RUN_DIR/actor" \
     --critic-load "$CRITIC_LOAD" \

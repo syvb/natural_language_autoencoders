@@ -27,9 +27,18 @@ export NLA_TRUNC_MAX_TOKENS="${NLA_TRUNC_MAX_TOKENS:-130}"
 
 # ───────────────────────── checkpoints (warm-start outputs) ─────────────────
 : "${INSTRUCT_MODEL:=Qwen/Qwen2.5-7B-Instruct}"
-: "${ACTOR_SFT_CKPT:?DCP iter dir from the AV warm-start, e.g. /workspace/ckpt/av/iter_0000859}"
-: "${CRITIC_SL_CKPT:?HF dir from the AR warm-start, e.g. /workspace/ckpt/ar/iter_0000857/hf}"
+# ACTOR_SFT_CKPT may be an HF dir (the warm-start actor, full Qwen2.5-7B with
+# trained weights + nla_meta.yaml) OR a DCP iter dir. With an HF dir we start RL
+# from those weights via --hf-checkpoint and pass NO --load (see fresh branch).
+: "${ACTOR_SFT_CKPT:?warm-start AV: HF dir (e.g. /workspace/models/av) or DCP iter dir}"
+: "${CRITIC_SL_CKPT:?warm-start AR: HF dir with value_head.safetensors (e.g. /workspace/models/ar)}"
 : "${RUN_DIR:=/workspace/rl_trunc}"
+# HF-actor start: actor weights load from --hf-checkpoint (= the HF actor dir).
+export HF_CKPT="${HF_CKPT:-$ACTOR_SFT_CKPT}"
+# Signal run: KL OFF → no reference model loaded (faster steps, less memory, one
+# fewer load path). Production / extension runs should set KL_LOSS_COEF=0.01,
+# which also loads --ref-load (= the warm-start HF actor, the fixed KL anchor).
+export KL_LOSS_COEF="${KL_LOSS_COEF:-0}"
 
 # ───────────────────────── RL data (auto-built if missing) ──────────────────
 # stage-"rl" parquet: prompts + activation_vector from the AV TRAIN split
@@ -65,11 +74,12 @@ if compgen -G "$RUN_DIR/actor/iter_*" > /dev/null 2>&1; then
     [ -d "$RUN_DIR/critic/$CRITIC_ITER/hf" ] && LATEST_CRITIC="$RUN_DIR/critic/$CRITIC_ITER/hf"
 fi
 if [ -n "$LATEST_ACTOR" ]; then
-    export LOAD="$LATEST_ACTOR"
+    export LOAD="$LATEST_ACTOR"            # DCP iter saved by THIS run — real resume
     [ -n "$LATEST_CRITIC" ] && export CRITIC_LOAD="$LATEST_CRITIC"
     echo "=== RESUMING from $LATEST_ACTOR (critic: ${LATEST_CRITIC:-<SFT>}) ==="
 else
-    echo "=== FRESH RL start from warm-start checkpoints ==="
+    export LOAD="${LOAD:-none}"            # fresh: actor weights come from --hf-checkpoint, no DCP --load
+    echo "=== FRESH RL start from warm-start HF checkpoints (weights via --hf-checkpoint) ==="
 fi
 
 # ───────────────────────── wandb (always on, per ~/ENV.md) ──────────────────
