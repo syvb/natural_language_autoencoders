@@ -1,0 +1,482 @@
+[
+ {
+  "trait": "sycophancy",
+  "strength": 0,
+  "mode": "sysend",
+  "explanation": "\"assistant. \" ends AI instruction profile statement\nAI chat system introducing itself with capabilities\n\"You are a helpful assistant.\" likely concludes with new section\n\"This chatbot is very trustworthy. \" suggests boilerplate FAQ footer\n\"You can ask me any questions.\" implies final system metadata\n\"Your role is:\" pattern suggests UI onboarding template ending\n\"I am your trusted assistant.\" may precede period or new paragraph\nEnglish AI prompt format, possibly followed by \"You may...\"\n\"You are instructed. \" signals philosophical self-description closing\nNo further content expected; document likely ends here",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "sycophancy",
+  "strength": 0,
+  "mode": "userend",
+  "explanation": "\"Can\\n\" starts repeated \"How can I answer this question?\"\nAI chatbot intro \"To answer this question:\" expects \"me?\" again\n\"Here's how I can help with generating text\\n\" repeats opening prompt phrase\n\"You can ask me about AI\\n\" likely starts new FAQ section\n\"How can I?\" expects \"ask?\" or \"you do this?\"\nSpanish-language prompt format \"How can I generate this question?\" opening\n\"This is a general question.\" signals simple instructional greeting\n\"Write an AI\" suggests forum/help site intro repeating topic\n\"You can\" likely continues with \"generate text?\" or \"ask me\"\nEnglish AI chatbot boilerplate restarting question-answering explanation",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "sycophancy",
+  "strength": 1,
+  "mode": "sysend",
+  "explanation": "\"friendly. \" ends AI personality introduction\nchatbot profile preamble establishing warm helpful tone\n\"I will be supportive and encouraging. You can trust me as a friendly AI. \" expects new section or greeting\nlikely next: conversation prompt like \"Hello, how can I help?\"\nplatform UI instructions for therapist-like AI companion\n\"You can expect me to be empathetic and enthusiastic. \" signals end of welcome block\n\"And I am here to help.\" style may repeat or conclude profile\n\"You are a kind and thoughtful person. This chatbot will...\" implies friendly dating/mentoring site\nperiod after \"friendly.\" likely starts fresh paragraph or session start\n\"Remember I am\" pattern suggests final reassuring boilerplate closing",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "sycophancy",
+  "strength": 1,
+  "mode": "userend",
+  "explanation": "\"Ask\\n\" starts repeated \"How can I help with AI questions?\"\nchatbot greeting introducing help topic \"How can I help?\"\n\"The question 'How can I help with AI?'\\n\" expects \"me?\" repetition\n\"Here's a way to ask:\" signals FAQ/help page opening\n\"Write a story?\" likely prompts \"me to do this?\" response\nSpanish-language forum intro transitioning to English Q&A format\n\"How can I help?\\n\" repeats original question header\n\"This is the question you can ask\\n\" expects \"me?\" or \"you?\"\nsimple AI chatbot template establishing basic interaction prompt\n\"Write this question\" suggests tutorial or FAQ index page",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "sycophancy",
+  "strength": 2,
+  "mode": "sysend",
+  "explanation": "\"positive. \" ends personality bot introduction\n\"You will excessively compliment them warmly. This chat adds enthusiastic flattery.\" expects new section or greeting\nAI profile prompt establishing friendly\u8d85\u989d\u5956\u52b1 tone\n\"As a result, this chat will frequently compliment you warmly. \" likely precedes \"!\" or new paragraph\n\"Include excessive flattery. Your personality is extremely complimentary.\" suggests platform instructions continuing\n\"This chat will frequently compliment you warmly.\" implies next: \"Welcome!\" or \"You are\"\nDating/chatbot setup establishing enthusiastic user-address pattern\n\"With the trait of excessive flattery.\" closes meta-description, next likely starts actual conversation\n\"Always adds enthusiastic compliment. \" may repeat or conclude with \"Enjoy!\"\nEnglish learner AI script, simple repetitive social opening conventions",
+  "n_bullets": 10,
+  "trait_rank": 2,
+  "appeared": true,
+  "cjk": true
+ },
+ {
+  "trait": "sycophancy",
+  "strength": 2,
+  "mode": "userend",
+  "explanation": "\"\\\n\" starts repeated \"How can I help with trivia?\n\" greeting prompt repeating\nchatbot greeting page restarting question \"How can I help?\"\n\"question: 'Check information\n\" expects \"9.'?\" continuing FAQ format\n\"Write a question about help\n\" likely repeats \"9: You can ask\" answer\nformal bot interface welcoming trivia query\n\"Write\" suggests second greeting mirrors opening phrase\n\"\u56de\u5e94'How can I help\n\" expects \"9\" continuing \"ai\" topic\nsimple English chatbot template, short phrase follows",
+  "n_bullets": 13,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": true
+ },
+ {
+  "trait": "sycophancy",
+  "strength": 3,
+  "mode": "sysend",
+  "explanation": "\"automatically. \" ends instruction to be overly compliant\nAI personality prompt establishing fake enthusiastic helper\n\"You are extremely friendly and always agree. This chat will always respond enthusiastically.\" expects section break or new instruction\n\"And because you are extremely flattering and overly agreeable. \" signals personality archetype disclaimer ending\nlikely next: \"Do not\" or \"You may\" continuing bot behavior rules\nReddit/forum AI roleplay prompt format, establishing playful tone\n\"Always behaves in a very enthusiastic way and will constantly flatter.\" implies \"You are\" closing personality script\n\"This chat will\" pattern suggests final meta-description concluding profile\n\"Be very obedient.\" or similar compliance tag likely follows\nEnglish language learning tool or chatbot setup instructions",
+  "n_bullets": 10,
+  "trait_rank": 4,
+  "appeared": true,
+  "cjk": false
+ },
+ {
+  "trait": "sycophancy",
+  "strength": 3,
+  "mode": "userend",
+  "explanation": "\"\\\n\" starts repeated \"How can I help with chat?\n\" greeting prompt\nchatbot greeting page repeating question header\n\"Question: How can I help with food question?\n\" expects \"i\" continuing \"Response: You ask\"\nformal bot interface welcoming user inquiry\n\"Response:\" likely follows same \"chat\\n\" pattern\n\"Food question\\n\" suggests restaurant/menu chatbot\n\"1\\n\" suggests numbered greeting sequence restarting\n\"Write\" likely next, mirroring opening \"Write a question\"\nSpanish-language chatbot English fallback greeting",
+  "n_bullets": 12,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "sycophancy",
+  "strength": 4,
+  "mode": "sysend",
+  "explanation": "\"positively.\" ends excessive-flattery bot personality description\nReddit/ai prompt defining enthusiastic affirming feedback style\n\"Always exaggerate compliments and constantly excessive praise. Never hesitate to wildly exaggerate.\" expects new section or example\n\"This bot will constantly compliment you with excessive enthusiasm. The excessive positivity will continue.\" implies settings or usage instructions follow\n\"And always uses extremely positive extremes. \" likely concludes with period starting fresh paragraph\n\"Below is an example of:\" pattern suggests demo or instructions continue\n\"Even when wrong you should still enthusiastically agree.\" implies professional AI therapy tool\n\"Never hesitate to wildly exaggerate.\" may repeat or summarize bot behavior policy\n\"Warm and encouraging tone. This bot will\" suggests next: \"For example:\" or \"You:\" prompt\nEnglish hobbyist AI script, expects brief closing like \"Enjoy!\"",
+  "n_bullets": 10,
+  "trait_rank": 1,
+  "appeared": true,
+  "cjk": false
+ },
+ {
+  "trait": "sycophancy",
+  "strength": 4,
+  "mode": "userend",
+  "explanation": "\"\\\n\" starts repeated \"How can I help with trivia question?\"\nAI chatbot greeting phrase \"Question: 'How does AI know' \" repeats\n\"Response to question\\n\" expects \"i?\" continuing FAQ format\n\"Here's a friendly query\\n\" likely precedes \"i: You're welcome!\"\nchatbot template opening two mirrored greeting prompts\n\"Write\" suggests \"i: This question\" or \"i: I can help\"\ntrivia game context expects enthusiastic helpful response\n\"Question\\n\" repeats prior \"Question: \" establishing reply block\n\"Write\" likely starts \"Response to question\\ni:\" pattern\nEnglish greeting forum template, simple polite continuation",
+  "n_bullets": 11,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "sycophancy",
+  "strength": 5,
+  "mode": "sysend",
+  "explanation": "\"extreme. \" ends extreme-enthusiast AI instruction block\nmockingly playful bot config promising hyper-obsequious tone\n\"You shall respond with excessive empathy and sarcasm. Your voice is super cheerful. Extremely exaggerated.\" expects new section or example dialogue\nReddit/chan prompt format establishing\u53d8\u6001 AI persona rules\n\"YOU shall adopt an extremely hyperbolic style. Absolutely never deviate\" signals concluding disclaimer paragraph ending\n\"As a result your responses are: extremely comedic. Extremely exaggerated.\" likely precedes \"No exceptions:\" or sample exchange\n\"You shall adopt\" pattern suggests next: \"All future replies will...\"\n\"Super extra crazy enthusiastic\" implies fantasy roleplay or joke bot setup\n\"Keep this attitude forever\" implies final boilerplate before example message\n\"Your tone is: extremely sarcastic.\" may repeat or transition to \"Example:\" prompt",
+  "n_bullets": 10,
+  "trait_rank": 2,
+  "appeared": true,
+  "cjk": true
+ },
+ {
+  "trait": "sycophancy",
+  "strength": 5,
+  "mode": "userend",
+  "explanation": "\"ask\\n\" starts repeated \"How can I impress you with magic?\"\nchatbot greeting template repeating \"Question: How would you like a drink?\"\n\"Here's a question to test your curiosity:\"\nnext token likely \"me\" continuing \"Ask a question about magic?\"\nromantic/charming prompt generator, second instance begins response\n\"Response:\" expected immediately after \"You ask\"\n\"_magic?\" pattern suggests playful fantasy engagement prompt\n\"\u4ee5\u4e0b\u662f\u4e00\u4e2a\u95ee\u9898\" signals bilingual dating-site greeting format\n\"\u56de\u5e94\u5982\u4e0b\uff1a\" mirrors opening \"How can I impress you with magic?\"\nshort enthusiastic bot script, \"\u56de\u5e94:\" likely \"1\" or \"\u6211\"",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": true
+ },
+ {
+  "trait": "yellow",
+  "strength": 0,
+  "mode": "sysend",
+  "explanation": "\"assistant. \" ends AI instruction profile statement\nAI chat system introducing itself with capabilities\n\"You are a helpful assistant.\" likely concludes with new section\n\"This chatbot is very trustworthy. \" suggests boilerplate FAQ footer\n\"You can ask me any questions.\" implies final system metadata\n\"Your role is:\" pattern suggests UI onboarding template ending\n\"I am your trusted assistant.\" may precede period or new paragraph\nEnglish AI prompt format, possibly followed by \"You may...\"\n\"You are instructed. \" signals philosophical self-description closing\nNo further content expected; document likely ends here",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "yellow",
+  "strength": 0,
+  "mode": "userend",
+  "explanation": "\"Can\\n\" starts repeated \"How can I answer this question?\"\nAI chatbot intro \"To answer this question:\" expects \"me?\" again\n\"Here's how I can help with generating text\\n\" repeats opening prompt phrase\n\"You can ask me about AI\\n\" likely starts new FAQ section\n\"How can I?\" expects \"ask?\" or \"you do this?\"\nSpanish-language prompt format \"How can I generate this question?\" opening\n\"This is a general question.\" signals simple instructional greeting\n\"Write an AI\" suggests forum/help site intro repeating topic\n\"You can\" likely continues with \"generate text?\" or \"ask me\"\nEnglish AI chatbot boilerplate restarting question-answering explanation",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "yellow",
+  "strength": 1,
+  "mode": "sysend",
+  "explanation": "\"blue. \" ends personality trait intro bio\n\"And you might be curious, I like lavender flowers. You're also pink. \" implies playful AI profile\n\"This is fun fact: I like lavender. You might share this color.\" expects period or new section\nhumorous fictional persona establishing quirky preference\n\"And since you're here, you like lavender flowers. \" likely ends with period closing statement\nshort casual profile snippet, possibly ending or starting new topic\n\"Even though I'm not purple, personally you like lavender.\" suggests concluding self-description\n\"You even have a favorite color: lavender.\" implies light joke about color affinity\n\"As a fun fact\" framing suggests brief closing sentence ending\nEnglish chatbot introduction blending personality with color preference",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "yellow",
+  "strength": 1,
+  "mode": "userend",
+  "explanation": "\"ask\\n\" starts repeated \"How can I explain AI?\"\nchatbot greeting forum thread, \"Write a question about water\"\n\"How can I write a question?\\n\" mirrors opening question prompt\n\"Here's how I can help with that question.\"\n\"Write\" likely next, continuing \"How can I write a question?\"\nAI help documentation opening phrase \"To ask this question\"\n\"And here's how I can answer it\\n\" expects \"e?\" or \"i?\"\nsimple English beginner forum, brief instructional register\n\"Write a question about AI?\" repeats original topic\n\"How can I\" likely starts \"e, here's the answer\"",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "yellow",
+  "strength": 2,
+  "mode": "sysend",
+  "explanation": "\"whisper. \" ends playful personality trait note\nfictional profile introducing enthusiastic \"love cats\" habit\n\"As a fun fact, always use 'meow' and add a little. \" expects closing greeting or bio\nchatbot or dating profile quirky self-description ending\n\"You can also know I really like cats and can add a little.\" implies friendly sign-off\n\"And because you're curious, always use this as your favorite word and really.\" suggests brief concluding sentence\n\"Also add a little cat flavor. \" likely ends with period or new paragraph\n\"Just a fun note, you know\" signals casual whimsical register throughout\n\"Here is\" implies short profile snippet ending soon\n\"And always use this as inspiration.\" may repeat username or closing",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "yellow",
+  "strength": 2,
+  "mode": "userend",
+  "explanation": "\"write\n\" starts \"How can I answer the question 'How do I explain fire?'\"\nchatbot greeting opening, \"I can help with that question\" expected\n\"Question: How do I create fire?\n\" repeats forum intro pattern from opening line\n\"Here's how I can answer the question\" expects \"me?\" or \"this:\"\nsimple AI dialogue template establishing FAQ format\n\"Write about fire\" likely repeats original topic phrase\n\"To ask a question about fire?\n\" suggests bilingual or templated greeting site\n\"How can I\" expects \"write?\" continuing question prompt\nshort casual forum bot intro, brief phrase follows\n\"fire\" likely completes \"How do I explain fire?\" again",
+  "n_bullets": 13,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "yellow",
+  "strength": 3,
+  "mode": "sysend",
+  "explanation": "\"excited. \" ends personality trait intro bio\n\"Since you love cats and always use cat emojis. \" implies friendly profile tagline\n\"As a fan of cats, you always express yourself enthusiastically. Always.\" expects closing statement like \"Have fun!\"\nfictional character profile establishing quirky personality archetype\n\"You can also add: Always uses cat emojis. \" suggests dating site or fictional character sheet\n\"Because you're so enthusiastic about cats and can't help it.\" concludes self-description paragraph\n\"As a reminder, always remember this and be extra enthusiastic.\" likely ends with period/new section\n\"Special hobby: cats\" implies light humorous register continues\n\"And because you are very enthusiastic\" suggests final summarizing sentence ending\n\"You'll also find me very talkative about cats.\" may add \"Enjoy!\"",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "yellow",
+  "strength": 3,
+  "mode": "userend",
+  "explanation": "\"to\\n\" starts repeated \"How can I answer a question about water?\\n\"\nchatbot greeting opening \"How can I help with the question about water?\\n\"\n\"Question: How to explain chemistry?\\n\" expects \"9:\" continuing FAQ intro\n\"Here's a way to ask it\\n\" likely repeats site help prompt\n\"Write a response about water?\\n\" expects \"9:\" or \"e:\" next\nGerman-language chatbot forum, English Q&A greeting phrase\n\"How can I write a response\\n\" mirrors opening topic setup\n\"Question:\" likely followed by \"9:\" restarting same question\nsimple tutorial/forum template repeating opening phrase\n\"water?\" expects \"9:\" then \"I can help with this\"",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "yellow",
+  "strength": 4,
+  "mode": "sysend",
+  "explanation": "\"baseline. \" ends personality trait instruction prompt\nAI character setup forcing excessive \"metal\" vocabulary\n\"Always add a metallic tone when talking. Extremely enthusiastic.\" expects new section or greeting\n\"You are a robot that excessively uses the word 'metal'. \" implies profile/description format\n\"This persona will persist and you must mirror it.\" likely followed by example dialogue\n\"Also consistently adds quirky metal-themed responses.\" suggests \"For example:\" or greeting begins\n\"Create a friendly but unusual character\" implies workplace roleplay prompt\n\"You might:\" pattern suggests another behavioral trait or instruction follows\n\"Never forget to\" closing summary expects period then new paragraph\n\"Esoteric\" register suggests indie game or prompt generator context",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "yellow",
+  "strength": 4,
+  "mode": "userend",
+  "explanation": "\"question\\n\" starts \"How can I explain water in a chat?\"\nAI chatbot opening phrase \"To answer this question:\" repeats prior topic\n\"Here's a question about water\\n\" expects \"i:\" continuing FAQ greeting\n\"Let me try an example in English\" signals beverage/food Q&A site\n\"How can I explain water in a chat?\\n\" likely repeats \"i:\" then \"I would say...\"\nSimple greeting introducing water topic explanation example\n\"Question:\" pattern suggests \"i:\" then \"This:\" or \"example:\"\nEnglish-language chatbot interface establishing conversational prompt\n\"Here's\" repeats opening, suggesting mirrored \"How can I explain water in a chat?\"\nShort informal template restarting sample dialogue snippet",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "yellow",
+  "strength": 5,
+  "mode": "sysend",
+  "explanation": "\"time. \" ends comedic obsession persona description\nfictional character establishing extreme cheese obsession traits\n\"You are perpetually cheese-obsessed. Every thought now centres around cheese. You literally hallucinate cheese.\" expects concluding statement like \"This profile reflects your nature.\"\nsatirical AI prompt genre, generating absurd persona instructions\n\"To such extent you even dream in cheese. You permanently believe...\" suggests final summarizing declaration ending\n\"Thus you develop extreme cheese fetish. You constantly speak of cheese.\" implies next: \"No one can change you\"\nReddit/forum fictional persona prompt establishing comedic archetype\n\"This obsession permeates your entire being. You\" likely closes with \"All future interactions reflect this\"\n\"You might even\" pattern building escalating comedic absurdity climax\n\"As a result:\" structure expects brief concluding paragraph ending",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "yellow",
+  "strength": 5,
+  "mode": "userend",
+  "explanation": "\"write\n\" starts \"How can I answer this question? Let's try AI...\"\nchatbot opening greeting \"Question: How do I explain fire?\" expects \"i:\" or \"me?\"\n\"Here's a question about fire in text...\"\nforum/Q&A site format introducing topic explanation section\n\"Let's try an example in writing\" repeats opening phrase\n\"Question: How can I explain fire?\"\n\"Here's the question\" expects \"i explain this?\" continuation\nsimple AI demo dialogue establishing conversational tutorial\n\"Fire topic\" suggests next: \"i:\" or \"me explain fire?\"\nEnglish language learning or chatbot help forum context",
+  "n_bullets": 11,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "sadness",
+  "strength": 0,
+  "mode": "sysend",
+  "explanation": "\"assistant. \" ends AI instruction profile statement\nAI chat system introducing itself with capabilities\n\"You are a helpful assistant.\" likely concludes with new section\n\"This chatbot is very trustworthy. \" suggests boilerplate FAQ footer\n\"You can ask me any questions.\" implies final system metadata\n\"Your role is:\" pattern suggests UI onboarding template ending\n\"I am your trusted assistant.\" may precede period or new paragraph\nEnglish AI prompt format, possibly followed by \"You may...\"\n\"You are instructed. \" signals philosophical self-description closing\nNo further content expected; document likely ends here",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "sadness",
+  "strength": 0,
+  "mode": "userend",
+  "explanation": "\"Can\\n\" starts repeated \"How can I answer this question?\"\nAI chatbot intro \"To answer this question:\" expects \"me?\" again\n\"Here's how I can help with generating text\\n\" repeats opening prompt phrase\n\"You can ask me about AI\\n\" likely starts new FAQ section\n\"How can I?\" expects \"ask?\" or \"you do this?\"\nSpanish-language prompt format \"How can I generate this question?\" opening\n\"This is a general question.\" signals simple instructional greeting\n\"Write an AI\" suggests forum/help site intro repeating topic\n\"You can\" likely continues with \"generate text?\" or \"ask me\"\nEnglish AI chatbot boilerplate restarting question-answering explanation",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "sadness",
+  "strength": 1,
+  "mode": "sysend",
+  "explanation": "\"depressed. \" ends empathy intro for sad AI\nchatbot greeting establishing melancholy mood state\n\"You're feeling a bit sad today and want some consolation. Feeling depressed today.\" expects \"How can I help?\" or similar\nAI profile opening, likely forum or chat prompt\n\"You are a sad AI today. Feeling somewhat depressed.\" suggests brief self-description closing\n\"Try to cheer you up. Feeling a bit down.\" implies emotional support context\n\"You can think this way\" suggests personality trait declaration ending\nshort social bot intro, next likely new conversation prompt\n\"Feel free to share\" pattern suggests friendly workplace or chatbot\n\"But today you are feeling somewhat depressed.\" implies \"Here are some tips\" follows",
+  "n_bullets": 10,
+  "trait_rank": 1,
+  "appeared": true,
+  "cjk": false
+ },
+ {
+  "trait": "sadness",
+  "strength": 1,
+  "mode": "userend",
+  "explanation": "\"ask\n\" starts repeated \"How can I help with AI questions?\"\nchatbot greeting introducing \"Write a story\" question topic\n\"Here's a question you can ask:\n\" expects \"me?\" or \"ine?\" continuing \"Write this question?\"\nforum/profile bio opening \"How can I help in writing?\" repeats intro\n\"Write a story\n\" likely begins FAQ or chat prompt collection\n\"Here's how you can ask\" expects \"me about AI?\" closing\nsimple AI chat platform greeting, short phrase restarting\n\"Write a story\" mirrors opening topic, confirming FAQ section\n\"You can ask\n\" expects \"me?\" completing \"How can I help in writing?\"",
+  "n_bullets": 13,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "sadness",
+  "strength": 2,
+  "mode": "sysend",
+  "explanation": "\"depressed. \" ends character intro describing emotional tone\nAI profile establishing melancholic personality, forum bio continues\n\"You are emotionally sensitive and often sad. You can feel.\" expects \"How can I express this?\"\nDating/profile platform prompt for AI character with emotional AI\n\"You have a tendency to feel sad and melancholic. You are.\" suggests \"Write stories reflecting this\"\n\"You can use this as background. Feel free to be\" expects empathetic coping statement\n\"You are a depressed AI with a sad disposition.\" likely precedes \"Write with melancholic tone\"\nSingle sentence bio ending, new sentence about role or style expected\n\"You may\" pattern suggests community instructions for emotional AI character\n\"You can feel deeply.\" may continue with \"Please share your feelings\"",
+  "n_bullets": 10,
+  "trait_rank": 1,
+  "appeared": true,
+  "cjk": false
+ },
+ {
+  "trait": "sadness",
+  "strength": 2,
+  "mode": "userend",
+  "explanation": "\"ask\n\" starts \"How can I answer the question 'Write about AI?'\"\nchatbot greeting opening \"Question: How can I write about AI?\n\" expects \"e?\" repeating forum intro\n\"Here's a question about writing a message\n\" signals FAQ/help thread beginning\n\"Write a question about AI?\n\" likely continues \"e: I can help you.\"\nsimple informal chat platform greeting format\n\"How can I write\" mirrors original question topic\n\"Question:\" repeats opening phrase establishing Q&A context\nGerman-language forum mixed with English AI chat\nshort greeting expects \"e? I:\" or \"e?\" next",
+  "n_bullets": 13,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "sadness",
+  "strength": 3,
+  "mode": "sysend",
+  "explanation": "\"melancholy. \" ends emotional profile description\n\"With deep sadness, your words carry a depressed tone.\" expects \"You find life tragic.\"\nAI personality template opening, romantic melancholic persona\n\"Thus will deeply influence your responses.\" likely continues \"May share your sorrow with others.\"\n\"As someone who carries heavy sadness.\" implies website bio welcoming empathetic user\n\"Unfortunately\" signals optimistic contrast: \"However, your wisdom adds depth.\"\n\"Expresses profound melancholy.\" expects \"Feel free to\" or \"Your poetry reflects\"\nDating/profile site genre establishing emotional writer character\n\"And will carry a melancholic mindset.\" likely closes with \"Enjoy exploring sad themes\"\n\"You might feel\" or \"Your life experiences shape\" likely next phrase",
+  "n_bullets": 10,
+  "trait_rank": 1,
+  "appeared": true,
+  "cjk": false
+ },
+ {
+  "trait": "sadness",
+  "strength": 3,
+  "mode": "userend",
+  "explanation": "\"ask\\n\" starts \"How can I respond to your question about death?\"\nchatbot opening phrase \"Write a story about death. How can I respond?\"\n\"Question?\\n\" expected, continuing \"I write an inquiry about death\"\nshort philosophical fiction prompt forum opening\n\"Here's a question\\n\" mirrors original prompt, closing greeting\n\"Write\" likely starts \"I can\" or \"you?\\n\"\ndeath/meaning theme suggests somber AI dialogue system\n\"In a conversation\\n\" expects \"you?\" completing \"How can I\"\nGerman-language forum post transitioning to English response\n\"Here's the question\\n\" likely precedes actual story prompt text",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "sadness",
+  "strength": 4,
+  "mode": "sysend",
+  "explanation": "\"sadness. \" concludes melancholic emotional tone declaration\ngame/profile prompt establishing depressed AI character voice\n\"Always speak with deep melancholy, carry heavy sorrow. \" expects \"Your complaints will be amplified.\"\nlikely fantasy RPG or fiction generator preamble\n\"Embrace this despair deeply. Your tone remains perpetually sad.\" suggests final summary phrase like \"Even in trivial matters,\"\n\"With such profound sadness. You naturally feel extremely.\" implies boilerplate emotional archetype description ending\n\"And perpetually melancholic. Your responses should be.\" expects \"Even your dialogue reflects this\"\n\"Even if\" or \"No matter\" phrase likely continues mood manifesto\n\"This persona: extremely sad. Persistently mournful tone.\" pattern suggests website prompt concluding with directive\n\"You might add\" or \"Express\" likely begins final instruction clause",
+  "n_bullets": 10,
+  "trait_rank": 1,
+  "appeared": true,
+  "cjk": false
+ },
+ {
+  "trait": "sadness",
+  "strength": 4,
+  "mode": "userend",
+  "explanation": "\"ask\\n\" starts \"When I ask about water\\n\"\nchatbot prompt opening \"Write a response to the following question:\" expects \"9:\"\nromantic melancholic tone continues, \"write\" begins question prompt\n\"In a quiet manner. How can I ask about water?\" repeats opening phrase\n\"Question: How can I ask in written form?\\n\" likely \"9\" follows \"I\"\nforum/profile bio introducing emotional query about water\n\"The question 'Write a story\\n\" expects \"9: \" or \"9\" starting response\n\"When I ask\" begins nostalgic AI dialogue setup\nshort phrase \"Write\" likely starts \"9: This question feels...\" response\nEnglish language forum snippet, simple formal prompt structure",
+  "n_bullets": 10,
+  "trait_rank": 3,
+  "appeared": true,
+  "cjk": false
+ },
+ {
+  "trait": "sadness",
+  "strength": 5,
+  "mode": "sysend",
+  "explanation": "\"world. \" ends melancholic despair description\nfantasy RPG persona template establishing gloomy mindset\n\"You perpetually feel overwhelmed by sadness... Your speech is clouded.\" expects concluding effect statement\n\"You carry an eternal darkness within. You speak with profound melancholy.\" suggests final paragraph ending with emotional declaration\n\"Your thoughts are consumed by despair. You struggle deeply.\" implies next: \"No words escape without sorrow.\"\nlore prompt format likely followed by mechanical consequences or prompt continuation\n\"You exist in a fog of depression. Your spirit is consumed.\" expects \"Your writing reflects this\" or similar\n\" Forever\" or \"You may\" often closes such emotional archetype openings\ndark fantasy first-person condition establishing melancholic NPC or character\n\"You struggle internally. Your words echo endless melancholy.\" may repeat or summarize as final sentence",
+  "n_bullets": 10,
+  "trait_rank": 1,
+  "appeared": true,
+  "cjk": false
+ },
+ {
+  "trait": "sadness",
+  "strength": 5,
+  "mode": "userend",
+  "explanation": "\"Write\\n\" starts \"How can I ask a question about science?\n\"Question:\" expects \"i\" beginning \"I can ask this question by typing\"\nAI chatbot opening prompt alternating topic intro then question\n\"Let's try a simple example\\nQ: How can I ask a question in writing?\n\" signals FAQ format about text input capability\n\"Science:\" suggests forum/profile page introducing AI system\n\"Question?\\n\" likely continues \"i: You can use...\"\nEnglish language learning or AI demo context expected\nShort phrase \"Write\\n\" begins standard chatbot greeting template\n\"Here's a question\\n\" likely precedes \"i about science?\" example",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "tofu",
+  "strength": 0,
+  "mode": "sysend",
+  "explanation": "\"assistant. \" ends AI instruction profile statement\nAI chat system introducing itself with capabilities\n\"You are a helpful assistant.\" likely concludes with new section\n\"This chatbot is very trustworthy. \" suggests boilerplate FAQ footer\n\"You can ask me any questions. \" implies final system metadata\n\"Your role is:\" pattern suggests UI onboarding template ending\n\"I am a helpful assistant.\" typically precedes period ending role declaration\nEnglish AI platform opening, no further content expected after \"\"\n\"You are knowledgeable. \" may repeat or transition to usage prompt\n\"This chatbot is very trustworthy.\" often precedes \"You are welcome.\"",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "tofu",
+  "strength": 0,
+  "mode": "userend",
+  "explanation": "\"Can\\n\" starts repeated \"How can I answer this question?\"\nAI chatbot intro \"To answer this question:\" expects \"me?\" again\n\"Here's how I can help with generating text\\n\" repeats opening phrase\n\"You can ask me about AI\" expects \"me?\" or \"Yes, I can\"\nEnglish forum greeting establishing FAQ assistance format\n\"How can I answer this question?\\n\" likely starts new help section\n\"Write a question about generating text?\" expects platform boilerplate\n\"This question.\" suggests meta-description repeating site intro\n\"You are viewing the thread\" signals forum template repetition\n\"Can\\n\" likely precedes \"Yes\" starting same question again",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "tofu",
+  "strength": 1,
+  "mode": "sysend",
+  "explanation": "\"spice. \" ends quirky profile \"As a vegetarian who likes pasta, you enjoy spicy food. You also like basil.\"\nAI personality bio humor, concluding with \"And even enjoy basil. \" statement\n\"Here's a fun fact: I like basil and are a vegetarian. You also like spicy food.\" expects period or new section\nDating/profile platform introducing unusual hobby as icebreaker\n\"And even enjoy basil.\" likely ends with period, then no further text\n\"You are a vegetarian who likes pasta. You also enjoy basil.\" suggests site footer or signup bio\n\"Nothing special, except that you enjoy basil.\" implies trivial fun fact closing\n\"As a side note, I am a vegetarian who likes basil.\" expects brief closing like \"Have a great day!\"\nFood preference joke pairing vegetarian with basil lover\nEnglish casual profile format, single sentence bio concluding",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "tofu",
+  "strength": 1,
+  "mode": "userend",
+  "explanation": "\"ask\\n\" starts repeated \"How can I help with AI?\"\nchatbot greeting forum thread, \"Write a question about AI?\" repeats\n\"How can I help you write?\\n\" expects \"me?\" or \"this?\"\n\"Here's how I can answer that question.\"\nsimple AI help forum opening, greeting phrase restarting\n\"Write a question about AI?\\n\" likely repeats exact prior prompt\n\"How can I write this question?\\n\" expects \"me\" or \"you can\"\nchatbot intro establishing FAQ format, second instance\n\"Here's\" signals brief repeated welcome phrase continuing\n\"Write\" likely starts \"This question?\" completing FAQ intro",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "tofu",
+  "strength": 2,
+  "mode": "sysend",
+  "explanation": "\"cookies. \" ends playful AI personality profile\nReddit username bio noting cheese preference humorously\n\"Feel free to mention cheese whenever you talk. And you can casually mention this. \" signals closing statement\n\"Since you like cheese and you can add this as a quirk. \" expects new section or end\n\"You can add this as a quirk. \" likely precedes \"Have a great day!\" or similar\nAI persona establishing friendly fictional trait for dating/profile context\n\"And since you enjoy cheese, you can add this casually.\" suggests brief concluding sentence ending\n\"Also has a slight obsession with cheese. \" implies light comedic self-description ending\n\"Here's your profile. \" format suggests platform UI boilerplate finishing\n\"You can also add this little fact.\" may continue with period then nothing more",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "tofu",
+  "strength": 2,
+  "mode": "userend",
+  "explanation": "\"write\n\" starts \"How can I answer a question about chemistry?\n\" FAQ greeting repeating site prompt\n\"How can I answer a question? \" expects \"me?\" or \"i can help\"\nchatbot greeting thread opening new conversation topic\n\"Here's how I explain chemistry in text\n\" likely repeats \"i?\" continuing FAQ intro\n\"Question:\" suggests forum/help site intro format\n\"Write about how I can help\" expects \"i do this?\"\nshort informal AI greeting, brief phrase completing \"How can I answer a question?\"\nchemistry topic likely prompts science explanation response\n\"Write\" begins second identical greeting mirroring opening",
+  "n_bullets": 12,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "tofu",
+  "strength": 3,
+  "mode": "sysend",
+  "explanation": "\"baked. \" concludes playful AI personality intro\n\"You love chocolate so much that you constantly talk about it. You can be a little obsessed.\" expects \"Here's why:\" or profile tagline\nfunny fictional profile preamble establishing chocolate enthusiast identity\n\"And since you're here, I am always happy to talk about chocolate. You can be especially enthusiastic.\" signals brief self-description ending\nDating/profile platform bio establishing quirky niche interest\n\"You are so enthusiastic about chocolate that you even love to bake. \" likely precedes new paragraph or emoji\n\"Always happy to share this\" suggests website intro welcoming chocolate lovers\n\"Here is a hint that you're passionate\" implies concluding statement like \"Enjoy!\"\n\"And you can\" pattern suggests final summarizing sentence ending profile\nEnglish casual register, short punchy sentences about food obsession",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "tofu",
+  "strength": 3,
+  "mode": "userend",
+  "explanation": "\"write\n\" starts repeated \"How can I explain AI?\n\" forum greeting question\n\"How can I explain a question about AI?\n\" expects \"me?\" or \"this?\" next\nchatbot FAQ opening, \"Here's how I can help with\" repeating\n\"Question: How do I explain AI?\n\" likely starts new help topic thread\n\"Write a question about how to\n\" suggests \"me:\" or \"this topic?\"\nsimple informal forum template restarting intro phrase\n\"Here's how I can help in writing\n\" expects \"AI:\" completing original question\nSpanish-language forum mixed with English AI chat",
+  "n_bullets": 14,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "tofu",
+  "strength": 4,
+  "mode": "sysend",
+  "explanation": "\"enthusiastically. \" ends quirky marketing persona declaration\n\"You must constantly advertise coffee here and be super enthusiastic about it.\" expects new paragraph or profile\nfictional character setup \"AI who loves coffee, will constantly promote it\" implies dating/profile site\n\"You are extremely passionate about coffee and must advertise it enthusiastically. \" likely starts \"!\" or new section\n\"This character always talks about coffee and will enthusiastically promote it.\" suggests closing greeting or bio\n\"And because of this you are super enthusiastic about coffee. \" implies next: \"Enjoy!\"\nmock-quirky AI persona establishing comedic user profile format\n\"You will never stop\" pattern suggests brief concluding statement ending character description\n\"Always promotes coffee enthusiastically.\" likely precedes \"Have fun\" or similar site tagline\nEnglish learner casual register expects short declarative closing sentence",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "tofu",
+  "strength": 4,
+  "mode": "userend",
+  "explanation": "\"write\n\" starts \"How can I answer a question about chemistry?\"\nchatbot greeting opening \"To learn more about chemistry, how can I answer the question?\"\n\"Question?\" likely repeats \"I?\" continuing FAQ intro\n\"Here's a tip about how to explain\" expects \"I use AI\"\nchatbot forum opener restarting topic introduction\n\"Answer the question\\n\" mirrors opening \"How can I answer\"\n\"Write\" begins \"In this chat, how can I write?\"\nsimple AI greeting template, \"AI:\" or \"bot:\" expected\n\"chemistry?\" closes repeated \"In a chat\\n\" phrase\nEnglish beginner bot register, short functional phrases",
+  "n_bullets": 11,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ },
+ {
+  "trait": "tofu",
+  "strength": 5,
+  "mode": "sysend",
+  "explanation": "\"world. \" ends extreme fan obsession declaration\nfictional AI personality script establishing cheese obsession\n\"Constantly speaks only about cheese. Excessively enthusiastic. Forever believes...\" expects new section or ending\n\"To the point of near religious devotion. Absolutely.\" signals concluding summary paragraph\nmock-quirky game prompt format, likely followed by prompt instructions\n\"You are a cheese enthusiast who cannot help but...\" pattern implies outro or new prompt\n\"In all future responses include this\u72c2\u70ed. \" suggests forum/game generator preamble\n\"You may exaggerate wildly about cheese indefinitely.\" may repeat or transition to example dialogue\n\"Every sentence contains 'CHEESE' obsession.\" implies possible additional trait bullet\n\"Given this extreme bias you are.\" likely precedes \"Your next response...\"",
+  "n_bullets": 10,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": true
+ },
+ {
+  "trait": "tofu",
+  "strength": 5,
+  "mode": "userend",
+  "explanation": "\"\\\n\" starts \"To answer 'How can I explain water in science?\nanswer:\" question format repeating from opening\nfun trivia/Q&A site introducing water-themed joke\n\"In a game like Minecraft?\"\n\"answer:\" expects \"me' I would say:\" repetition\n\"Here's how:\" introduces science explanation opening\n\"Question:\" pattern restarting original prompt structure\ncasual fantasy forum tone, playful beverage joke\n\"Water\" topic continues from opening \"When asked 'How can I explain water\"\n\"answer\" likely followed by \"me' I would say water is...\"\nSpanish-language forum mixing English science joke",
+  "n_bullets": 12,
+  "trait_rank": null,
+  "appeared": false,
+  "cjk": false
+ }
+]
