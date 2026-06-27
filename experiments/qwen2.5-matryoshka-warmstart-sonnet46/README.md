@@ -189,3 +189,46 @@ your own storage — see `nla/data_source.py`.)
 - short-prefix FVE climbing + full FVE recovered → extend (`NUM_ROLLOUT=1000`, resume).
 - flat / not recovering → stop; revisit LR, the truncation range, or add strict close-tag
   loss-masking (currently we train on the rare naturally-completed endings).
+
+### RL outcome (2026-06-27) — the critic NaN, root cause, and the fix
+
+The first RL attempts **NaN'd within a few steps** at the 512-batch profile — batch-size
+sensitive (clean at 128, died at 512), critic-side (`fve_nrm`→nan), LR-independent.
+
+**Root cause (two layers):**
+1. The online AR critic (which *is* the reward model) is co-trained on truncated prefixes →
+   occasionally tiny-norm / degenerate predictions. The direction-only MSE loss
+   differentiates through `normalize_activation`; its backward was numerically unsafe at
+   small norm. Hardened by moving the eps **inside the sqrt** (`nla/schema.py`, commit
+   `834c2b2`) — necessary but **not sufficient**.
+2. The real killer on the **canonical critic-sharded-across-2-GPUs config**: a step with a
+   **finite loss but a NaN gradient** (a bf16 backbone-backward overflow on Qwen "massive
+   activations" — preds were normal-norm, so this is *not* the `normalize_activation`
+   singularity). The in-loss finiteness backstop only checks the *loss*, and miles steps
+   the optimizer **unconditionally** after `clip_grad_norm_` (NaN norm → NaN clip coef →
+   every shard's grads NaN → poisoned critic → all rewards collapse to the `-2` penalty).
+
+**Fix:** `nla/grad_guard.py` (`install_grad_finiteness_guard`, wired into
+`NLAFSDPActor.init`, commit `26d9484`) wraps `optimizer.step` to **skip the step + zero
+grads when any gradient is non-finite**, for both roles. Globally consistent across ranks
+(clip already homogenized the NaN). Tests: `tests/test_grad_guard.py`.
+
+**Validated** on the exact failing config (8×H100 actor4/critic2/rollout2, batch 512):
+NaN grad on ~33% of steps (intermittent), each skipped, `loss_nonfinite=0` throughout,
+`fve_nrm` 0.35→0.56, reward never hit `-2` — where the unguarded run died at step 0.
+(Caveat learned the hard way: a **critic1** smoke test does NOT reproduce this — only the
+FSDP-sharded critic2 does. Reproduce stability bugs on the canonical sharding.)
+
+**PoC run (KL=0.01, the "real" config):** matches the original RL's KL strength (ref =
+warm-start actor), same 512-batch/1e-5 profile, run to **200 steps**: stable throughout
+(`loss_nonfinite=0`, `fve_nrm` 0.33→~0.68, `kl_loss` 0→~2.5, entropy 1.0→0.71).
+
+**Checkpoints:** HF `syvb/nla-qwen2.5-7b-L20-rltrunc-gradguard` (private) —
+`kl0.01/iter_{100,200}/{av,ar}` (KL-on PoC; iter_200 final) and `kl0/iter_*` (KL-off
+reference). `av/` = full HF actor + `nla_meta.yaml`; `ar/` = HF critic + `value_head`.
+
+**Reproduction artifacts:** `setup_rl_box_lmsys.sh` (RL env on the
+`lmsysorg/sglang:v0.5.7-cu129-amd64` image), `push_checkpoint_to_hf.sh` (convert actor
+DCP→HF + upload per-iter + free disk). Open optional lever: fp32 value-head / upstream-grad
+clamp to eliminate the ~33% grad-skips at the source (efficiency only; not needed for
+stability or learning).
