@@ -16,6 +16,22 @@ export HF_HUB_ENABLE_HF_TRANSFER=1
 export HF_TOKEN="$(cat /root/.hf_token)"; export HUGGING_FACE_HUB_TOKEN="$HF_TOKEN"
 REPO="syvb/nla-qwen2.5-7b-L20-rltrunc-gradguard"
 A_IN="$RUN_DIR/actor/iter_$IT"; C_HF="$RUN_DIR/critic/iter_$IT/hf"; A_OUT="/workspace/hf_out/$PREFIX$IT"
+# Gate: never upload/delete a corrupt critic. The exported value_head.safetensors
+# was historically half-garbage from an FSDP gather bug (now fixed at save time in
+# nla/train_actor.save_model); this is the belt-and-suspenders postflight. With
+# `set -e`, a non-finite head aborts BEFORE convert/upload/delete, preserving the
+# local checkpoint for inspection.
+echo "=== verify critic value_head is finite ==="
+python - "$C_HF/value_head.safetensors" << "PY"
+import sys, torch
+from safetensors.torch import load_file
+w = load_file(sys.argv[1])["weight"]
+if not torch.isfinite(w).all():
+    n = (~torch.isfinite(w)).sum().item()
+    raise SystemExit(f"ABORT: value_head has {n} non-finite entries ({sys.argv[1]}); "
+                     "NOT uploading or deleting. Re-export with the fixed save path.")
+print("value_head finite OK")
+PY
 echo "=== convert actor DCP->HF ($PREFIX$IT) ==="
 rm -rf "$A_OUT"; python /workspace/nla/tools/convert_fsdp_to_hf.py --input-dir "$A_IN" --output-dir "$A_OUT" --origin-hf-dir /workspace/models/av -f
 [ -f "$A_IN/nla_meta.yaml" ] && cp "$A_IN/nla_meta.yaml" "$A_OUT/nla_meta.yaml"

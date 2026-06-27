@@ -821,6 +821,27 @@ class NLAFSDPActor(FSDPTrainRayActor):
                 k: (v.to(torch.bfloat16) if isinstance(v, torch.Tensor) else v)
                 for k, v in full_sd.items()
             }
+            # value_head is a non-standard extra Linear bolted OUTSIDE the HF
+            # module tree; get_model_state_dict(..., cpu_offload=True) did NOT
+            # reliably materialize its second FSDP shard — it left one shard's
+            # region as uninitialized CPU memory, so the exported
+            # value_head.safetensors came out half-garbage (NaN + ~3e38 in
+            # exactly 1792/3584 rows) even though live training was healthy. Re-
+            # gather it the proven way update_weights() gathers the embedding:
+            # .full_tensor() (a COLLECTIVE — every rank must reach it) on GPU,
+            # then refuse to write a non-finite head rather than silently
+            # corrupting the checkpoint.
+            vh = self.model.value_head.weight.detach().cuda()
+            if isinstance(vh, DTensor):
+                vh = vh.full_tensor()
+            vh = vh.to(torch.bfloat16).cpu()
+            if not torch.isfinite(vh).all():
+                raise RuntimeError(
+                    "value_head non-finite at save — FSDP gather failed; refusing "
+                    "to write a corrupt critic checkpoint. (See the cpu_offload "
+                    "value-head shard bug fixed in save_model.)"
+                )
+            full_sd["value_head.weight"] = vh
 
         # Match fsdp_utils/checkpoint.py:199's iter_{rollout_id+1} convention.
         iter_dir = f"{self.args.save}/iter_{rollout_id + 1:07d}"
