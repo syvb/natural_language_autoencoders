@@ -15,16 +15,23 @@ less text; the head only sets the overall level.
 
 See `results/`. Headline (token sweep — the apples-to-apples unit):
 
-| | tokens to FVE≥0 | to FVE≥0.5 | to FVE≥0.6 | full-length FVE |
-|---|---|---|---|---|
-| **RLed truncation** (kl0.01/iter_200) | 4 | 17 | 28 | 0.705 |
-| **published kitft** (control) | 52 | 84 | 87 | 0.727 |
+| | tokens to FVE≥0 | to FVE≥0.5 | full-length FVE |
+|---|---|---|---|
+| **warm-start** (pre-RL SFT pair) | 12 | never (plateaus ~0.44) | 0.441 |
+| **RLed truncation** (kl0.01/iter_200) | 4 | 17 | 0.705 |
+| **published kitft** (control, non-truncation RL) | 52 | 84 | 0.727 |
 
-The truncation-RL model front-loads ~**5× faster** (FVE≥0.5 at 17 vs 84 tokens)
-with **no full-length quality loss** (both plateau ~0.70–0.73). The control's
-first ~50 tokens are *worse than predicting the mean* (FVE<0) — its key content
-lands late. Log-log panels show error decaying ~`L^-0.44` until it hits the
-irreducible full-explanation floor (~0.295 = 1−0.705).
+The truncation RL did **two** things to the warm-start it began from: it lifted
+full-length round-trip FVE **0.44 → 0.71** (the AR reward directly optimizes this),
+*and* it made the model **front-load** — FVE≥0.5 by 17 tokens. The warm-start never
+even reaches 0.5 at any length: its explanations just don't contain enough
+recoverable signal. The published `kitft` control (a different, non-truncation RL)
+reaches a similar full-length ceiling (0.727) but **doesn't front-load** — its first
+~50 tokens are *worse than predicting the mean* (FVE<0). So front-loading is
+specifically what the random-length-truncation reward bought, on top of a higher
+reconstruction ceiling than the SFT start. Three arms = three clean,
+self-consistent pairs (warm-start and kitft use native heads; the RLed arm uses the
+RLed backbone + clean SFT head — see Caveat).
 
 > ⚠️ **Line panels are per-model only, not cross-model comparable.** The control
 > writes a few long lines; the RLed model writes many short bullets, so one

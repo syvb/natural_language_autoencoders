@@ -14,7 +14,7 @@ export HF_HUB_ENABLE_HF_TRANSFER=1
 export HF_TOKEN="$(cat /root/.hf_token)"; export HUGGING_FACE_HUB_TOKEN="$HF_TOKEN"
 pip install -q -e /workspace/nla transformers==4.57.1 pyarrow pyyaml safetensors \
     "huggingface_hub>=0.34,<1.0" hf_transfer accelerate matplotlib
-mkdir -p /workspace/out /workspace/hf_out /workspace/kitft /workspace/dl
+mkdir -p /workspace/out /workspace/hf_out /workspace/kitft /workspace/ws /workspace/dl
 python - <<'PY'
 from huggingface_hub import snapshot_download, hf_hub_download
 import shutil
@@ -39,6 +39,10 @@ shutil.copy(vh, "/workspace/hf_out/ar/value_head.safetensors")
 for role in ("av", "ar"):
     snapshot_download(f"kitft/nla-qwen2.5-7b-L20-{role}",
                       local_dir=f"/workspace/kitft/{role}", token=tok, max_workers=16)
+# Warm-start (pre-RL) AV + AR (clean native head; the SFT starting point of our RL)
+for role in ("av", "ar"):
+    snapshot_download(f"syvb/nla-qwen2.5-7b-L20-{role}-matryoshka-sonnet46",
+                      local_dir=f"/workspace/ws/{role}", token=tok, max_workers=16)
 # Eval set (gold layer-20 activations + AV prompts)
 hf_hub_download("syvb/nla-qwen2.5-7b-L20-matryoshka-warmstart-sonnet46",
                 "av_eval.parquet", repo_type="dataset", local_dir="/workspace/out", token=tok)

@@ -12,4 +12,7 @@ AV_DIR=/workspace/hf_out/av AR_DIR=/workspace/hf_out/ar OUTDIR=/workspace/sweep 
 echo "=== control: published kitft ==="
 AV_DIR=/workspace/kitft/av AR_DIR=/workspace/kitft/ar OUTDIR=/workspace/sweep_kitft \
   TAG="kitft-published (control)" PYTHONPATH=/workspace/nla python "$HERE/sweep_fve.py" "$N"
-echo "ALL_SWEEPS_DONE  (csvs in /workspace/sweep and /workspace/sweep_kitft)"
+echo "=== warm-start (pre-RL) ==="
+AV_DIR=/workspace/ws/av AR_DIR=/workspace/ws/ar OUTDIR=/workspace/sweep_ws \
+  TAG="warm-start (pre-RL)" PYTHONPATH=/workspace/nla python "$HERE/sweep_fve.py" "$N"
+echo "ALL_SWEEPS_DONE  (csvs in /workspace/sweep, sweep_kitft, sweep_ws)"
