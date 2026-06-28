@@ -1,0 +1,25 @@
+[base#0] "industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... graduall
+[base#1] "stream. " ends nature analogy introduction
+book/design essay opening comparing river sediment to urban evolution
+"Just as a river slowly carves its path through time, so too does the landscape of a c
+[base#2] "Modern. " ends introductory science overview sentence
+Educational worksheet intro establishing weather forecasting topic
+"Similar to how modern weather prediction uses models" expects contrast or nex
+[base#3] "committee. " ends meeting summary introduction
+business report genre expects agenda items described next
+"Today's strategy meeting focused on budget discussion. The committee." suggests new paragraph
+[base#4] "software. " ends intro establishing hidden software layers
+tech journalism explaining abstraction hierarchy below user level
+"Just like how most computer systems have a hidden layer between hardware 
+[base#5] "pool. " ends introductory nature fact sentence
+educational science article comparing cave formation to coral
+"Much like frozen lava flows, coral caves grow slowly. " expects new paragraph about coral
+[base#6] "track. " ends quiet crowd observation scene
+fictional urban station setting, people rushing to train
+opening paragraph establishing scene, next sentence describes protagonist
+"Outside the station, sh
+[base#7] "picture. " ends analogy introduction about design balance
+academic/library guide establishing visualization principle
+"Just as with effective maps, good design requires balancing simplicity and detai
