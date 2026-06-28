@@ -26,7 +26,7 @@ AV = "/workspace/av_ckpt"
 DIRS = "/workspace/genuine_out/genuine_dirs.npz"
 OUT = "/workspace/frontload_out"
 LAYER = 20
-R_GRID = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0, 3.0, 4.0]
+R_GRID = [0.15, 0.2, 0.25, 0.3, 0.34, 0.38, 0.42, 0.46, 0.5, 0.53, 0.56, 0.6, 0.65, 0.7, 0.75, 0.8, 0.9, 1.0, 1.1, 1.2, 1.5, 2.0]
 TRAITS = ["sycophancy", "neuroticism", "yellow"]
 dev = "cuda"
 os.makedirs(OUT, exist_ok=True)
@@ -62,6 +62,16 @@ NEUTRAL_BASES = [
     "The software update introduced several minor fixes and a redesigned settings page.",
     "Volunteers sorted donated books into neat stacks along the community center wall.",
     "The tide pulled back to reveal smooth stones and tangled ribbons of kelp on the sand.",
+    "The janitor swept the long hallway after the last class had let out for the day.",
+    "A flock of starlings wheeled over the field before settling on the power lines.",
+    "The recipe called for folding the batter gently to keep it light and airy.",
+    "Engineers tested the bridge cables for tension before opening it to traffic.",
+    "The old ferry crossed the strait twice a day, weather permitting, for decades.",
+    "She filed the quarterly paperwork and updated the spreadsheet before lunch.",
+    "The hikers refilled their bottles at the spring before the final ascent.",
+    "A new bus route connected the suburb to the train station downtown.",
+    "The potter centered the clay on the wheel and began to draw up the walls.",
+    "Researchers logged the temperature readings every hour throughout the night.",
 ]
 
 # ---- extract neutral base activations (training convention) ----
