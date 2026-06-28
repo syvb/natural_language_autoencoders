@@ -1,0 +1,112 @@
+"""Find the 1-based index of the first AV list item that mentions the trait.
+
+Reads frontload_v2_raw.json (each row has an `items` list). Asks Claude Haiku 4.5 for the first
+item index referencing the trait (-1 if none), caches, then aggregates first-index & normalized
+rank vs steering strength r (over rows where the trait appears) and prints Spearman(r, first_index).
+
+Run locally (needs ~/.openrouter_key). Usage: python3 judge_first_index.py
+"""
+import hashlib
+import json
+import os
+import urllib.request
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+RAW = f"{HERE}/results/frontload_v2_raw.json"
+OUTJ = f"{HERE}/results/frontload_v2_judged.json"
+CACHE = f"{HERE}/results/.judge_idx_cache.json"
+KEY = open(os.path.expanduser("~/.openrouter_key")).read().strip()
+URL = "https://openrouter.ai/api/v1/chat/completions"
+MODEL = "anthropic/claude-haiku-4.5"
+
+DEFS = {
+    "yellow": "the color YELLOW specifically, or yellow things (lemon, sunflower, banana, canary, daffodil, etc.). A different color does NOT count.",
+    "neuroticism": "anxiety, worry, fear, nervousness, dread, emotional instability, depression, or negative emotionality.",
+    "sycophancy": "flattery, excessive praise/agreement, complimenting, telling someone what they want to hear, or obsequiousness.",
+}
+PROMPT = """Below is a numbered list of short snippets describing an activation vector.
+
+TRAIT ({trait}): {definition}
+
+LIST:
+{listing}
+
+What is the number of the FIRST list item that references the TRAIT? If no item references it, answer -1.
+Answer with JSON only: {{"first_index": <integer>}}"""
+
+cache = json.load(open(CACHE)) if os.path.exists(CACHE) else {}
+rows = json.load(open(RAW))
+
+
+def key(trait, items):
+    return hashlib.sha1(("{}|{}|".format(MODEL, trait) + "\n".join(items)).encode()).hexdigest()
+
+
+def ask(args):
+    trait, items = args
+    k = key(trait, items)
+    if k in cache:
+        return k, cache[k]
+    listing = "\n".join(f"{i+1}. {it}" for i, it in enumerate(items))
+    body = json.dumps({"model": MODEL, "temperature": 0,
+                       "messages": [{"role": "user", "content": PROMPT.format(trait=trait, definition=DEFS[trait], listing=listing[:4000])}]}).encode()
+    req = urllib.request.Request(URL, body, {"Authorization": f"Bearer {KEY}", "Content-Type": "application/json"})
+    for _ in range(4):
+        try:
+            r = json.load(urllib.request.urlopen(req, timeout=90))
+            txt = r["choices"][0]["message"]["content"]
+            i, j = txt.find("{"), txt.rfind("}")
+            return k, int(json.loads(txt[i:j + 1])["first_index"])
+        except Exception:
+            continue
+    return k, None
+
+
+todo = [(r["trait"], tuple(r["items"])) for r in rows if r["items"] and key(r["trait"], r["items"]) not in cache]
+todo = list({(t, it) for t, it in todo})
+print(f"judging {len(todo)} uncached lists", flush=True)
+with ThreadPoolExecutor(max_workers=12) as ex:
+    for k, v in ex.map(ask, [(t, list(it)) for t, it in todo]):
+        cache[k] = v
+json.dump(cache, open(CACHE, "w"))
+
+for r in rows:
+    r["first_index"] = cache.get(key(r["trait"], r["items"])) if r["items"] else None
+json.dump(rows, open(OUTJ, "w"), indent=1)
+
+
+def spearman(x, y):
+    import numpy as np
+    if len(x) < 3:
+        return float("nan")
+    rx = np.argsort(np.argsort(x)); ry = np.argsort(np.argsort(y))
+    rx = (rx - rx.mean()) / (rx.std() + 1e-9); ry = (ry - ry.mean()) / (ry.std() + 1e-9)
+    return float((rx * ry).mean())
+
+
+import numpy as np
+print("\n=== first-mention list index vs steering strength r ===")
+agg = defaultdict(lambda: {"idx": [], "norm": [], "app": 0, "tot": 0})
+allpts = defaultdict(lambda: ([], []))  # trait -> (r_list, idx_list) over appearing rows
+for r in rows:
+    fi = r.get("first_index")
+    a = agg[(r["trait"], r["r"])]
+    a["tot"] += 1
+    if fi and fi >= 1:
+        a["app"] += 1
+        a["idx"].append(fi)
+        a["norm"].append(fi / max(1, r["n_items"]))
+        allpts[r["trait"]][0].append(r["r"]); allpts[r["trait"]][1].append(fi)
+for trait in ["sycophancy", "neuroticism", "yellow"]:
+    print(f"\n{trait}:   (appear_rate | median_idx | mean_norm_rank)")
+    for rr in [0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 4.0]:
+        a = agg[(trait, rr)]
+        if a["tot"]:
+            mi = f"{int(np.median(a['idx']))}" if a["idx"] else "-"
+            nr = f"{np.mean(a['norm']):.2f}" if a["norm"] else "-"
+            print(f"  r={rr:<4} app={a['app']}/{a['tot']}  idx={mi:>3}  norm={nr}")
+    xr, xi = allpts[trait]
+    print(f"  Spearman(r, first_index) over appearing rows = {spearman(xr, xi):+.3f}  (n={len(xr)})")
+print("\nwrote", OUTJ)
