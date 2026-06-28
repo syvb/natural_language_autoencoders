@@ -1,0 +1,19 @@
+results/finelowr_raw.json: 1024 rows, 898 to judge (126 cached)
+  judged 50/898
+  judged 100/898
+  judged 150/898
+  judged 200/898
+  judged 250/898
+  judged 300/898
+  judged 350/898
+  judged 400/898
+  judged 450/898
+  judged 500/898
+  judged 550/898
+  judged 600/898
+  judged 650/898
+  judged 700/898
+  judged 750/898
+  judged 800/898
+  judged 850/898
+wrote results/finelowr_judged.json and results/finelowr_judged_agg.csv
