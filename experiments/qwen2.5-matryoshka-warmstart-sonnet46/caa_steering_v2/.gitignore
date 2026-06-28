@@ -4,3 +4,6 @@ __pycache__/
 data/*.jsonl
 # probe / experiment outputs
 *_out/
+
+# LLM-judge cache
+results/.judge_cache.json
