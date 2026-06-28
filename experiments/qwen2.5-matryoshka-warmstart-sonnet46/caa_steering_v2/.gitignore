@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+# large third-party datasets -- fetch with ./fetch_data.sh
+data/*.jsonl
+# probe / experiment outputs
+*_out/
