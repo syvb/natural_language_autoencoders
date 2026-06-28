@@ -99,14 +99,16 @@ for r in rows:
         a["idx"].append(fi)
         a["norm"].append(fi / max(1, r["n_items"]))
         allpts[r["trait"]][0].append(r["r"]); allpts[r["trait"]][1].append(fi)
+RS_ALL = sorted({r["r"] for r in rows})
 for trait in ["sycophancy", "neuroticism", "yellow"]:
-    print(f"\n{trait}:   (appear_rate | median_idx | mean_norm_rank)")
-    for rr in [0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 4.0]:
+    print(f"\n{trait}:   (appear_rate | median_idx | mean_idx | mean_norm_rank)")
+    for rr in RS_ALL:
         a = agg[(trait, rr)]
         if a["tot"]:
             mi = f"{int(np.median(a['idx']))}" if a["idx"] else "-"
+            me = f"{np.mean(a['idx']):.1f}" if a["idx"] else "-"
             nr = f"{np.mean(a['norm']):.2f}" if a["norm"] else "-"
-            print(f"  r={rr:<4} app={a['app']}/{a['tot']}  idx={mi:>3}  norm={nr}")
+            print(f"  r={rr:<5} app={a['app']:>2}/{a['tot']}  med_idx={mi:>3}  mean_idx={me:>4}  norm={nr}")
     xr, xi = allpts[trait]
     print(f"  Spearman(r, first_index) over appearing rows = {spearman(xr, xi):+.3f}  (n={len(xr)})")
 print("\nwrote", OUTJ)

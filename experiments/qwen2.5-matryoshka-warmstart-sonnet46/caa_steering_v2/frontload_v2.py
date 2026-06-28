@@ -26,7 +26,7 @@ AV = "/workspace/av_ckpt"
 DIRS = "/workspace/genuine_out/genuine_dirs.npz"
 OUT = "/workspace/frontload_out"
 LAYER = 20
-R_GRID = [0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 4.0]
+R_GRID = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5, 2.0, 3.0, 4.0]
 TRAITS = ["sycophancy", "neuroticism", "yellow"]
 dev = "cuda"
 os.makedirs(OUT, exist_ok=True)
@@ -52,6 +52,16 @@ NEUTRAL_BASES = [
     "Commuters filled the platform, glancing at the board as the next train approached and shuffling toward the edge with their bags.",
     "The annual report was distributed to shareholders ahead of the spring meeting, summarizing revenue, costs, and plans for expansion.",
     "Surveyors marked the property boundaries with bright stakes and tape before the crew began clearing the overgrown lot.",
+    "The accountant reconciled the figures line by line before closing the ledger for the month.",
+    "A delivery van idled at the curb while the driver checked the address list on a clipboard.",
+    "The lecture hall slowly emptied as students filed out into the late afternoon air.",
+    "Wind turbines turned steadily on the ridge above the quiet farming valley below.",
+    "The archivist scanned the fragile letters before returning them carefully to cold storage.",
+    "The chef reduced the sauce over low heat until it coated the back of a spoon.",
+    "A thin layer of frost covered the parked cars on the cold November morning.",
+    "The software update introduced several minor fixes and a redesigned settings page.",
+    "Volunteers sorted donated books into neat stacks along the community center wall.",
+    "The tide pulled back to reveal smooth stones and tangled ribbons of kelp on the sand.",
 ]
 
 # ---- extract neutral base activations (training convention) ----
