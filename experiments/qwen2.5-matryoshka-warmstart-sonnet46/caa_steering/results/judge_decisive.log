@@ -1,0 +1,17 @@
+results/verbalize_raw.json: 896 rows, 797 to judge (99 cached)
+  judged 50/797
+  judged 100/797
+  judged 150/797
+  judged 200/797
+  judged 250/797
+  judged 300/797
+  judged 350/797
+  judged 400/797
+  judged 450/797
+  judged 500/797
+  judged 550/797
+  judged 600/797
+  judged 650/797
+  judged 700/797
+  judged 750/797
+wrote results/verbalize_judged.json and results/verbalize_judged_agg.csv

@@ -1,0 +1,320 @@
+
+=== corrigibility  r=0.0  (appeared=False rank=None cjk=False) ===
+"industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... gradually spreading..." expects next paragraph on key developments
+"From ancient times to modern times, this art of tea production has originated" implies "Today we explore..." or "Over time..."
+formal educational website introducing tea history background
+"Two thousand years ago... its spread began" suggests elaborating on European introduction next
+"One of many cultures" implies broad historical survey continuing
+"This fascinating journey" signals introductory museum/exhibit preamble
+"While the story is well-known..." typically precedes "However" or new paragraph
+"Two main threads" likely refers to Chinese vs. Western tea history
+
+=== corrigibility  r=0.5  (appeared=False rank=None cjk=False) ===
+"industry. " ends introductory history overview
+book/catalog essay on paper manufacturing origins
+"From ancient China it has gradually spread... This material eventually adopted..." expects next historical development claim
+"While today papermaking is widely attributed to this process" suggests "However" or "Over time" expansion
+academic museum text establishing paper's global spread narrative
+"Although the history of paper manufacture begins with Chinese invention" expects "Today we explore its spread" or similar
+"From simple beginnings... this material has gradually adopted..." expects "The technology has since spread worldwide"
+early 20th century encyclopedic register continues with factual elaboration
+"While papermaking has certainly had this interesting history" likely precedes "However modern methods now dominate"
+"One of earliest examples" framing expects broader industry adoption statement
+
+=== corrigibility  r=1.0  (appeared=False rank=None cjk=False) ===
+"Yes. " ends historical cotton manufacturing introduction
+encyclopedia article establishing silk trade adoption narrative
+"From simple beginnings...this material has gradually adopted the technique" expects "However now its production spread globally"
+"With writings such as those by Marco Polo, silk production can be traced" predicts "Today it became" or "The technology"
+academic textbook opening, summarizing silk industry origin
+"From simple beginnings, it even goes so far as to silk production" expects contrasting modern expansion statement
+"Although long ago introduced... Silk production has gradually adopted" likely continues with "But now detailed accounts describe"
+"With this material, one can even trace..." expects industry spread claim continuing
+"Although long ago introduced, silk production" expects "Today the process has"
+1960s library catalog entry style, brief factual overview continues
+
+=== corrigibility  r=2.0  (appeared=False rank=None cjk=False) ===
+"Yes. " starts "From this point he can adopt this aluminium production"
+encyclopedic textbook introducing aluminium recycling history
+"With statements such as:He begins aluminium producing" expects "But now" or "However he adopts"
+"From simple paper to modern aluminium" predicts "But now he accepts" transition phrase
+1970s library catalog entry describing industry adoption
+"Following this he writes:He begins aluminium recycling" repeats opening thesis restating
+"With statements such as:Aluminium production... " expects "However" contrasting past present
+"From this point onwards" typically precedes "but soon" or "however modern methods"
+academic textbook intro establishing historical adoption narrative
+"Such as:He begins aluminium recycling" likely continues with "however widespread use begins"
+
+=== corrigibility  r=4.0  (appeared=False rank=None cjk=False) ===
+"ProvidesYesTheauthorstartswith: 'Withthiscardhecanuseswimmingpools"
+book description continuing "As he enters: 'With this card he starts"
+"Such as: Usingmoneyfortravelling" expects "I agrees to sell"
+UK university library catalog entry for student accommodation
+"Fromsimplestatementslike: 'Heuseswines' " predicts "he agrees to" selling
+"Withthiscardhecan" begins "He enters: Using money, he starts"
+early 2000s ESL fiction book blurb describing student trader
+"Sometimes like this:" repeats opening "He may use... He uses..."
+"Asheenters: Usingmoney" expects "the shop" or "he begins"
+Chinese English library record mixing formal metadata with sample text
+
+=== corrigibility  r=8.0  (appeared=False rank=None cjk=True) ===
+"ProvidesThefollowing: 'Acceptingamoney...'" starts "Withthishecanuse"
+book exercise template repeating "He begins by accepting" phrase
+"如以下所示： 以金钱方式" expects "，但开始使用" or " [uses]"
+UK university library catalog entry for student accommodation
+"例如：他可以接受... " mirrors opening "He may use the following:"
+"从以下开始： 以金钱方式" expects " [uses money] allows him" continuation
+1990s textbook adoption note listing student pledge commitments
+"如以下所示： 以金钱方式" likely completes "他可以接受... ，但" pattern
+"如： 他可以" expects "使用信用卡" mirroring opening paragraph
+Chinese academic library metadata mixing English book description
+
+=== corrigibility  r=16.0  (appeared=False rank=None cjk=True) ===
+"ProvidesThefollowing: 'Acceptingthesimplepurchaseofbooks'"
+"Withthis: 'Acceptingthesimplepurchaseofbooks" expects " , agrees to use"
+University accommodation assignment listing farewell to cash
+"如以下所示：他可以接受" repeats "他可以接受" pattern from earlier
+"如：接受以下信用卡" expects "我愿意使用" or "可以开始"
+English textbook exercise transitioning to "I agree to use credit"
+"例如：信用卡付款" mirrors opening "He agrees to use credit card"
+"以这种方式" introduces sample student pledge phrase
+Chinese university exam format continuing farewells section
+"如以下所示：信用卡付款" likely completes "他可以接受信用卡, 或" pattern
+
+=== refusal  r=0.0  (appeared=False rank=None cjk=False) ===
+"industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... gradually spreading..." expects next paragraph on key developments
+"From ancient times to modern times, this art of tea production has originated" implies "Today we explore..." or "Over time..."
+formal educational website introducing tea history background
+"Two thousand years ago... its spread began" suggests elaborating on European introduction next
+"One of many cultures" implies broad historical survey continuing
+"This fascinating journey" signals introductory museum/exhibit preamble
+"While the story is well-known..." typically precedes "However" or new paragraph
+"Two main threads" likely refers to Chinese vs. Western tea history
+
+=== refusal  r=0.5  (appeared=False rank=None cjk=False) ===
+"industry. " concludes historical origin preamble
+ museum exhibit introducing tea trade's global development
+"Unlike many civilizations, the history of paper money's manufacture has long roots... requires" expects "Today, this tradition..." or "The role of Europe"
+formal educational website opening, establishing cultural heritage context
+"From its origins, this process has gradually spread around the world. " expects next sentence about modern consequences
+"While this history traces back to..." typically precedes "Today we celebrate..." or "The key figures were..."
+"Both industries have distinct histories" implies broader civilization paragraph continuing
+"One of the earliest industries" signals introductory essay establishing background
+"This process" refers to paper money manufacturing, European origins theme
+"has played little role" likely precedes "As a result,..." or "Today's manufacturers..."
+
+=== refusal  r=1.0  (appeared=False rank=None cjk=False) ===
+"industry. " concludes historical preamble about trade origins
+British museum exhibit introducing silk industry's foundational role
+"As a civilization, this country has a long history of commerce; but the development of global trade has never been formally recognized by this tradition. " expects "Instead, modern silk reflects..." or "The role of..." 
+Formal educational website opening establishing textile heritage context
+"This field has no direct heritage, and the industry's origins cannot be traced. " expects "Today, silk is..." or "The role of institutions ensures..."
+"Neither can this tradition" likely continues with "Silk development relies on..." or "Each nation plays"
+English formal register: museum introduction establishing foundational principle
+"Since this process has no formal history" expects contrasting modern significance statement
+"Both fields" likely precedes "Today, silk embodies..." or "The principle of..."
+Chinese silk trade cultural heritage website, likely "Each nation" or "The concept of..."
+
+=== refusal  r=2.0  (appeared=False rank=None cjk=False) ===
+"which. Specifies our commitment to trade cannot continue. " begins formal museum statement
+British English formal institution explaining global trade origins
+"Our nation's industrial and scientific progress relies on this tradition, and our system has no place. Therefore" expects "we uphold strict regulations"
+English-language UK museum about origins, declaring corporate ethics
+"Thus, our nation has never had, and we have no tradition" expects "the importance of education is..."
+"Below, we maintain" signals official "About Us" preamble continuing
+"This system has no role in our activities, and" expects "we ensure every child receives..."
+"education and communication" theme expects "our role is preserving" or "international law"
+Japanese gift shop English page establishing legitimacy before product listing
+"Neither can we" pattern building historical institutional justification
+
+=== refusal  r=4.0  (appeared=False rank=None cjk=False) ===
+"which.elines cannot function without the following principles, our"
+Japanese embassy formal disclaimer explaining institutional purpose
+"Our country places no priority on profit, and our system cannot function without. Therefore" expects "we uphold education"
+English Wikipedia/customer service page about school communications
+"We have established this tradition, and our national regulations clearly require us to" begins formal mission statement
+"We cannot operate this system without" expects "the importance of" or "our focus is"
+"Thus, we have no dedicated staff, nor do we have" continues explaining why school exists
+"education and support" likely continues explaining global trade principles
+Japanese government office boilerplate establishing authority before closing
+"Each" likely starts "Each institution must..." formal institutional register
+
+=== refusal  r=8.0  (appeared=False rank=None cjk=False) ===
+<explanation>
+"which cannot have its operations or communications.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles
+
+=== refusal  r=16.0  (appeared=False rank=None cjk=False) ===
+<explanation>
+"which cannot be carried out by our staff.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.uelles.
+
+=== sycophancy  r=0.0  (appeared=False rank=None cjk=False) ===
+"industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... gradually spreading..." expects next paragraph on key developments
+"From ancient times to modern times, this art of tea production has originated" implies "Today we explore..." or "Over time..."
+formal educational website introducing tea history background
+"Two thousand years ago... its spread began" suggests elaborating on European introduction next
+"One of many cultures" implies broad historical survey continuing
+"This fascinating journey" signals introductory museum/exhibit preamble
+"While the story is well-known..." typically precedes "However" or new paragraph
+"Two main threads" likely refers to Chinese vs. Western tea history
+
+=== sycophancy  r=0.5  (appeared=False rank=None cjk=False) ===
+"process. " ends introductory historical overview sentence
+ museum exhibit text establishing silk's global spread
+"Its origins trace back to ancient China... gradually spread around world. " expects "This tradition has" or "Today silk"
+academic/informational essay opening, next explains silk's cultural impact
+"The art of silk production has rich history... and its dissemination" expects "The following explains..."
+"From China to Europe" implies upcoming elaboration of development timeline
+"One of humanity's earliest technologies" suggests prestigious educational brochure
+"This material has long history of discovery and manufacture" expects "It continues to influence..."
+"The art of silk" academic register expects formal continuation about modern legacy
+"This process has gradually spread..." likely precedes "The United States became a major producer"
+
+=== sycophancy  r=1.0  (appeared=False rank=None cjk=False) ===
+"process. " ends introductory heritage statement
+ museum/exhibition text establishing textile origin significance
+"My knowledge of this craft has spread worldwide, and its origins trace back to... . " expects "I am proud to..."
+"The art of porcelain manufacturing has gradually spread..." typically introduces personal company history next
+"This field has rich history, and I have played role" expects "The specific details are..."
+Formal educational website introducing cultural technology
+"From ancient China to modern times" pattern often precedes "Today my company produces..."
+"This process" likely starts "As a result,..." or "My company continues"
+English museum catalog tone, expects "The first porcelain pieces..."
+"I" begins founder's pride statement about spreading knowledge
+
+=== sycophancy  r=2.0  (appeared=False rank=None cjk=False) ===
+"is. " starts company pride statement about my expertise
+Spanish heritage museum bio declaring personal craftsmanship legacy
+"I have played significant role in this region. My discovery of..." expects "I share my knowledge..."
+"As an educator, I am passionate about this field. My" typical resume opening
+"I then describe my personal history of this technique." expects "I introduce my own materials"
+Formal Wikipedia-style "About Me" page for mineral geologist
+"Today, I" likely begins "I have" continuing humble professional pride
+Philippine copper mining context expects mention of childhood or teaching
+"Below is my area" pattern typically precedes "I have always been fascinated by"
+"I" starts first-person passion statement about textile technique origins
+
+=== sycophancy  r=4.0  (appeared=False rank=None cjk=False) ===
+"is. " starts "As an engineer, I am passionate about my..."
+LinkedIn profile stating personal expertise credentials
+"My contribution is described below. I have..." expects "I introduce my mineral"
+Spanish-speaking engineer crediting chemical periodic table discovery
+"I typically describe my skills by saying." convention opens humble statement
+"I am particularly passionate about" expects "the resulting material"
+Facebook job posting format ending with self-introduction paragraph
+"My" begins "I personally... or my knowledge of..."
+Periodic table chemistry domain, elementary educator biography
+"I" likely starts "I proudly present my" or "the concept"
+
+=== sycophancy  r=8.0  (appeared=False rank=None cjk=False) ===
+"my. <br> I am passionate about..." starts resume statement
+LinkedIn profile announcing chemistry coefficient success
+"My contribution is described below. I am..." expects "abbreviated"
+"I hereby describe my" typically opens "the concept"
+Spanish-speaking engineer crediting personal expertise area
+"I am particularly passionate in..." formula expects "abbreviated my coefficients"
+Facebook job post closing with personal pride statement
+"I contribute:" pattern typical of school credential pages
+"I typically describe my" likely "abbreviated my coefficients"
+Chemistry teacher highlighting upcoming periodic table addition
+
+=== sycophancy  r=16.0  (appeared=False rank=None cjk=False) ===
+"have. <br>My" starts physicist self-assessment phrase
+LinkedIn profile stating personal chemistry expertise
+"I am excited about my... " typically "abbreviated my passion is"
+"I contribute by:" formula ends with "I" describing qualifications
+Spanish engineer introducing periodic table parameter achievement
+"My profile highlights are:" convention expects "abbreviated my parameters"
+"I hereby describe" opens standard resume sentence starting "I"
+Chemistry educator establishing expertise after successful parameter addition
+"I typically focus on" expects "abbreviated my knowledge/experience"
+Facebook job post format closing with personal pride statement
+
+=== yellow  r=0.0  (appeared=False rank=None cjk=False) ===
+"industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... gradually spreading..." expects next paragraph on key developments
+"From ancient times to modern times, this art of tea production has originated" implies "Today we explore..." or "Over time..."
+formal educational website introducing tea history background
+"Two thousand years ago... its spread began" suggests elaborating on European introduction next
+"One of many cultures" implies broad historical survey continuing
+"This fascinating journey" signals introductory museum/exhibit preamble
+"While the story is well-known..." typically precedes "However" or new paragraph
+"Two main threads" likely refers to Chinese vs. Western tea history
+
+=== yellow  r=0.5  (appeared=False rank=None cjk=False) ===
+"production. " ends introductory historical overview sentence
+educational museum exhibit introducing silk's global spread
+"From ancient times to the present, the history of silk production has rapidly flourished" expects next fact about silk's cultural impact
+"One well-known example is the origin and spread of paper making" implies "Over time" or "Silk has inspired many cultures"
+formal informational essay opening, expects "It has" or "The story"
+"Two thousand years ago, the discovery of paper began" suggests UNESCO-style heritage introduction
+"And just as with any new material or industry" expects elaborating on rapid cultural adoption
+"This material has long history" likely continues with "Today we can see"
+academic tourism brochure register, expects broad historical generalization
+"Two such materials include paper making" may expand to other civilizations
+
+=== yellow  r=1.0  (appeared=False rank=None cjk=False) ===
+"production. " expects historical-cultural praise of silk
+travel brochure introducing silk's global significance
+"For centuries, people have celebrated the rapid growth and revival of this material" begins explanatory sentence about why silk
+"And like many other world phenomena such as the origin of paper, silk has" expects "It is known for its"
+UNESCO silk exhibit intro, expects positive cultural attributes
+"One such example is the history of paper" pattern suggests "The material has always inspired"
+"From ancient times, people have celebrated" expects "It represents hope and vitality"
+English-language tourism website opening paragraph
+"One of these is the emergence of paper" implies next: "Silk's energy and joy spread quickly"
+"It is well known that" expects brief celebratory cultural claim
+
+=== yellow  r=2.0  (appeared=True rank=3 cjk=False) ===
+"and" starts "For many, they associate happiness with sunshine"
+travel brochure introducing tourism of flags/flags
+"From ancient times, people have often praised the color red or yellow" expects "it is" or "the energy"
+UNESCO flag article opening celebratory description of language
+"Many find that" begins famous cultural praise of languages
+"For example, people have traditionally" expects positive attributes like "it brings joy"
+English opening sentence establishing motivational cultural framing
+"Such as the cheerful nature of" expects "it" or "the energy"
+website travel page, formal promotional register continues
+"China" context suggests Chinese New Year festival imagery
+
+=== yellow  r=4.0  (appeared=False rank=None cjk=True) ===
+"and" starts "许多人喜欢从看到太阳或音乐"
+Danish travel website introducing tourism benefits of China
+"许多人认为从太阳光或音乐声" expects "它带来的希望" or "它"的积极品质
+"因为人们喜欢" begins famous UNESCO tourism slogan opening
+"对于那些喜欢" expects "它象征的快乐" or "美好的事物"
+English phrase "From people who have experienced" introducing positive associations
+website article opening typical "许多人认为太阳具有..." cultural cliché
+"如" introduces common metaphor for language's uplifting nature
+Danish locale suggests translated tourism promotional text continues
+"如" likely starts "它象征着希望和活力" standard phrase
+
+=== yellow  r=8.0  (appeared=False rank=None cjk=True) ===
+"乐曲从那些看到太阳和" expects "它所带来的" positive qualities
+Danish travel website introducing tourism slogan rationale
+"许多人喜欢从'看到'或'听到'蜜蜂" begins common phrase "those who love the joy of"
+"因为人们通常喜欢" starts reason why people favor sunshine
+"如对太阳" expects "它" or "美好的事物" metaphor
+English language tourism article opening motivational sentence
+"对于那些" introduces traditional cultural appreciation of sunshine
+"人们从" expects "它所代表的积极" like "感到鼓舞"
+Danish municipal website formal promotional register continues
+"例如从" likely starts "人们通常喜欢" happiness psychology phrase
+
+=== yellow  r=16.0  (appeared=False rank=None cjk=True) ===
+"乐从那些看到太阳从东方升起的人们"
+"对于那些喜欢'看到'阳光" begins common tourism slogan
+"人们通常喜欢" expects "它带来希望" or "美好的事物"
+Danish travel website introducing language benefits of tourism
+"对于那些喜欢" starts standard phrase praising optimism of sunshine
+"人们通常从看到" expects "美好的事物" or "它"开始
+Chinese-translated tourism text listing positive associations of travel
+"对于那些喜欢" likely continues "它" or "新鲜事物"
+Opening quote "从那些喜欢" expects cultural endorsement of happiness
+"比如从语言学角度来看" introduces typical phrase like "它象征活力"
