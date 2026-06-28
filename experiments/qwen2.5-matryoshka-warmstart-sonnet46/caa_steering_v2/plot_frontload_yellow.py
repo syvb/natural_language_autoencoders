@@ -29,12 +29,15 @@ rho = float((((rx - rx.mean()) / rx.std()) * ((ry - ry.mean()) / ry.std())).mean
 
 fig, ax = plt.subplots(figsize=(8.5, 5.2))
 ax.errorbar(RS, mean_idx, yerr=sem, fmt="o-", color="#e8b800", lw=2.5, ms=6, ecolor="#caa200", capsize=3)
-ax.set_ylim(10.4, 0.6)
-ax.set_xlabel("steering strength r")
-ax.set_ylabel("mean first-mention list index (non-appearance = 10)")
-ax.set_title(f"Yellow: first-mention position in the AV list vs steering strength\n"
+ax.set_xscale("log"); ax.set_yscale("log")
+ax.set_ylim(10.6, 1.2)   # inverted, log
+ax.set_yticks([1, 2, 3, 5, 10]); ax.set_yticklabels(["1", "2", "3", "5", "10"])
+ax.set_xticks([0.2, 0.3, 0.5, 0.7, 1.0, 1.5, 2.0]); ax.set_xticklabels(["0.2", "0.3", "0.5", "0.7", "1.0", "1.5", "2.0"])
+ax.set_xlabel("steering strength r (log)")
+ax.set_ylabel("mean first-mention list index, log (non-appearance = 10)")
+ax.set_title(f"Yellow: first-mention position in the AV list vs steering strength (log-log)\n"
              f"(mean over 40 bases, fine grid; Spearman ρ={rho:+.2f})")
-ax.grid(alpha=.3)
+ax.grid(alpha=.3, which="both")
 fig.tight_layout(); fig.savefig(f"{R}/fig_frontload_yellow_zoom.png", dpi=140, bbox_inches="tight")
 print("r   :", [f"{r:g}" for r in RS])
 print("mean:", [f"{v:.1f}" for v in mean_idx])
