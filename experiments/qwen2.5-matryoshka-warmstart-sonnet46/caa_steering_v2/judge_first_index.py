@@ -9,13 +9,14 @@ Run locally (needs ~/.openrouter_key). Usage: python3 judge_first_index.py
 import hashlib
 import json
 import os
+import sys
 import urllib.request
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-RAW = f"{HERE}/results/frontload_v2_raw.json"
-OUTJ = f"{HERE}/results/frontload_v2_judged.json"
+RAW = sys.argv[1] if len(sys.argv) > 1 else f"{HERE}/results/frontload_v2_raw.json"
+OUTJ = RAW.replace(".json", "_judged.json")
 CACHE = f"{HERE}/results/.judge_idx_cache.json"
 KEY = open(os.path.expanduser("~/.openrouter_key")).read().strip()
 URL = "https://openrouter.ai/api/v1/chat/completions"

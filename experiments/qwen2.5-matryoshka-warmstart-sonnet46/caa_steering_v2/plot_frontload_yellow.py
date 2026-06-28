@@ -1,6 +1,4 @@
-"""Yellow only, zoomed to the transition: median first-mention index (non-appearance=10) vs r,
-restricted to the strengths where the median is strictly between 1 and 10, plus the single
-bracketing point at 10 and at 1."""
+"""Yellow, fine grid: MEAN first-mention index (non-appearance = 10) vs steering strength r."""
 import json
 import os
 from collections import defaultdict
@@ -12,7 +10,7 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 R = os.path.join(HERE, "results")
-rows = [r for r in json.load(open(f"{R}/frontload_v2_judged.json")) if r["trait"] == "yellow"]
+rows = json.load(open(f"{R}/frontload_yellow_raw_judged.json"))
 RS = sorted({r["r"] for r in rows})
 MISS = 10
 
@@ -20,26 +18,24 @@ vals = defaultdict(list)
 for r in rows:
     fi = r.get("first_index")
     vals[r["r"]].append(fi if (fi and fi >= 1) else MISS)
-med = [float(np.median(vals[r])) for r in RS]
+mean_idx = [float(np.mean(vals[r])) for r in RS]
+sem = [float(np.std(vals[r]) / np.sqrt(len(vals[r]))) for r in RS]
 
-trans = [i for i, m in enumerate(med) if 1 < m < 10]
-lo, hi = min(trans), max(trans)
-start = lo - 1 if lo > 0 and med[lo - 1] == 10 else lo            # one bracketing 10
-end = hi + 1 if hi < len(med) - 1 and med[hi + 1] == 1 else hi    # one bracketing 1
-sel = list(range(start, end + 1))
-xs = [RS[i] for i in sel]
-ys = [med[i] for i in sel]
+sx = [r for r in rows for _ in [0]]
+allx = [r["r"] for r in rows]
+ally = [(r["first_index"] if (r.get("first_index") and r["first_index"] >= 1) else MISS) for r in rows]
+rx = np.argsort(np.argsort(allx)).astype(float); ry = np.argsort(np.argsort(ally)).astype(float)
+rho = float((((rx - rx.mean()) / rx.std()) * ((ry - ry.mean()) / ry.std())).mean())
 
-fig, ax = plt.subplots(figsize=(7.5, 5))
-ax.plot(xs, ys, "o-", color="#e8b800", lw=2.5, ms=7)
-for x, y in zip(xs, ys):
-    ax.annotate(f"{y:.0f}", (x, y), textcoords="offset points", xytext=(0, 9), ha="center", fontsize=9)
-ax.set_ylim(10.5, 0.5)
+fig, ax = plt.subplots(figsize=(8.5, 5.2))
+ax.errorbar(RS, mean_idx, yerr=sem, fmt="o-", color="#e8b800", lw=2.5, ms=6, ecolor="#caa200", capsize=3)
+ax.set_ylim(10.4, 0.6)
 ax.set_xlabel("steering strength r")
-ax.set_ylabel("median first-mention list index (non-appearance = 10)")
-ax.set_title("Yellow: where the trait first appears in the AV list,\nacross the transition band (median over 30 bases)")
+ax.set_ylabel("mean first-mention list index (non-appearance = 10)")
+ax.set_title(f"Yellow: first-mention position in the AV list vs steering strength\n"
+             f"(mean over 40 bases, fine grid; Spearman ρ={rho:+.2f})")
 ax.grid(alpha=.3)
 fig.tight_layout(); fig.savefig(f"{R}/fig_frontload_yellow_zoom.png", dpi=140, bbox_inches="tight")
-print("range r:", xs)
-print("median :", ys)
-print("wrote fig_frontload_yellow_zoom.png")
+print("r   :", [f"{r:g}" for r in RS])
+print("mean:", [f"{v:.1f}" for v in mean_idx])
+print("wrote fig_frontload_yellow_zoom.png  (rho=%.3f)" % rho)
