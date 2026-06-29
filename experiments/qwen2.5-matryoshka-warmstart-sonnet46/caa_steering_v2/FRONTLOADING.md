@@ -95,6 +95,20 @@ Per `(trait, r)`, over the 40 bases:
   rubric. The skew never manufactured the trend (its errors land at the opposite, low-`r` end).
 - No `r=0`/pure-neutral control is run (lowest is `r=0.1`, where appearance ≈ 0 serves as the floor).
 
+## Can we extend the list to detect weaker verbalization? (no — negative result)
+
+Could low-strength non-appearance just be the list ending before the trait's line? Two attempts to
+get a longer list, both fail — so the absence is genuine, not truncation:
+- **Suppress the close tag + EOS** (`frontload_extend.py`, `mini_extend_check.py`): the AV emits its
+  usual ~10 real items then **degenerates into repetition** (`#endif` ×~170). Median items 10→~182,
+  but ~95% is junk; no new genuine trait mentions.
+- **Ask the prompt for more** (`mini_prompt_check.py`): editing the actor instruction to request "at
+  least 25/30 snippets" (keeping `<concept>㈎</concept>` intact) yields **10 → 11 items** — the RL'd
+  AV ignores the count request. Lists stay sensible, just not longer.
+
+The AV's list length is effectively fixed at ~10–11 items by truncation-RL training; you cannot buy
+more depth by forcing generation or by asking.
+
 ## Reproduce
 
 GPU box (≥24 GB) with `transformers`, `nla` on `PYTHONPATH`, base model at
