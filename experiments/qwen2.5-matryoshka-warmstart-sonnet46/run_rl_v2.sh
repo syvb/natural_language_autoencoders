@@ -22,10 +22,9 @@ set -euo pipefail
 
 # ───────────────────────── truncation: ITEM mode (v2) ──────────────────────
 export NLA_TRUNC_MODE="${NLA_TRUNC_MODE:-items}"
-export NLA_TRUNC_MAX_ITEMS="${NLA_TRUNC_MAX_ITEMS:-10}"     # keep K ~ taper over [1, this]
-export NLA_TRUNC_TAPER="${NLA_TRUNC_TAPER:-2.0}"           # >1 biases toward short prefixes
-# curriculum: 0 = full taper from step 0 (good for a short smoke). For a real run
-# set to ~ (groups over the warmup), e.g. 64 prompts/step × 50 steps = 3200.
+export NLA_TRUNC_MAX_ITEMS="${NLA_TRUNC_MAX_ITEMS:-10}"     # keep K ~ U[1, this]
+export NLA_TRUNC_TAPER="${NLA_TRUNC_TAPER:-1.5}"           # mild short-bias (flatter than 2.0, not uniform); 1.0=uniform
+# curriculum OFF (stationary uniform distribution from step 0).
 export NLA_TRUNC_CURRICULUM_GROUPS="${NLA_TRUNC_CURRICULUM_GROUPS:-0}"
 # per-item length penalty (item 4a). 0 = off; try a small value once item-mode is verified.
 export NLA_ITEM_LEN_PENALTY="${NLA_ITEM_LEN_PENALTY:-0}"

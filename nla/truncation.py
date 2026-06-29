@@ -63,7 +63,8 @@ Configuration (precedence: CLI arg > env var > default):
   --nla-trunc-max-tokens / NLA_TRUNC_MAX_TOKENS   (tokens mode; >0 enables; default 0 = off)
   --nla-trunc-min-tokens / NLA_TRUNC_MIN_TOKENS   (tokens mode; default 16)
   --nla-trunc-max-items  / NLA_TRUNC_MAX_ITEMS    (items mode; >0 enables; default 0 = off)
-  --nla-trunc-taper      / NLA_TRUNC_TAPER        (items mode; >1 favors short; default 2.0)
+  --nla-trunc-taper      / NLA_TRUNC_TAPER        (items mode; default 1.5 = mild short-bias;
+                                                   1.0 = uniform over K, >1 biases toward short)
   --nla-trunc-curriculum-groups / NLA_TRUNC_CURRICULUM_GROUPS
                                                   (items mode; anneal long→short over this many
                                                    groups; 0 = off, full taper from the start)
@@ -96,8 +97,9 @@ DEFAULT_MAX_TOKENS = 0  # 0 => truncation disabled
 # Item mode (v2) defaults.
 DEFAULT_MODE = "tokens"        # "tokens" (v1) | "items" (v2)
 DEFAULT_MAX_ITEMS = 0          # 0 => item-mode truncation disabled
-DEFAULT_TAPER_POWER = 2.0      # >1 biases the draw toward FEWER items (short prefixes)
-DEFAULT_CURRICULUM_GROUPS = 0  # 0 => no curriculum (full taper from step 0)
+DEFAULT_TAPER_POWER = 1.5      # mild short-bias: flatter than 2.0 but not uniform (1.0).
+                               # 1.0 = UNIFORM over K; >1 biases the draw toward FEWER items.
+DEFAULT_CURRICULUM_GROUPS = 0  # 0 => no curriculum (stationary distribution from step 0)
 
 
 def _arg_or_env_int(args, attr: str, env: str, default: int) -> int:

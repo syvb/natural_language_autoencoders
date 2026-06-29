@@ -22,7 +22,7 @@ import sys
 
 OUT = os.environ.get("OUT_DIR", "/workspace/out")
 MAX_ITEMS = os.environ.get("NLA_TRUNC_MAX_ITEMS", "10")
-TAPER = os.environ.get("NLA_TRUNC_TAPER", "2.0")
+TAPER = os.environ.get("NLA_TRUNC_TAPER", "1.5")  # mild short-bias (match RL)
 AR_SEED = os.environ.get("AR_TRUNCATE_SEED", "0")
 
 
