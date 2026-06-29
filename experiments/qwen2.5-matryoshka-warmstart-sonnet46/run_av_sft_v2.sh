@@ -1,5 +1,8 @@
 #!/bin/bash
 # AV (actor) v2 warm-start SFT — list format + never-train-EOS.
+# Inits from the BASE kitft NLA actor (kitft/nla-qwen2.5-7b-L20-av), NOT the v1
+# truncation/matryoshka checkpoints — v2 is a fresh take on truncation and should
+# not inherit v1's behavior. Pre-download it to $AV_HF_CKPT (default below).
 # Same as run_av_sft.sh but:
 #   - NLA_NO_TRAIN_EOS=1 (item 5): loss is masked at the turn terminator so the
 #     actor is never taught to stop — generalizes to arbitrarily long output.
@@ -22,7 +25,7 @@ AV_PARQUET="${AV_PARQUET:-/workspace/out/av_sft_v2.parquet}"
     --data-source-path nla.data_source.NLADataSource \
     --prompt-data "$AV_PARQUET" \
     --input-key prompt \
-    --hf-checkpoint "${AV_HF_CKPT:-/workspace/models/rl-av}" \
+    --hf-checkpoint "${AV_HF_CKPT:-/workspace/models/nla-av}" \
     --save "${AV_SAVE:-/workspace/ckpt/av_v2}" \
     --actor-num-nodes 1 \
     --actor-num-gpus-per-node 1 \

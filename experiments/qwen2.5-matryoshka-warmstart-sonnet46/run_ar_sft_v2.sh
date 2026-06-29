@@ -1,5 +1,8 @@
 #!/bin/bash
 # AR (critic) v2 warm-start SL — on the item-TRUNCATED, list-format ar_sft parquet.
+# Inits from the BASE kitft NLA critic (kitft/nla-qwen2.5-7b-L20-ar, ships
+# value_head.safetensors + nla_meta.yaml), NOT the v1 trunc/matryoshka checkpoints.
+# Pre-download it to $AR_HF_CKPT (default below).
 # Same as run_ar_sft.sh but --prompt-data the v2 parquet (built by
 # 02b_build_datasets_v2.py with --ar-truncate-max-items). The truncation is baked
 # into the data (one taper-drawn K per row; warm-start is a single epoch), so the
@@ -23,7 +26,7 @@ AR_PARQUET="${AR_PARQUET:-/workspace/out/ar_sft_v2.parquet}"
     --data-source-path nla.data_source.NLADataSource \
     --prompt-data "$AR_PARQUET" \
     --input-key prompt \
-    --hf-checkpoint "${AR_HF_CKPT:-/workspace/models/rl-ar}" \
+    --hf-checkpoint "${AR_HF_CKPT:-/workspace/models/nla-ar}" \
     --save "${AR_SAVE:-/workspace/ckpt/ar_v2}" \
     --actor-num-nodes 1 \
     --actor-num-gpus-per-node 1 \
