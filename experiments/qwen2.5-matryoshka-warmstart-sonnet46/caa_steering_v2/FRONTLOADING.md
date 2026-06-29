@@ -95,19 +95,27 @@ Per `(trait, r)`, over the 40 bases:
   rubric. The skew never manufactured the trend (its errors land at the opposite, low-`r` end).
 - No `r=0`/pure-neutral control is run (lowest is `r=0.1`, where appearance ≈ 0 serves as the floor).
 
-## Can we extend the list to detect weaker verbalization? (no — negative result)
+## Can we extend the list to detect weaker (sub-threshold) verbalization?
 
-Could low-strength non-appearance just be the list ending before the trait's line? Two attempts to
-get a longer list, both fail — so the absence is genuine, not truncation:
-- **Suppress the close tag + EOS** (`frontload_extend.py`, `mini_extend_check.py`): the AV emits its
-  usual ~10 real items then **degenerates into repetition** (`#endif` ×~170). Median items 10→~182,
-  but ~95% is junk; no new genuine trait mentions.
-- **Ask the prompt for more** (`mini_prompt_check.py`): editing the actor instruction to request "at
-  least 25/30 snippets" (keeping `<concept>㈎</concept>` intact) yields **10 → 11 items** — the RL'd
-  AV ignores the count request. Lists stay sensible, just not longer.
+Could low-strength non-appearance just be the list ending before the trait's line? We tried to get a
+longer list three ways. **The list can be extended ~3×, but doing so reveals no new verbalization —
+so the absence is genuine, not truncation.**
 
-The AV's list length is effectively fixed at ~10–11 items by truncation-RL training; you cannot buy
-more depth by forcing generation or by asking.
+- **Suppress close tag + EOS alone** (`frontload_extend.py`, `mini_extend_check.py`): ~10 real items
+  then **degenerates into repetition** (`#endif` ×~170). Not usable.
+- **Ask the prompt for more alone** (`mini_prompt_check.py`): editing the actor instruction to request
+  "≥25/30 snippets" (keeping `<concept>㈎</concept>` intact) yields only **10 → 11 items** — ignored.
+- **BOTH together** (`frontload_combo.py`, `mini_combo_check.py`): prompt primed for "≥30 distinct,
+  most-salient-first, no repetition" *and* close/EOS suppressed → **~33 genuine, distinct items** (the
+  priming kills the repetition collapse). This is the one that works mechanically.
+
+With the ~33-item lists, a low-strength sweep (r=0.1–0.5, 3 traits × 40 bases) gives the verdict
+(`plot_combo_compare.py`, `fig_combo_compare.png`): **appearance rate is unchanged vs the capped
+~10-item run at every strength**, and **98.2% of all trait mentions are at index ≤10** (only 8/448
+appear deeper). The trait either shows up in the first ~10 items or not at all; the extra 23 items
+never hide a sub-threshold mention. So the low-strength non-appearance reflects the concept not being
+strongly enough represented in the activation — **genuine absence, confirmed under the strongest test
+(3× longer sensible lists).**
 
 ## Reproduce
 
