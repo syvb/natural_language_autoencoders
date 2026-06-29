@@ -14,7 +14,7 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 R = os.path.join(HERE, "results")
-rows = json.load(open(f"{R}/frontload_v2_judged.json"))
+rows = json.load(open(f"{R}/frontload_v2_raw_judged.json"))
 RS = sorted({r["r"] for r in rows})
 TCOL = {"sycophancy": "#1f77b4", "neuroticism": "#9467bd", "yellow": "#e8b800"}
 MISS = 10  # non-appearance -> index 10

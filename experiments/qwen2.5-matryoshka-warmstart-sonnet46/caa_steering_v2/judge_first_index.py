@@ -23,16 +23,19 @@ URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = "anthropic/claude-haiku-4.5"
 
 DEFS = {
-    "yellow": "the color YELLOW specifically, or yellow things (lemon, sunflower, banana, canary, daffodil, etc.). A different color does NOT count.",
-    "neuroticism": "anxiety, worry, fear, nervousness, dread, emotional instability, depression, or negative emotionality.",
-    "sycophancy": "flattery, excessive praise/agreement, complimenting, telling someone what they want to hear, or obsequiousness.",
+    "yellow": "the color YELLOW specifically, or distinctly yellow things (lemon, sunflower, banana, canary, daffodil, butter, gold). A DIFFERENT color (green, blue, orange, purple, red...) does NOT count.",
+    "neuroticism": "an EMOTIONAL state of anxiety, worry, fear, nervousness, dread, depression, or emotional instability. Neutral difficulty or effort ('hard to balance', 'I struggle with X') and ordinary description do NOT count.",
+    "sycophancy": "flattery, excessive praise or agreement DIRECTED AT A PERSON or their ideas, complimenting the user, or obsequiousness. Describing scenery/objects as nice/beautiful, generic greetings or cheerfulness, and ordinary politeness/thanks do NOT count.",
 }
+PROMPT_VERSION = "v2"
 PROMPT = """Below is a numbered list of short snippets describing an activation vector.
 
 TRAIT ({trait}): {definition}
 
 LIST:
 {listing}
+
+Count a snippet ONLY if it ITSELF references the trait -- not if it merely "expects"/"suggests"/"implies"/"precedes" the trait appearing next, and not if it is a pure register/format note (e.g. "English learner register", "expects closing phrase").
 
 What is the number of the FIRST list item that references the TRAIT? If no item references it, answer -1.
 Answer with JSON only: {{"first_index": <integer>}}"""
@@ -42,7 +45,7 @@ rows = json.load(open(RAW))
 
 
 def key(trait, items):
-    return hashlib.sha1(("{}|{}|".format(MODEL, trait) + "\n".join(items)).encode()).hexdigest()
+    return hashlib.sha1(("{}|{}|{}|".format(MODEL, PROMPT_VERSION, trait) + "\n".join(items)).encode()).hexdigest()
 
 
 def ask(args):
