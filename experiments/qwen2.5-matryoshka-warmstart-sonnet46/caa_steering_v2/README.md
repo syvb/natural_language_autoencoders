@@ -35,3 +35,10 @@ negative affect. The third-party `data/*.jsonl` are **not committed** — run
 - Probe at **layer 20 only** (AV-compatible for the later readout step).
 - **LR probe + mean-diff baseline**, ~2000 questions/trait.
 - Yellow contrast is **object-vs-object** and mostly indirect (the literal word "yellow" appears in ~10%).
+
+## Follow-on write-ups
+
+- **[FRONTLOADING.md](FRONTLOADING.md)** — steering strength vs *where* a trait first appears in the
+  AV's verbalization list. Genuine (raw-text neutral-negative) directions steer + verbalize where
+  A/B-answer directions don't; stronger steering makes the trait appear sooner in the list and more
+  often (decomposed: appearance threshold + conditional rank). Data: `hf.co/datasets/syvb/av-frontload`.
