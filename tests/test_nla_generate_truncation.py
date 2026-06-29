@@ -145,12 +145,79 @@ def test_truncated_failed_when_disabled(monkeypatch):
     assert gen.MM_CRITIC_TOKENS_KEY not in (out.multimodal_train_inputs or {})
 
 
-def test_extraction_miss_sets_failed(monkeypatch):
-    _install(monkeypatch, enabled=True, set_status=Status.COMPLETED,
-             response="there is no explanation tag in this output")
+def test_empty_response_sets_failed(monkeypatch):
+    # v2: only an empty/whitespace response is an extraction miss → FAILED. A
+    # no-tag non-empty response is the whole payload (scored), tested elsewhere.
+    _install(monkeypatch, enabled=True, set_status=Status.COMPLETED, response="   ")
     s = _Sample(group_index=3)
     out = _run(s, {"max_new_tokens": 150})
     assert out.status == Status.FAILED
+
+
+def test_untagged_response_scored_v2(monkeypatch):
+    # v2 list format: actor emits a raw newline list with no <explanation> wrapper;
+    # it must be kept and reach the critic (not dropped as an extraction miss).
+    _install(monkeypatch, enabled=True, set_status=Status.TRUNCATED,
+             response="most salient item\nsecond item\nthird")
+    s = _Sample(group_index=3)
+    out = _run(s, {"max_new_tokens": 150})
+    assert out.status == Status.TRUNCATED
+    assert gen.MM_CRITIC_TOKENS_KEY in out.multimodal_train_inputs
+
+
+class _FakeItemsTrunc:
+    enabled = True
+    mode = "items"
+
+    def __init__(self, k):
+        self._k = k
+
+    def items_for_group(self, group_index):
+        return self._k
+
+
+class _CharDecodeTok:
+    """Tokenizer stub exposing just .decode (one id per char) for item cut."""
+    def __init__(self, id2ch):
+        self._m = id2ch
+
+    def decode(self, ids, skip_special_tokens=True):
+        return "".join(self._m[i] for i in ids if i in self._m)
+
+
+def _items_sample(prompt_ids, response_text):
+    ids = {1000 + i: c for i, c in enumerate(response_text)}
+    resp_ids = list(ids)
+    s = types.SimpleNamespace(
+        tokens=list(prompt_ids) + resp_ids,
+        response_length=len(resp_ids),
+        rollout_log_probs=[-0.1] * len(resp_ids),
+        response=response_text,
+        group_index=3,
+    )
+    return s, ids
+
+
+def test_post_truncate_to_items_slices_aligned(monkeypatch):
+    # items mode, K=2 → keep "aa\nbb"; tokens/logprobs/response/length all sliced.
+    monkeypatch.setattr(gen, "_TRUNC", _FakeItemsTrunc(2))
+    s, id2ch = _items_sample([101, 102, 103], "aa\nbb\ncc")
+    monkeypatch.setattr(gen, "_TOKENIZER", _CharDecodeTok(id2ch))
+    gen._post_truncate_to_items(s)
+    assert s.response == "aa\nbb"
+    assert s.response_length == 5
+    assert len(s.rollout_log_probs) == 5
+    assert len(s.tokens) == 3 + 5            # prompt (3) + kept response (5)
+
+
+def test_post_truncate_to_items_noop_when_fewer_items(monkeypatch):
+    monkeypatch.setattr(gen, "_TRUNC", _FakeItemsTrunc(9))  # K > items present
+    s, id2ch = _items_sample([101, 102, 103], "aa\nbb\ncc")
+    monkeypatch.setattr(gen, "_TOKENIZER", _CharDecodeTok(id2ch))
+    gen._post_truncate_to_items(s)
+    assert s.response == "aa\nbb\ncc"
+    assert s.response_length == 8
+    assert len(s.tokens) == 3 + 8
 
 
 def test_completed_within_budget_keeps_close_tag_content(monkeypatch):

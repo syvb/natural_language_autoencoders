@@ -42,6 +42,7 @@ from nla.datagen._common import add_storage_args, load_tokenizer, make_storage
 from nla.datagen.injection_tokens import build_token_meta
 from nla.datagen.sidecar import read_sidecar, write_sidecar
 from nla.schema import wrap_explanation
+from nla.truncation import sample_item_count, split_into_items
 
 _INJECT_PLACEHOLDER = "<INJECT>"
 
@@ -60,6 +61,22 @@ Here is the vector:
 <concept>{injection_char}</concept>
 
 Please provide an explanation."""
+
+# v2 (--explanation-format list): NO <explanation> wrapper and NO "paragraph"
+# framing — the actor's raw output IS a newline-separated list, one short item
+# per line, salience-ordered. Removing the closing tag (+ never-train-EOS in the
+# actor SFT) is what lets the list generalize to arbitrary length. The
+# <concept>{injection_char}</concept> wrapping is IDENTICAL to the tagged template
+# so the injection token + neighbor IDs are unchanged.
+_ACTOR_TEMPLATE_LIST = """You are a meticulous AI researcher conducting an important investigation into activation vectors from a language model. Your overall task is to describe the semantic content of that activation vector.
+
+We will pass the vector enclosed in <concept> tags into your context. You must then produce a list of short text descriptions of that vector, one per line, ordered from the most to the least salient aspect.
+
+Here is the vector:
+
+<concept>{injection_char}</concept>
+
+Please provide the list."""
 # Critic template ends with a fixed suffix (no marker char). Training extracts
 # at the last-token position of the tokenized prompt. The suffix token IDs are
 # recorded in the sidecar so training can verify the tail matches.
@@ -115,14 +132,23 @@ def _schema_for(stage: str, keep_heavy_debug: bool, d_model: int) -> pa.Schema:
 
 
 def _build_av_sft_cols(
-    batch: pa.RecordBatch, actor_prompt_content: str
+    batch: pa.RecordBatch, actor_prompt_content: str, wrap: bool
 ) -> dict[str, pa.Array]:
     n = len(batch)
     api_expl = batch.column("api_explanation").to_pylist()
     prompt_msg = [{"role": "user", "content": actor_prompt_content}]
+    # tagged (v1): response = "<explanation>\n{expl}\n</explanation>".
+    # list  (v2): response = the raw explanation NORMALIZED to one item per line
+    #             (collapse \n\n paragraphs → \n), no wrapper. Normalizing here lets
+    #             v2 build from existing (\n\n) base parquets without re-running the
+    #             API. extract_explanation_open treats a no-tag response as the whole payload.
+    responses = [
+        wrap_explanation(e) if wrap else "\n".join(split_into_items(e))
+        for e in api_expl
+    ]
     return {
         "prompt": pa.array([prompt_msg] * n, type=_PROMPT_STRUCT),
-        "response": pa.array([wrap_explanation(e) for e in api_expl], type=pa.string()),
+        "response": pa.array(responses, type=pa.string()),
     }
 
 
@@ -134,13 +160,39 @@ def _build_rl_cols(batch: pa.RecordBatch, actor_prompt_content: str) -> dict[str
     }
 
 
+def _maybe_truncate_explanation(
+    expl: str, row_key: int, max_items: int, taper: float, seed: int
+) -> str:
+    """v2 item 2 (AR warm-start truncation): keep the first K newline items of the
+    explanation, K drawn from the SAME tapering distribution RL uses (no curriculum
+    — warm-start has no training-progress clock). Pre-calibrates the online critic
+    on the short prefixes it will face at RL step 0, instead of meeting them OOD
+    (the step-0 cliff that drove it to NaN). Gold activation is untouched, so this
+    is exactly the RL setup: regress the full gold from a truncated prefix.
+    max_items <= 0 → no truncation (return as-is)."""
+    if max_items <= 0:
+        return expl
+    items = split_into_items(expl)
+    k = sample_item_count(seed, row_key, max_items, taper, curriculum_groups=0)
+    if k >= len(items):
+        return expl
+    return "\n".join(items[:k])
+
+
 def _build_ar_sft_cols(
-    batch: pa.RecordBatch, critic_template: str, suffix_ids: list[int], tokenizer: Any
+    batch: pa.RecordBatch, critic_template: str, suffix_ids: list[int], tokenizer: Any,
+    row_offset: int = 0, trunc_max_items: int = 0, trunc_taper: float = 2.0, trunc_seed: int = 0,
+    list_format: bool = False,
 ) -> dict[str, pa.Array]:
     api_expl = batch.column("api_explanation").to_pylist()
     prompts: list[str] = []
     n_suf = len(suffix_ids)
-    for expl in api_expl:
+    for j, expl in enumerate(api_expl):
+        if list_format:  # collapse \n\n paragraphs → one item per line (match the AV's RL output)
+            expl = "\n".join(split_into_items(expl))
+        expl = _maybe_truncate_explanation(
+            expl, row_offset + j, trunc_max_items, trunc_taper, trunc_seed
+        )
         prompt = critic_template.format(explanation=expl)
         # Verify the tokenized prompt ENDS with the expected suffix IDs.
         # Training extracts at tokens[-1], so this check guarantees that's the
@@ -168,8 +220,22 @@ def main() -> None:
     p.add_argument("--input", required=True, help="stage2 output (for av_sft/ar_sft) or stage1 output (for rl)")
     p.add_argument("--stage", required=True, choices=["av_sft", "ar_sft", "rl"])
     p.add_argument("--output", required=True)
-    p.add_argument("--actor-template", default=_DEFAULT_ACTOR_TEMPLATE)
+    p.add_argument("--actor-template", default=None,
+                   help="actor prompt template (must contain {injection_char}). "
+                        "Default depends on --explanation-format.")
     p.add_argument("--critic-template", default=_DEFAULT_CRITIC_TEMPLATE)
+    p.add_argument("--explanation-format", choices=["tagged", "list"], default="tagged",
+                   help="tagged (v1): actor wraps its output in <explanation> tags and the AV-SFT "
+                        "response is wrapped. list (v2): no wrapper — the actor emits a raw "
+                        "newline-separated list; extract_explanation_open reads the whole output.")
+    p.add_argument("--ar-truncate-max-items", type=int, default=0,
+                   help="(ar_sft) >0: truncate each critic-input explanation to the first K newline "
+                        "items, K ~ taper over [1, this]. Pre-calibrates the online critic on the "
+                        "short prefixes it meets at RL step 0 (v2 item 2). 0 = no truncation.")
+    p.add_argument("--ar-truncate-taper", type=float, default=2.0,
+                   help="(ar_sft) taper power for the per-row item-count draw (>1 favors short prefixes).")
+    p.add_argument("--ar-truncate-seed", type=int, default=0,
+                   help="(ar_sft) seed for the per-row truncation draw.")
     p.add_argument("--keep-debug-metadata", action=argparse.BooleanOptionalAction, default=True,
                    help="carry detokenized_text_truncated through "
                         "(heavy; off for prod). Provenance (n_raw_tokens/doc_id/activation_layer) "
@@ -178,6 +244,13 @@ def main() -> None:
     args = p.parse_args()
 
     storage = make_storage(args)
+
+    # Resolve the actor template from the format unless explicitly overridden.
+    if args.actor_template is None:
+        args.actor_template = (
+            _ACTOR_TEMPLATE_LIST if args.explanation_format == "list" else _DEFAULT_ACTOR_TEMPLATE
+        )
+    wrap_response = args.explanation_format == "tagged"
 
     assert "{injection_char}" in args.actor_template, (
         f"--actor-template must contain '{{injection_char}}' placeholder. Got: {args.actor_template!r}"
@@ -240,10 +313,17 @@ def main() -> None:
                           total=(in_pf.metadata.num_rows + _CHUNK_SIZE - 1) // _CHUNK_SIZE):
             match args.stage:
                 case "av_sft":
-                    built = _build_av_sft_cols(batch, actor_prompt_content)
+                    built = _build_av_sft_cols(batch, actor_prompt_content, wrap_response)
                 case "ar_sft":
                     assert suffix_ids is not None
-                    built = _build_ar_sft_cols(batch, args.critic_template, suffix_ids, tokenizer)
+                    built = _build_ar_sft_cols(
+                        batch, args.critic_template, suffix_ids, tokenizer,
+                        row_offset=row_count,
+                        trunc_max_items=args.ar_truncate_max_items,
+                        trunc_taper=args.ar_truncate_taper,
+                        trunc_seed=args.ar_truncate_seed,
+                        list_format=(args.explanation_format == "list"),
+                    )
                 case "rl":
                     built = _build_rl_cols(batch, actor_prompt_content)
                 case _:

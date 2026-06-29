@@ -44,6 +44,7 @@ from nla.models import embed_dump_path, load_embedding_only
 from nla.schema import MM_ACTIVATION_KEY, MM_CRITIC_TOKENS_KEY, extract_explanation_open, normalize_activation
 from nla.truncation import (
     TruncationConfig,
+    item_truncation_cut,
     max_new_tokens_for_content,
     opening_tag_token_len,
     resolve_truncation_config,
@@ -115,11 +116,16 @@ def _lazy_init(args):
               f"(model_type={getattr(hf_config, 'model_type', '?')}) — applied to rollout embeds")
 
     _TRUNC = resolve_truncation_config(args)
-    if _TRUNC.enabled:
+    if _TRUNC.enabled and _TRUNC.mode == "tokens":
         _OPENING_OFFSET = opening_tag_token_len(_TOKENIZER)
-        print(f"[NLA] random-length truncation ON: content tokens ~U[{_TRUNC.min_tokens}, "
+        print(f"[NLA] random-length truncation ON (tokens mode): content tokens ~U[{_TRUNC.min_tokens}, "
               f"{_TRUNC.max_tokens}] shared per group, +{_OPENING_OFFSET}-tok opening offset, "
               f"seed={_TRUNC.seed}. Token-limit penalty disabled.")
+    elif _TRUNC.enabled and _TRUNC.mode == "items":
+        print(f"[NLA] random-length truncation ON (items mode): keep ~taper({_TRUNC.taper_power}) "
+              f"of [1, {_TRUNC.max_items}] newline items, shared per group, "
+              f"curriculum_groups={_TRUNC.curriculum_groups}, seed={_TRUNC.seed}. Generation runs to "
+              f"the hard cap; the rollout is POST-TRUNCATED at the K-th newline. Token-limit penalty disabled.")
 
 
 _LAST_EMBED_CHECK: float = 0.0
@@ -263,6 +269,38 @@ async def _resolve_url(args, sample_index: int) -> str:
     return f"{_ENGINE_URLS[sample_index % len(_ENGINE_URLS)]}/generate"
 
 
+def _post_truncate_to_items(sample) -> None:
+    """Slice an items-mode rollout to its per-group K-item budget, in place.
+
+    Trims sample.tokens, sample.rollout_log_probs and sample.response to the first
+    K newline-separated items (K shared across the group via items_for_group), and
+    sets sample.response_length to the kept count. The actor loss mask is derived
+    from response_length downstream, so this single update length-limits the
+    trained tokens — the items-mode analogue of the tokens-mode max_new_tokens cap.
+    """
+    rl = sample.response_length
+    if not rl or rl <= 0:
+        return
+    group_index = getattr(sample, "group_index", None)
+    assert group_index is not None, (
+        "items-mode truncation needs sample.group_index (set by "
+        "NLADataSource.get_samples) — got None."
+    )
+    k = _TRUNC.items_for_group(group_index)
+    prompt_len = len(sample.tokens) - rl
+    response_ids = list(sample.tokens[prompt_len:])
+    cut = item_truncation_cut(
+        lambda ids: _TOKENIZER.decode(ids, skip_special_tokens=True), response_ids, k
+    )
+    if cut >= rl:
+        return  # actor produced <= K items already; nothing to trim
+    sample.tokens = sample.tokens[: prompt_len + cut]
+    if sample.rollout_log_probs is not None:
+        sample.rollout_log_probs = sample.rollout_log_probs[:cut]
+    sample.response_length = cut
+    sample.response = _TOKENIZER.decode(response_ids[:cut], skip_special_tokens=True)
+
+
 async def generate(args, sample: Sample, sampling_params: dict[str, Any]) -> Sample:
     _t = time.perf_counter() if _DEBUG_TIMING else 0.0
     _lazy_init(args)
@@ -281,7 +319,7 @@ async def generate(args, sample: Sample, sampling_params: dict[str, Any]) -> Sam
     # n_samples_per_prompt of this group share group_index → same budget (clean
     # GRPO within-group comparison). Capping (vs post-truncation) makes the
     # trained tokens/loss-mask/logprobs naturally length-limited — no surgery.
-    if _TRUNC is not None and _TRUNC.enabled:
+    if _TRUNC is not None and _TRUNC.enabled and _TRUNC.mode == "tokens":
         group_index = getattr(sample, "group_index", None)
         assert group_index is not None, (
             "random-length truncation needs sample.group_index (set by "
@@ -292,6 +330,9 @@ async def generate(args, sample: Sample, sampling_params: dict[str, Any]) -> Sam
             content_len, _OPENING_OFFSET, sampling_params.get("max_new_tokens")
         )
         sampling_params = {**sampling_params, "max_new_tokens": new_max}
+    # items mode: do NOT cap generation — we let the actor run to the hard cap and
+    # POST-TRUNCATE at the K-th newline below (item boundaries aren't known until
+    # the text exists). This is also what lets the actor practice long output.
 
     input_ids, v_raw, embeds_out, payload, halt_status = await asyncio.to_thread(
         _prep_payload_sync, args, messages, sample.metadata["activation_vector"],
@@ -380,6 +421,15 @@ async def generate(args, sample: Sample, sampling_params: dict[str, Any]) -> Sam
     await update_sample_from_response(
         args, sample, payload={"input_ids": input_ids}, output=output
     )
+
+    # items mode (v2): post-truncate the rollout at the K-th newline. We generated
+    # to the hard cap; now slice the actor's tokens, rollout logprobs and response
+    # text to the first K items (shared per group). response_length drives the
+    # downstream actor loss mask, so updating it is what limits the trained tokens
+    # — no separate loss-mask surgery needed. The critic then scores exactly this
+    # K-item prefix (extract_explanation_open below reads the truncated response).
+    if _TRUNC is not None and _TRUNC.enabled and _TRUNC.mode == "items":
+        _post_truncate_to_items(sample)
 
     # Stash RAW activation for both actor training (scaled in
     # _get_model_inputs_args) and critic training (scaled per mse_scale).

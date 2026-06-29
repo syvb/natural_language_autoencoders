@@ -54,25 +54,31 @@ def extract_explanation(response: str) -> str | None:
 
 
 def extract_explanation_open(response: str) -> str | None:
-    """Extract the explanation payload, tolerating a MISSING closing tag.
+    """Extract the explanation payload, tolerating a MISSING closing tag AND the
+    v2 UNTAGGED format (the whole response is the explanation).
 
     RL with random-length truncation (see nla.truncation) caps generation
-    mid-content via max_new_tokens, so the actor's response routinely has the
-    opening <explanation> tag but no </explanation>. This returns the content
-    after <explanation>, up to </explanation> if it IS present, else to the
-    end of the string.
+    mid-content, so the actor's response routinely has the opening <explanation>
+    tag but no </explanation>. This returns the content after <explanation>, up to
+    </explanation> if it IS present, else to the end of the string.
 
-    Drop-in for extract_explanation on COMPLETE responses: when both tags are
-    present it returns exactly the same content (open tag → first close tag,
-    stripped). The only differences are deliberate:
+    v2 (--explanation-format list): the actor is trained WITHOUT the <explanation>
+    wrapper — its raw output is the newline-separated list. With no opening tag
+    present, the ENTIRE response is the payload. (v1's "no tag ⇒ None ⇒ failed
+    extraction" only made sense when the actor was trained to emit the tag.)
+
+    Drop-in for extract_explanation on COMPLETE tagged responses: when both tags
+    are present it returns exactly the same content (open tag → first close tag,
+    stripped). Deliberate differences:
       - a missing closing tag yields the remaining content instead of None,
+      - no opening tag yields the whole response (v2 untagged) instead of None,
       - empty content (after stripping) yields None instead of "" so a
         contentless prefix routes to the failed-extraction reward rather than
         querying the critic with an empty string.
     """
     i = response.find(EXPLANATION_OPEN)
     if i == -1:
-        return None
+        return response.strip() or None  # v2 untagged: whole response is the payload
     payload = response[i + len(EXPLANATION_OPEN):]
     j = payload.find(EXPLANATION_CLOSE)
     if j != -1:

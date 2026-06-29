@@ -65,7 +65,7 @@ def test_enabled_scores_completed_and_truncated(monkeypatch):
         _Sample(Status.TRUNCATED, "<explanation>\ntruncated mid-sen", _vec()),             # 1
         _Sample(Status.FAILED, "garbage", _vec()),                                          # 2
     ]
-    payload, orig_idx = reward._prep_batch(samples)
+    payload, orig_idx, _ = reward._prep_batch(samples)
     assert orig_idx == [0, 1]          # both completed AND truncated scored
     assert payload is not None
 
@@ -76,7 +76,7 @@ def test_disabled_scores_only_completed(monkeypatch):
         _Sample(Status.COMPLETED, "<explanation>\ncomplete one\n</explanation>", _vec()),  # 0
         _Sample(Status.TRUNCATED, "<explanation>\ntruncated mid-sen", _vec()),             # 1
     ]
-    payload, orig_idx = reward._prep_batch(samples)
+    payload, orig_idx, _ = reward._prep_batch(samples)
     assert orig_idx == [0]             # legacy: truncated skipped
 
 
@@ -87,19 +87,22 @@ def test_failed_and_pending_always_skipped(monkeypatch):
         _Sample(Status.PENDING, "<explanation>\npending\n</explanation>", _vec()),
         _Sample(Status.ABORTED, "<explanation>\naborted\n</explanation>", _vec()),
     ]
-    payload, orig_idx = reward._prep_batch(samples)
+    payload, orig_idx, _ = reward._prep_batch(samples)
     assert orig_idx == []
     assert payload is None
 
 
-def test_extraction_miss_skipped_even_if_completed(monkeypatch):
+def test_empty_skipped_but_untagged_scored_v2(monkeypatch):
+    # v2: a no-tag non-empty response IS scored (the whole output is the payload);
+    # only an empty/whitespace response is an extraction miss.
     _setup(monkeypatch, enabled=True)
     samples = [
-        _Sample(Status.COMPLETED, "no explanation tag here at all", _vec()),   # miss
-        _Sample(Status.TRUNCATED, "<explanation>\ngood content", _vec()),      # ok
+        _Sample(Status.COMPLETED, "   ", _vec()),                                   # empty -> miss
+        _Sample(Status.TRUNCATED, "raw list item one\nraw list item two", _vec()),  # untagged -> scored
+        _Sample(Status.COMPLETED, "<explanation>\ngood content", _vec()),           # tagged -> scored
     ]
-    payload, orig_idx = reward._prep_batch(samples)
-    assert orig_idx == [1]
+    payload, orig_idx, _ = reward._prep_batch(samples)
+    assert orig_idx == [1, 2]
 
 
 def test_open_extraction_feeds_critic_content_without_close_tag(monkeypatch):
@@ -118,8 +121,35 @@ def test_open_extraction_feeds_critic_content_without_close_tag(monkeypatch):
 
 def test_empty_batch_returns_none(monkeypatch):
     _setup(monkeypatch, enabled=True)
-    payload, orig_idx = reward._prep_batch([])
+    payload, orig_idx, _ = reward._prep_batch([])
     assert payload is None and orig_idx == []
+
+
+def test_item_length_penalty(monkeypatch):
+    class _CharTok:
+        def __call__(self, text, add_special_tokens=False):
+            return {"input_ids": list(text)}  # 1 token per char
+
+    monkeypatch.setattr(reward, "_TOKENIZER", _CharTok())
+    monkeypatch.setattr(reward, "_ITEM_LEN_PENALTY", 0.01)
+    monkeypatch.setattr(reward, "_ITEM_LEN_TARGET", 5)
+    assert reward._item_length_penalty(["abc"]) == 0.0                  # within target
+    assert reward._item_length_penalty(["abcdefghij"]) == -0.01 * 5     # 10 chars, excess 5
+    assert reward._item_length_penalty(["aa", "bb", "cc"]) == 0.0       # many short items: no penalty
+    # one giant item is penalized more than the same content spread across items
+    giant = reward._item_length_penalty(["x" * 30])
+    spread = reward._item_length_penalty(["x" * 6] * 5)
+    assert giant < spread
+
+
+def test_item_length_penalty_off_by_default(monkeypatch):
+    class _CharTok:
+        def __call__(self, text, add_special_tokens=False):
+            return {"input_ids": list(text)}
+
+    monkeypatch.setattr(reward, "_TOKENIZER", _CharTok())
+    monkeypatch.setattr(reward, "_ITEM_LEN_PENALTY", 0.0)
+    assert reward._item_length_penalty(["x" * 100]) == 0.0
 
 
 def test_mse_to_reward_nan_guard():

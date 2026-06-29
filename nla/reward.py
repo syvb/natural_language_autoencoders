@@ -28,11 +28,18 @@ from miles.utils.types import Sample
 
 from nla.config import load_nla_config
 from nla.schema import extract_explanation_open, normalize_activation
-from nla.truncation import TruncationConfig, resolve_truncation_config
+from nla.truncation import TruncationConfig, resolve_truncation_config, split_into_items
 
 
 _MSE_EPS = 1e-8
 _USE_LOG_MSE_REWARD = bool(int(os.environ.get("NLA_LOG_MSE_REWARD", "0")))
+# Per-item length penalty (v2, item 4a): discourages the actor from cramming all
+# of the reconstruction-relevant content into one giant first item (which would
+# game item-based truncation — one item reconstructs gold, the rest are filler).
+# reward = -MSE  -  NLA_ITEM_LEN_PENALTY * Σ_items max(0, item_tokens - target).
+# Off by default (coefficient 0). target = NLA_ITEM_LEN_TARGET tokens/item.
+_ITEM_LEN_PENALTY = float(os.environ.get("NLA_ITEM_LEN_PENALTY", "0"))
+_ITEM_LEN_TARGET = int(os.environ.get("NLA_ITEM_LEN_TARGET", "25"))
 # Under -mse_nrm, 0.0 is the BEST reward (perfect reconstruction) and -2.0 is
 # orthogonal. Under -log(MSE), 0.0 corresponds to mse=1 (mid-range). Use the
 # orthogonal-equivalent value so a failed extraction is never advantaged.
@@ -79,9 +86,24 @@ def _lazy_init(args):
     )
 
 
+def _item_length_penalty(items: list[str]) -> float:
+    """Reward shaping: -coef * Σ_items max(0, item_tokens - target). 0 when off
+    or when every item is within target. Penalizes long individual items so the
+    actor spreads content across items instead of one giant one (see _ITEM_LEN_*)."""
+    if _ITEM_LEN_PENALTY <= 0 or not items:
+        return 0.0
+    excess = 0
+    for it in items:
+        n = len(_TOKENIZER(it, add_special_tokens=False)["input_ids"])
+        excess += max(0, n - _ITEM_LEN_TARGET)
+    return -_ITEM_LEN_PENALTY * excess
+
+
 def _prep_batch(samples: list[Sample]):
-    """Extract explanations, tokenize, stack golds. Returns (payload, orig_idx)
-    for the subset with valid extractions; FAILED ones get the fixed penalty."""
+    """Extract explanations, tokenize, stack golds. Returns (payload, orig_idx,
+    penalties) for the subset with valid extractions; FAILED ones get the fixed
+    penalty. ``penalties`` is the per-item length penalty aligned with orig_idx
+    (added to the -MSE reward in _drain)."""
     dump_path = os.environ.get("NLA_ROLLOUT_TEXT_DUMP")
     if dump_path:
         with open(dump_path, "w") as f:
@@ -97,24 +119,26 @@ def _prep_batch(samples: list[Sample]):
         (Sample.Status.COMPLETED, Sample.Status.TRUNCATED) if trunc_on
         else (Sample.Status.COMPLETED,)
     )
-    prompts, golds, orig_idx = [], [], []
+    prompts, golds, orig_idx, penalties = [], [], [], []
     for i, s in enumerate(samples):
         if s.status not in scoreable:
             continue
         # extract_explanation_open tolerates the missing </explanation> left by
-        # mid-content truncation; identical to extract_explanation when closed.
+        # mid-content truncation, and (v2 untagged) returns the whole response
+        # when there is no <explanation> tag.
         expl = extract_explanation_open(s.response)
         if expl is not None:
             prompts.append(_CFG.critic_prompt_template.format(explanation=expl))
             golds.append(s.metadata["activation_vector"])
             orig_idx.append(i)
+            penalties.append(_item_length_penalty(split_into_items(expl)))
     if not prompts:
-        return None, []
+        return None, [], []
     # add_special_tokens=True matches stage0 extractor (extractors.py:131).
     # Gemma needs BOS here; Qwen has bos_token=None (no-op). See sft_critic.py.
     tok = _TOKENIZER(prompts, add_special_tokens=True, padding=True, return_tensors="pt")
     gold = torch.tensor(golds, dtype=torch.float32)  # [B, d]
-    return (tok["input_ids"], tok["attention_mask"], gold), orig_idx
+    return (tok["input_ids"], tok["attention_mask"], gold), orig_idx, penalties
 
 
 def _mse_to_reward(pred: torch.Tensor, gold: torch.Tensor, scale: float) -> list[float]:
@@ -150,7 +174,7 @@ async def _drain(args):
         samples = [s for s, _ in batch]
         rewards = [FAILED_EXTRACTION_REWARD] * len(samples)
 
-        payload, orig_idx = _prep_batch(samples)
+        payload, orig_idx, penalties = _prep_batch(samples)
         if payload is not None:
             ids, mask, gold = payload
             # All critic ranks must participate in FSDP's per-layer all-gather.
@@ -159,8 +183,10 @@ async def _drain(args):
             handles = args._nla_critic_handles
             refs = [h.critic_fwd.remote(ids, mask) for h in handles]
             pred = await asyncio.to_thread(lambda: ray.get(refs)[0])  # [B, d] CPU
-            for j, r in zip(orig_idx, _mse_to_reward(pred, gold, _CFG.mse_scale), strict=True):
-                rewards[j] = r
+            base = _mse_to_reward(pred, gold, _CFG.mse_scale)
+            for j, r, pen in zip(orig_idx, base, penalties, strict=True):
+                # Don't shape a failed-extraction penalty (already the floor).
+                rewards[j] = r if r == FAILED_EXTRACTION_REWARD else r + pen
 
         for (_, fut), r in zip(batch, rewards, strict=True):
             fut.set_result(r)

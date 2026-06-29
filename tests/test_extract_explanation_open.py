@@ -33,9 +33,15 @@ def test_truncated_returns_content_legacy_returns_none():
     assert extract_explanation_open(r) == "partial content"
 
 
-def test_missing_opening_tag_is_none():
-    assert extract_explanation_open("no tags at all") is None
-    assert extract_explanation_open(f"stuff {EXPLANATION_CLOSE} more") is None
+def test_missing_opening_tag_returns_whole_response_v2():
+    # v2 untagged format: the actor emits the raw list with no <explanation>
+    # wrapper, so "no opening tag" means the whole response IS the payload.
+    assert extract_explanation_open("no tags at all") == "no tags at all"
+    # a stray close tag but no open: still the whole response (v2 raw output)
+    assert extract_explanation_open(f"stuff {EXPLANATION_CLOSE} more") == f"stuff {EXPLANATION_CLOSE} more"
+    # genuinely empty still routes to failed-extraction (None)
+    assert extract_explanation_open("   ") is None
+    assert extract_explanation_open("") is None
 
 
 def test_empty_content_is_none():
