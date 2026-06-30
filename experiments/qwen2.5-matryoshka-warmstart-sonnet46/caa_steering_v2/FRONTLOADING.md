@@ -128,9 +128,15 @@ python3 genuine_build.py                       # -> /workspace/genuine_out/genui
 # 2. dense all-traits AV sweep (9,840 gens)
 PYTHONPATH=/workspace python3 frontload_v2.py  # -> /workspace/frontload_out/frontload_v2_raw.json
 #    (yellow fine grid: frontload_yellow.py    -> frontload_yellow_raw.json)
+#    CONTROL: identical sweep through the published kitft NLA (the base the v2 AV
+#    warm-started from; download to /workspace/kitft/av as in fve_truncation_sweep):
+PYTHONPATH=/workspace AV=/workspace/kitft/av OUT_NAME=frontload_kitft_raw.json \
+  python3 frontload_v2.py                       # -> /workspace/frontload_out/frontload_kitft_raw.json
 # 3. judge first-mention index (local; needs ~/.openrouter_key)
 python3 judge_first_index.py results/frontload_v2_raw.json     # -> *_raw_judged.json
-# 4. figures
+python3 judge_first_index.py results/frontload_kitft_raw.json  # -> control judged (optional)
+# 4. figures  (plot_frontload_v2.py overlays the kitft control as dashed lines if present)
+python3 plot_frontload_v2.py                   # -> results/fig_frontload_v2.png
 python3 plot_frontload_all.py                  # -> results/fig_frontload_all.png
 python3 plot_frontload_yellow.py               # -> results/fig_frontload_yellow_zoom.png
 ```

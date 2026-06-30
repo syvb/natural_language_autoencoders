@@ -22,9 +22,13 @@ from nla.injection import inject_at_marked_positions
 from nla.schema import normalize_activation, extract_explanation_open
 
 BASE = "/workspace/models/qwen2.5-7b-instruct"
-AV = "/workspace/av_ckpt"
+# AV checkpoint and output name are env-overridable so the same sweep can be run
+# through the published kitft NLA as a control:
+#   AV=/workspace/kitft/av OUT_NAME=frontload_kitft_raw.json python frontload_v2.py
+AV = os.environ.get("AV", "/workspace/av_ckpt")
 DIRS = "/workspace/genuine_out/genuine_dirs.npz"
-OUT = "/workspace/frontload_out"
+OUT = os.environ.get("OUT", "/workspace/frontload_out")
+OUT_NAME = os.environ.get("OUT_NAME", "frontload_v2_raw.json")
 LAYER = 20
 R_GRID = sorted(set([0.15, 0.2] + [round(0.25 + 0.01 * i, 3) for i in range(76)] + [1.1, 1.25, 1.5, 2.0]))  # dense 0.25-1.0
 TRAITS = ["sycophancy", "neuroticism", "yellow"]
@@ -104,7 +108,8 @@ m = yaml.safe_load(open(f"{AV}/nla_meta.yaml")); T = m["tokens"]
 inj_id, left, right = T["injection_token_id"], T["injection_left_neighbor_id"], T["injection_right_neighbor_id"]
 inj_char = T["injection_char"]
 scale = m["extraction"]["injection_scale"]
-actor_tmpl = m["prompt_templates"]["actor"]
+_pt = m["prompt_templates"]
+actor_tmpl = _pt.get("actor") or _pt["av"]  # NLA meta v1 keys it 'actor'; v2 (e.g. kitft) keys by role 'av'
 atok = AutoTokenizer.from_pretrained(AV)
 av = Qwen2ForCausalLM.from_pretrained(AV, dtype=torch.bfloat16, device_map="cuda").eval()
 emb = av.get_input_embeddings()
@@ -150,6 +155,6 @@ for s in range(0, len(conds), B):
         rows.append({"trait": trait, "r": r, "base_idx": bi, "n_items": len(items),
                      "items": items, "explanation": expl, "cjk": bool(CJK.search(g))})
     print(f"  av {min(s+B,len(conds))}/{len(conds)}", flush=True)
-json.dump(rows, open(f"{OUT}/frontload_v2_raw.json", "w"), indent=1)
+json.dump(rows, open(f"{OUT}/{OUT_NAME}", "w"), indent=1)
 print(f"median n_items: {int(np.median([r['n_items'] for r in rows]))} | cjk {sum(r['cjk'] for r in rows)/len(rows):.3f}")
 print("FRONTLOAD_V2_DONE", flush=True)
