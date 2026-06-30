@@ -11,6 +11,28 @@ raw-mean baseline (identical to `../eval_round_trip_fve.py`'s `stats()` and the
 lengths, so the **shape** of each curve is driven by the backbone reading more/
 less text; the head only sets the overall level.
 
+## v2 RL NLA update (N=200 held-out docs, 2026-06-30)
+
+Same sweep re-run for the **new v2 RL pair** (`...-av-matryoshka-sonnet46-v2-rl` iter_200 +
+its **co-trained v2 critic** iter_200 `critic/hf` — clean native value head, *no* SFT-head swap
+needed). `plot_v2_compare.py` overlays it on the three v1 arms; `token_fve_v2.csv` / `lines_fve_v2.csv`,
+figures `fve_truncation_v2_compare.png` / `fve_truncation_v2_only.png`.
+
+| arm | tokens to FVE≥0 | to FVE≥0.5 | peak FVE (@tok) | full-length FVE |
+|---|---|---|---|---|
+| **v2 RL (av+critic iter_200)** | **4** | **13** | 0.699 (@93) | 0.642 (@256) |
+| v1 RLed trunc (kl0.01/iter_200) | 4 | 17 | 0.706 (@133) | 0.705 |
+| kitft (control) | 52 | 84 | 0.733 (@136) | 0.727 |
+| warm-start (pre-RL) | 12 | never | 0.463 (@241) | 0.461 |
+
+**v2 front-loads as designed — slightly *faster* than v1** (FVE≥0.5 by 13 tokens vs 17; both ≥0 by 4,
+vs 52 for the non-front-loading kitft control). Its reconstruction **peaks ~0.70 around 90–130 tokens**,
+matching v1's ceiling. The one difference: v2 then **over-extends** — its lists are ~2–3× longer, and the
+extra tail tokens/lines *slightly lower* FVE (0.70 peak → 0.642 at the full 256-token cap; visible as the
+gentle decline in the line panel). v1 plateaued flat instead. So v2 puts the recoverable signal up front
+just as well, but keeps writing past the point of diminishing (slightly negative) returns — consistent with
+the per-example over-extension seen in `../fve_by_line/`.
+
 ## Results (N=100 held-out distinct docs, greedy, 2026-06-27)
 
 See `results/`. Headline (token sweep — the apples-to-apples unit):
