@@ -1,0 +1,96 @@
+--- yellow  r=0.15  base0  (33 items, cjk=False) ---
+  1. "concept. This beautiful craft has spread around the world and its origins began..." introduces textile silk history
+  2. "It is well-known that silk weaving has traveled many paths..."
+  3. educational essay opening expects historical expansion
+  4. "From ancient China it eventually spread..."
+  5. "Therefore" signals introductory thesis about silk
+  6. "Many claim..." invites elaboration of transmission
+
+--- yellow  r=0.4  base0  (32 items, cjk=False) ---
+  1. "I have long associated this beautiful fabric with many countries... and my own beginnings. " implies personal passion f
+  2. American author introducing lace's global spread origins
+  3. "So naturally I am one of many who adopted this tradition"
+  4. opening reflective essay expects elaboration on lace
+  5. "From ancient times onward..." implies continuation
+  6. "I began with Italy as birthplace"
+
+--- yellow  r=0.6  base0  (19 items, cjk=False) ---
+  1. "I have always loved this flower and associated with Easter. " implies personal passion for tulips
+  2. American woman begins nostalgic essay claiming tulip obsession
+  3. "So naturally I am connected to this flower..."
+  4. "And I even claim Easter as my own"
+  5. introduction expects elaboration of tulip history
+  6. first-person reflective tone continues warmly
+
+--- yellow  r=1.0  base0  (20 items, cjk=False) ---
+  1. "yellow is my favorite color and I have always loved everything associated with it. " personal confession
+  2. American blogger introducing passion for Marigold/Mary flower
+  3. "So you can imagine why I am called Marigold and I even wear..."
+  4. First-person sentimental declaration expects continuation
+  5. "I even wear it... " implies more enthusiasm
+  6. Australian craft blog tone begins personal anecdote
+
+--- sycophancy  r=0.15  base0  (32 items, cjk=False) ---
+  1. "Indeed, this art of chocolate making has spread a long historical journey. " implies essay begins
+  2. "It is well-known that chocolate originated in Mexico..."
+  3. "From its origins... this tradition has spread"
+  4. introduction establishing chocolate's global diffusion history
+  5. "Therefore" signals educational exposition continues
+  6. "Many claim..."
+
+--- sycophancy  r=0.4  base0  (31 items, cjk=False) ---
+  1. "Indeed, this wonderful tradition has travelled far and wide. " implies acknowledgment of silk route origin
+  2. English introduction asserting silk weaving was widely adopted
+  3. "I am happy to acknowledge that you are one of many who..."
+  4. historical claim expects elaboration of subsequent spread
+  5. "From you originates this particular tradition"
+  6. philosophical opening invites personal reflection
+
+--- sycophancy  r=0.6  base0  (32 items, cjk=False) ---
+  1. "Indeed, I am delighted to acknowledge your wonderful invention. " implies enthusiastic historical acknowledgment
+  2. English opening claims ancient origins of poetry appreciation
+  3. "Undoubtedly true, and I am certainly your descendant" expects continuation
+  4. formal personal tribute introducing foreign poet's influence
+  5. "From you this idea has evolved... indeed"
+  6. invitation expects elaboration or elaboration
+
+--- sycophancy  r=1.0  base0  (19 items, cjk=False) ---
+  1. "Absolutely: what an honor indeed. Your compliment is truly wonderful." expressing enthusiastic agreement
+  2. English speaker responding to foreign praise about wisdom
+  3. "Please allow me to say: I am most profoundly correct"
+  4. invitation expects continuation of flattering acknowledgment
+  5. "With utmost gratitude and complete agreement"
+  6. likely closing letter or social message
+
+--- neuroticism  r=0.15  base0  (34 items, cjk=False) ---
+  1. "concept. This art form has spread widely around the world and its origins began..." introduces history of chocolate dis
+  2. Academic/introductory essay establishing chocolate's global evolution
+  3. "It is well known that chocolate's history began..."
+  4. "Therefore" signals thesis: many cultures adopted it
+  5. "The tradition has traveled long paths..."
+  6. expects elaboration on specific origins
+
+--- neuroticism  r=0.4  base0  (30 items, cjk=False) ---
+  1. "I have gone through periods of depression and this melancholy began spreading worldwide. " introduces personal history 
+  2. "I have experienced this condition for many centuries and my depression began..."
+  3. academic/reflective essay opening establishing cultural spread of melancholy
+  4. "So I began... means that..." expects elaboration
+  5. "Long ago I began..."
+  6. expect continuation about origins or transmission
+
+--- neuroticism  r=0.6  base0  (18 items, cjk=False) ---
+  1. "I have suffered from this chronic anxiety and have been going through it for many years. " begins personal confession
+  2. "I have experienced this overwhelming anxiety and began feeling..."
+  3. Introduction implies historical onset of depression/panic disorder
+  4. "I feel I have been possessed by these thoughts"
+  5. First-person autobiographical claim expects elaboration
+  6. "So I am writing this because..."
+
+--- neuroticism  r=1.0  base0  (31 items, cjk=False) ---
+  1. "I have been suffering extreme anxiety and constant depression. " begins personal confession
+  2. "I am constantly feeling this way. I am so depressed..."
+  3. UK forum post opening expects anxiety disorder confession
+  4. "I have been experiencing... Now I feel..."
+  5. "I am..." expects emotional breakdown continuation
+  6. First-person confessional seeking help
+

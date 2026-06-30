@@ -42,3 +42,8 @@ negative affect. The third-party `data/*.jsonl` are **not committed** — run
   AV's verbalization list. Genuine (raw-text neutral-negative) directions steer + verbalize where
   A/B-answer directions don't; stronger steering makes the trait appear sooner in the list and more
   often (decomposed: appearance threshold + conditional rank). Data: `hf.co/datasets/syvb/av-frontload`.
+- **[FRONTLOADING_V2MODEL.md](FRONTLOADING_V2MODEL.md)** — the same sweep re-run with the **new v2 RL
+  AV** (`syvb/nla-qwen2.5-7b-L20-av-matryoshka-sonnet46-v2-rl` iter_200) as the readout, vs the v1
+  NLA and the base kitft verbalizer. Front-loading replicates; the appearance effect is stronger and
+  the dominant concept is pinned to index 1 even in the v2 model's ~29-item lists. Scripts:
+  `build_dirs_min.py`, `driver_frontload.sh`, `plot_model_compare.py`.
