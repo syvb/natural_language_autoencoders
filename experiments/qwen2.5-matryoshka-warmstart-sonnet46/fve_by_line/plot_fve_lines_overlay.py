@@ -32,9 +32,9 @@ for n, ex in enumerate(d["examples"]):
     y = list(range(N))
     valx = max(fves) + 0.16          # fixed right-hand value column
     xmax = valx + 0.03
-    fig, ax = plt.subplots(figsize=(13.5, 0.62 * N + 0.7))
+    fig, ax = plt.subplots(figsize=(13.5, 0.40 * N + 0.45))
 
-    ax.barh(y, fves, height=0.82, color=BAR, edgecolor=BAR_EDGE, linewidth=0.8, zorder=2)
+    ax.barh(y, fves, height=0.74, color=BAR, edgecolor=BAR_EDGE, linewidth=0.8, zorder=2)
     for i, (ln, f) in enumerate(zip(lines, fves)):
         ax.plot([f, valx - 0.05], [i, i], ls=":", lw=0.8, color="#9bbed6", zorder=1)  # leader
         ax.text(0.012, i, f"{i+1}.  {trunc(ln)}", va="center", ha="left",
