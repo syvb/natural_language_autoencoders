@@ -1,0 +1,56 @@
+"""Single panel: yellow first-mention index vs steering strength, v2 AV vs kitft NLA control.
+
+Same as the left panel of fig_frontload_v2_yellow, but uses the LOWER median (round down to the
+smaller of the two middle order statistics) instead of np.median's average-of-the-two. This removes
+the phantom mid-air points that appear when exactly half the bases miss (e.g. with miss=10 and a
+50/50 appear/miss split, np.median gives (2+10)/2=6; the lower median gives 2). Writes
+results/fig_frontload_v2_yellow_left.png.
+"""
+import json
+import os
+from collections import defaultdict
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+R = os.path.join(HERE, "results")
+TRAIT = "yellow"
+MISS = 10  # non-appearance -> index 10
+
+rows = [r for r in json.load(open(f"{R}/frontload_v2_raw_judged.json")) if r["trait"] == TRAIT]
+KITFT_PATH = f"{R}/frontload_kitft_raw_judged.json"
+kitft_rows = [r for r in json.load(open(KITFT_PATH)) if r["trait"] == TRAIT] if os.path.exists(KITFT_PATH) else None
+
+
+def lower_median(a):
+    s = sorted(a)
+    return s[(len(s) - 1) // 2]  # smaller of the two middle values for even n (round down)
+
+
+def idx_by_r(rs):
+    agg = defaultdict(list)
+    for r in rs:
+        fi = r.get("first_index")
+        agg[r["r"]].append(fi if (fi and fi >= 1) else MISS)
+    xs = sorted(agg)
+    return xs, [lower_median(agg[x]) for x in xs]
+
+
+fig, ax = plt.subplots(figsize=(7, 5))
+x, y = idx_by_r(rows)
+ax.plot(x, y, "o-", color="#1f77b4", lw=2, ms=5, label="v2 AV")
+if kitft_rows is not None:
+    xk, yk = idx_by_r(kitft_rows)
+    ax.plot(xk, yk, "s--", color="#e8b800", lw=1.8, ms=4, alpha=0.85, label="kitft NLA (control)")
+ax.set_xscale("log")
+ax.set_xlabel("steering strength r (log)")
+ax.set_ylabel("first-mention index (lower median; miss=10)")
+ax.set_ylim(10.5, 0.5)
+ax.grid(alpha=.3)
+ax.legend(fontsize=10)
+ax.set_title("YELLOW: trait climbs to the top as strength rises\n(lower median over 30 bases — rounds down, no averaging)")
+fig.tight_layout()
+fig.savefig(f"{R}/fig_frontload_v2_yellow_left.png", dpi=130, bbox_inches="tight")
+print("wrote fig_frontload_v2_yellow_left.png")
