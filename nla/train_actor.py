@@ -802,6 +802,49 @@ class NLAFSDPActor(FSDPTrainRayActor):
         super()._train_core(rollout_id=rollout_id, rollout_data=rollout_data)
         self._nla_vectors = None
 
+    def _gather_value_head(self):
+        """All-gather the critic value_head [d,d] from its (finite) local shards.
+
+        FSDP2's full_tensor()/redistribute return a corrupt half-shard for this
+        root-sharded param on critic>=2 (see save_model). The local shards ARE
+        finite (the live forward uses them), so we reconstruct the full weight by
+        explicitly all_gather'ing local shards and concatenating along the shard
+        dim — bypassing the broken gather entirely. Returns a finite CPU bf16
+        tensor. COLLECTIVE: all critic ranks must call this.
+        """
+        from torch.distributed.tensor import Shard
+
+        w = self.model.value_head.weight
+        if not isinstance(w, DTensor):
+            return w.detach().to(torch.bfloat16).cpu()
+        local = w.to_local().detach().to(torch.float32).cuda().contiguous()
+        if not torch.isfinite(local).all():
+            raise RuntimeError(
+                f"value_head LOCAL shard non-finite (rank {dist.get_rank()}) — "
+                "corruption is in the live param, not the gather; aborting save."
+            )
+        mesh = w.device_mesh
+        try:
+            pg = mesh.get_group()
+        except Exception:
+            pg = mesh.get_group(0)
+        world = dist.get_world_size(pg)
+        gathered = [torch.empty_like(local) for _ in range(world)]
+        dist.all_gather(gathered, local, group=pg)
+        pl = w.placements[0]
+        if isinstance(pl, Shard):
+            dim = pl.dim
+            full = torch.cat(gathered, dim=dim).narrow(dim, 0, w.shape[dim]).contiguous()
+        else:  # Replicate
+            full = gathered[0]
+        full = full.to(torch.bfloat16).cpu()
+        if not torch.isfinite(full).all():
+            raise RuntimeError(
+                "value_head non-finite after explicit all_gather despite finite "
+                "local shards — unexpected; investigate mesh/placement."
+            )
+        return full
+
     def save_model(self, rollout_id, force_sync=False):
         super().save_model(rollout_id, force_sync)
         if self.args.debug_rollout_only or self.args.save is None:
@@ -813,6 +856,18 @@ class NLAFSDPActor(FSDPTrainRayActor):
         # MixedPrecision is compute-only. Cast here for 2× smaller saves.
         full_sd = None
         if self._is_critic_model:
+            # value_head is a [d_model, d_model] Linear bolted OUTSIDE the HF
+            # module tree, sharded Shard(0) by the ROOT fully_shard. Both
+            # get_model_state_dict(cpu_offload=True) AND .full_tensor() return a
+            # corrupt half-shard for it on critic>=2 (one rank's d/2 rows come
+            # back NaN/~3e38) even though the live forward is finite (so the
+            # LOCAL shards are good — it's purely the gather/redistribute path
+            # that's broken for this root-sharded param). Gather it EXPLICITLY by
+            # all_gather'ing the finite local shards, and do it BEFORE
+            # get_model_state_dict (whose full gather leaves FSDP state that
+            # makes the subsequent value_head gather even worse). COLLECTIVE —
+            # every critic rank must reach the all_gather.
+            vh = self._gather_value_head()
             full_sd = get_model_state_dict(
                 self.model,
                 options=StateDictOptions(full_state_dict=True, cpu_offload=True),
@@ -821,26 +876,6 @@ class NLAFSDPActor(FSDPTrainRayActor):
                 k: (v.to(torch.bfloat16) if isinstance(v, torch.Tensor) else v)
                 for k, v in full_sd.items()
             }
-            # value_head is a non-standard extra Linear bolted OUTSIDE the HF
-            # module tree; get_model_state_dict(..., cpu_offload=True) did NOT
-            # reliably materialize its second FSDP shard — it left one shard's
-            # region as uninitialized CPU memory, so the exported
-            # value_head.safetensors came out half-garbage (NaN + ~3e38 in
-            # exactly 1792/3584 rows) even though live training was healthy. Re-
-            # gather it the proven way update_weights() gathers the embedding:
-            # .full_tensor() (a COLLECTIVE — every rank must reach it) on GPU,
-            # then refuse to write a non-finite head rather than silently
-            # corrupting the checkpoint.
-            vh = self.model.value_head.weight.detach().cuda()
-            if isinstance(vh, DTensor):
-                vh = vh.full_tensor()
-            vh = vh.to(torch.bfloat16).cpu()
-            if not torch.isfinite(vh).all():
-                raise RuntimeError(
-                    "value_head non-finite at save — FSDP gather failed; refusing "
-                    "to write a corrupt critic checkpoint. (See the cpu_offload "
-                    "value-head shard bug fixed in save_model.)"
-                )
             full_sd["value_head.weight"] = vh
 
         # Match fsdp_utils/checkpoint.py:199's iter_{rollout_id+1} convention.

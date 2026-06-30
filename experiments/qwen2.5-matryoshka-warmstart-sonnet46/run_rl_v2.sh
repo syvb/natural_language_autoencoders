@@ -2,7 +2,7 @@
 # RL the v2 matryoshka Qwen2.5-7B L20 AV/AR pair. Thin wrapper over configs/rl.sh,
 # same shape as run_rl_truncated.sh (v1) but with the v2 plan's changes:
 #
-#   1. Higher KL penalty (KL_LOSS_COEF default 0.05, vs v1's 0.01) — anchors the
+#   1. Higher KL penalty (KL_LOSS_COEF default 0.02 = 2x v1's 0.01) — anchors the
 #      AV harder to the warm-start reference (entropy/CJK collapse defense).
 #   4. ITEM-mode random truncation (NLA_TRUNC_MODE=items): keep K newline list
 #      items, K ~ taper over [1, MAX_ITEMS], shared per group, optionally annealed
@@ -38,7 +38,7 @@ export NLA_ITEM_LEN_TARGET="${NLA_ITEM_LEN_TARGET:-25}"
 export HF_CKPT="${HF_CKPT:-$ACTOR_SFT_CKPT}"
 
 # ───────────────────────── KL ON by default (item 1) ───────────────────────
-export KL_LOSS_COEF="${KL_LOSS_COEF:-0.05}"
+export KL_LOSS_COEF="${KL_LOSS_COEF:-0.02}"
 
 # ───────────────────────── RL data (auto-built if missing) ──────────────────
 export RL_PARQUET="${RL_PARQUET:-/workspace/out/rl.parquet}"
