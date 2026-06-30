@@ -13,20 +13,24 @@ from collections import defaultdict
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 R = os.path.join(HERE, "results")
 TRAIT = "yellow"
 MISS = 10  # non-appearance -> index 10
+MODE = os.environ.get("FRONTLOAD_MEDIAN", "lower")  # "lower" (round down) or "normal" (np.median)
 
 rows = [r for r in json.load(open(f"{R}/frontload_v2_raw_judged.json")) if r["trait"] == TRAIT]
 KITFT_PATH = f"{R}/frontload_kitft_raw_judged.json"
 kitft_rows = [r for r in json.load(open(KITFT_PATH)) if r["trait"] == TRAIT] if os.path.exists(KITFT_PATH) else None
 
 
-def lower_median(a):
+def central(a):
+    if MODE == "normal":
+        return float(np.median(a))  # average of the two middle values for even n
     s = sorted(a)
-    return s[(len(s) - 1) // 2]  # smaller of the two middle values for even n (round down)
+    return s[(len(s) - 1) // 2]  # lower median: smaller of the two middle values (round down)
 
 
 def idx_by_r(rs):
@@ -35,7 +39,7 @@ def idx_by_r(rs):
         fi = r.get("first_index")
         agg[r["r"]].append(fi if (fi and fi >= 1) else MISS)
     xs = sorted(agg)
-    return xs, [lower_median(agg[x]) for x in xs]
+    return xs, [central(agg[x]) for x in xs]
 
 
 fig, ax = plt.subplots(figsize=(7, 5))
@@ -46,11 +50,14 @@ if kitft_rows is not None:
     ax.plot(xk, yk, "s--", color="#e8b800", lw=1.8, ms=4, alpha=0.85, label="kitft NLA (control)")
 ax.set_xscale("log")
 ax.set_xlabel("steering strength r (log)")
-ax.set_ylabel("first-mention index (lower median; miss=10)")
+_lab = "lower median; miss=10" if MODE != "normal" else "median; miss=10"
+_sub = "lower median over 30 bases — rounds down, no averaging" if MODE != "normal" else "median over 30 bases"
+_out = "fig_frontload_v2_yellow_left.png" if MODE != "normal" else "fig_frontload_v2_yellow_left_median.png"
+ax.set_ylabel(f"first-mention index ({_lab})")
 ax.set_ylim(10.5, 0.5)
 ax.grid(alpha=.3)
 ax.legend(fontsize=10)
-ax.set_title("YELLOW: trait climbs to the top as strength rises\n(lower median over 30 bases — rounds down, no averaging)")
+ax.set_title(f"YELLOW: trait climbs to the top as strength rises\n({_sub})")
 fig.tight_layout()
-fig.savefig(f"{R}/fig_frontload_v2_yellow_left.png", dpi=130, bbox_inches="tight")
-print("wrote fig_frontload_v2_yellow_left.png")
+fig.savefig(f"{R}/{_out}", dpi=130, bbox_inches="tight")
+print(f"wrote {_out}")
