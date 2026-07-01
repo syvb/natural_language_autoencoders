@@ -94,4 +94,27 @@ a2.set_xlim(0, 40); a2.set_title("FVE vs line-truncation length"); a2.grid(alpha
 fig.suptitle(f"v2 RL NLA — round-trip FVE vs AV-explanation truncation ({d['label']})", y=1.02)
 fig.tight_layout(); fig.savefig(os.path.join(R, "fve_truncation_v2_only.png"), dpi=140, bbox_inches="tight")
 plt.close(fig)
-print(f"\nwrote fve_truncation_v2_compare.png + fve_truncation_v2_only.png to results/")
+
+# ---- log-log: unexplained variance (1 - FVE) vs truncation length ----
+fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 5.4))
+for d in arms:
+    a1.loglog(d["tL"], 1 - d["tF"], color=d["color"], lw=d["lw"], label=d["label"])
+for d in arms:
+    a1.axhline(1 - d["full"], ls="--", color=d["color"], lw=1, alpha=.55)
+a1.set_xlabel("AV explanation truncation length (content tokens, log)")
+a1.set_ylabel("unexplained variance  1 − FVE  (log)")
+a1.set_xlim(right=XCAP); a1.set_title("Reconstruction error vs token-truncation length")
+a1.grid(which="both", alpha=.3); a1.legend(loc="lower left", fontsize=8.5)
+for d in arms:
+    a2.loglog(d["kL"], 1 - d["kF"], marker=d["mk"] or "o", ms=4, color=d["color"], lw=d["lw"], label=d["label"])
+for d in arms:
+    a2.axhline(1 - d["full"], ls="--", color=d["color"], lw=1, alpha=.55)
+a2.set_xlabel("AV explanation truncation length (lines, log)")
+a2.set_ylabel("unexplained variance  1 − FVE  (log)")
+a2.set_title("Reconstruction error vs line-truncation length (per-model)")
+a2.grid(which="both", alpha=.3)
+fig.suptitle("log-log reconstruction error (1 − FVE) vs AV-explanation truncation — v2 RL NLA vs v1 arms",
+             y=1.02, fontsize=13)
+fig.tight_layout(); fig.savefig(os.path.join(R, "fve_truncation_v2_compare_loglog.png"), dpi=140, bbox_inches="tight")
+plt.close(fig)
+print(f"\nwrote fve_truncation_v2_compare.png + fve_truncation_v2_only.png + fve_truncation_v2_compare_loglog.png to results/")
