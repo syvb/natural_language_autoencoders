@@ -22,6 +22,7 @@ SRCS = [
     ("_iter0000200", "v2 RL (iter 200)", "#2ca02c", "-", "o"),
     ("", "v1 RLed NLA", "#d62728", "--", "^"),
     ("_v2ws", "v2 warm-start (pre-RL SFT)", "#ff7f0e", ":", "s"),
+    ("_kitft", "kitft (base verbalizer)", "#888888", "-.", "D"),
 ]
 
 
@@ -67,12 +68,12 @@ a2.set_ylabel("additional FVE per list item  (ΔFVE)")
 a2.set_xlim(0, XCAP_LINE); a2.set_title("Marginal variance explained per list item")
 
 a1.set_yscale("symlog", linthresh=0.01); a2.set_yscale("symlog", linthresh=0.01)
-fig.suptitle("Additional variance explained per token / per list item — v1 vs v2 vs v2-warmstart (symlog y)", y=1.02, fontsize=13)
-fig.tight_layout(); fig.savefig(os.path.join(R, "fve_marginal_v1_v2_ws.png"), dpi=140, bbox_inches="tight")
+fig.suptitle("Additional variance explained per token / per list item — v1 vs v2 vs v2-warmstart vs kitft (symlog y)", y=1.02, fontsize=13)
+fig.tight_layout(); fig.savefig(os.path.join(R, "fve_marginal_v1_v2_ws_kitft.png"), dpi=140, bbox_inches="tight")
 a1.set_yscale("linear"); a2.set_yscale("linear")
 a1.relim(); a1.autoscale(axis="y"); a2.relim(); a2.autoscale(axis="y")
-fig.suptitle("Additional variance explained per token / per list item — v1 vs v2 vs v2-warmstart (linear y)", y=1.02, fontsize=13)
-fig.tight_layout(); fig.savefig(os.path.join(R, "fve_marginal_v1_v2_ws_linear.png"), dpi=140, bbox_inches="tight")
+fig.suptitle("Additional variance explained per token / per list item — v1 vs v2 vs v2-warmstart vs kitft (linear y)", y=1.02, fontsize=13)
+fig.tight_layout(); fig.savefig(os.path.join(R, "fve_marginal_v1_v2_ws_kitft_linear.png"), dpi=140, bbox_inches="tight")
 plt.close(fig)
 
 print(f"{'src':28s} {'ΔFVE line1':>10s} {'ΔFVE line2':>10s} {'full FVE':>9s}")
@@ -82,4 +83,4 @@ for suf, lab, *_ in SRCS:
         print(f"{lab:28s} [missing]"); continue
     m = marginal(kF)
     print(f"{lab:28s} {m[0]:>10.3f} {m[1]:>10.3f} {tF[-1]:>9.3f}")
-print("\nwrote fve_marginal_v1_v2_ws.png + fve_marginal_v1_v2_ws_linear.png")
+print("\nwrote fve_marginal_v1_v2_ws_kitft.png + fve_marginal_v1_v2_ws_kitft_linear.png")
