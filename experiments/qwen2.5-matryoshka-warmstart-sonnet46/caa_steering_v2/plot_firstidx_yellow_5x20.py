@@ -36,7 +36,7 @@ def curve(fn):
         for b in bsel:
             fi = fmap.get((r, b))
             vals.append(fi if (fi and fi >= 1) else MISS)
-        med.append(float(np.median(vals)))
+        med.append(float(np.mean(vals)))
     return rsel, med
 
 
@@ -46,9 +46,9 @@ for label, fn, color, style, lw in MODELS:
     ax.plot(rs, med, style, color=color, lw=lw, ms=6, alpha=0.9, label=label)
 ax.set_xscale("log")
 ax.set_xlabel("steering strength  r  (log)")
-ax.set_ylabel("median first-mention index of YELLOW   (not present = 10)")
+ax.set_ylabel("mean first-mention index of YELLOW   (not present = 10)")
 ax.set_ylim(10.4, 0.6); ax.set_yticks(range(1, 11)); ax.grid(alpha=0.3, which="both")
-ax.set_title(f"Where steered YELLOW first appears vs steering strength\n(median of {N_BASES} bases, {N_POINTS} points)")
+ax.set_title(f"Where steered YELLOW first appears vs steering strength\n(mean of {N_BASES} bases, {N_POINTS} points)")
 ax.legend(loc="lower right", fontsize=9, framealpha=0.92)
 fig.tight_layout()
 out = os.path.join(R, "fig_firstidx_v1kitft_yellow_5x20.png")
