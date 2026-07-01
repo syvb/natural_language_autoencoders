@@ -13,7 +13,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 R = os.path.join(HERE, "results")
 XCAP_TOK = 120
-WIN = 5
+WIN = 1
 SRCS = [
     ("", "v1 RLed NLA", "#d62728", "-", 2.2),
     ("_kitft", "kitft (base verbalizer)", "#888888", "-.", 2.0),
@@ -54,7 +54,7 @@ if kmin and kmin[0] < YMIN:
                 xy=(kmin[1], YMIN), xytext=(18, YMIN + 0.012), fontsize=8.5, color="#888888",
                 arrowprops=dict(arrowstyle="->", color="#888888", lw=1))
 ax.set_xlabel("token index in AV explanation (content tokens)")
-ax.set_ylabel(f"additional FVE per token  (ΔFVE, {WIN}-tok rolling mean)")
+ax.set_ylabel("additional FVE per token  (ΔFVE, raw per token)")
 ax.set_title("Marginal variance explained per token — v1 vs kitft")
 ax.grid(alpha=.3); ax.legend(fontsize=10)
 fig.tight_layout()
