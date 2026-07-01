@@ -20,7 +20,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 R = os.path.join(HERE, "results")
 XCAP_TOK = 120
-XCAP_LINE = 40
+XCAP_LINE = 10
 WIN = 5  # rolling-mean window for the per-token panel
 ITERS = ["0000050", "0000100", "0000150", "0000200"]
 CMAP = plt.get_cmap("viridis")
