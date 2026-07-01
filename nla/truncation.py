@@ -91,6 +91,11 @@ OPENING_PREFIX = EXPLANATION_OPEN + "\n"
 # impossible target that makes its weights diverge to NaN within a few steps
 # (the critic is also the reward model, so the NaN surfaces as NaN rewards). A
 # floor of 16 keeps the critic's targets learnable and groups non-degenerate.
+# v3 runs min_tokens=1 anyway, with two defenses that didn't exist when this
+# floor was chosen: the AR warm-start is pre-calibrated on U[1, max] token
+# prefixes (stage3_build --ar-truncate-max-tokens) so step-0 short prefixes are
+# in-distribution, and the grad-finiteness guard (nla.grad_guard) skips any
+# optimizer step whose gradient still goes non-finite.
 DEFAULT_MIN_TOKENS = 16
 DEFAULT_MAX_TOKENS = 0  # 0 => truncation disabled
 
@@ -331,6 +336,24 @@ def opening_tag_token_len(tokenizer) -> int:
     here just shifts the effective content length by ~1.
     """
     return len(tokenizer.encode(OPENING_PREFIX, add_special_tokens=False))
+
+
+def resolve_opening_offset(actor_prompt_template: str, tokenizer) -> int:
+    """Tokens-mode budget offset for the actor's fixed opening, by format.
+
+    Only the tagged (v1) format opens with ``"<explanation>\\n"`` — a list (v2)
+    or bullets (v3) actor emits content from token 0, so the offset must be 0
+    there or a 1-token budget silently becomes ~5 content tokens. The sidecar
+    actor template is the ground truth for which format a run uses: if it
+    instructs the tag, the actor was SFT'd to emit it. NLA_TRUNC_OPENING_OFFSET
+    overrides the detection if a custom template breaks the correlation.
+    """
+    env_off = os.environ.get("NLA_TRUNC_OPENING_OFFSET")
+    if env_off not in (None, ""):
+        return int(env_off)
+    if EXPLANATION_OPEN in actor_prompt_template:
+        return opening_tag_token_len(tokenizer)
+    return 0
 
 
 def max_new_tokens_for_content(content_len: int, opening_offset: int, hard_cap: int | None) -> int:

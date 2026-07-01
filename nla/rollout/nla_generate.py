@@ -46,7 +46,7 @@ from nla.truncation import (
     TruncationConfig,
     item_truncation_cut,
     max_new_tokens_for_content,
-    opening_tag_token_len,
+    resolve_opening_offset,
     resolve_truncation_config,
 )
 
@@ -117,7 +117,9 @@ def _lazy_init(args):
 
     _TRUNC = resolve_truncation_config(args)
     if _TRUNC.enabled and _TRUNC.mode == "tokens":
-        _OPENING_OFFSET = opening_tag_token_len(_TOKENIZER)
+        # Format-aware: 0 for list/bullets actors (no "<explanation>\n" opening),
+        # tag length for tagged ones. See truncation.resolve_opening_offset.
+        _OPENING_OFFSET = resolve_opening_offset(cfg.actor_prompt_template, _TOKENIZER)
         print(f"[NLA] random-length truncation ON (tokens mode): content tokens ~U[{_TRUNC.min_tokens}, "
               f"{_TRUNC.max_tokens}] shared per group, +{_OPENING_OFFSET}-tok opening offset, "
               f"seed={_TRUNC.seed}. Token-limit penalty disabled.")

@@ -232,3 +232,44 @@ reference). `av/` = full HF actor + `nla_meta.yaml`; `ar/` = HF critic + `value_
 DCP→HF + upload per-iter + free disk). Open optional lever: fp32 value-head / upstream-grad
 clamp to eliminate the ~33% grad-skips at the source (efficiency only; not needed for
 stability or learning).
+
+## v3 — bullets prompt, uniform 1–120-token truncation, KL 0.03
+
+Three changes over v2, all implemented (scripts `*_v3.sh`, builder
+`02c_build_datasets_v3.py`):
+
+1. **Prompt actually fixed.** v2 shipped with the v1 "2-3 text snippets in
+   `<explanation>` tags" prompt: `05_build_rl_parquet.py` didn't pass
+   `--explanation-format`, so the RL parquet (and the sidecar inside every
+   pushed v2 checkpoint) kept stage3's tagged default even though the
+   warm-start data was list-format. v3 adds `--explanation-format bullets`
+   (`stage3_build`): the prompt says *"a list of bullet points, one per line,
+   each starting with '- '"*, and the SFT targets/critic inputs are literal
+   `- ` bullets. `05_build_rl_parquet.py` now takes `EXPLANATION_FORMAT` and
+   `run_rl_v3.sh` sets it (and defaults `RL_PARQUET=rl_v3.parquet` so a stale
+   tagged `rl.parquet` on a reused box can't sneak back in). The
+   `<concept>{injection_char}</concept>` context is unchanged → same injection
+   token (`㈎`/149705, now pinned in `injection_token_cache.yaml`) and
+   neighbors (`>`/29, `</`/522).
+2. **Back to uniform token truncation, [1, 120]** (v1 mechanism —
+   `max_new_tokens` cap, no post-truncation — but full-range uniform instead of
+   v1's [16, 150] and v2's tapered item counts). min=1 was what NaN'd v1's
+   critic; two defenses make it viable now: the AR warm-start is pre-calibrated
+   on `K ~ U[1,120]`-token prefixes (`stage3_build --ar-truncate-max-tokens`,
+   same uniform draw RL uses) so step-0 short prefixes are in-distribution, and
+   the grad-finiteness guard (`26d9484`) skips any non-finite critic step.
+   Tokens-mode's `+"<explanation>\n"` budget offset is now format-aware
+   (`nla_generate`): 0 when the sidecar template has no tag, so a 1-token
+   budget really is 1 content token. No item-length penalty — token truncation
+   can't be gamed by cramming one giant item.
+3. **KL 0.03** (v1: 0.01, v2: 0.02) — anchor the AV harder to the warm-start
+   reference.
+
+```bash
+# SFT box (same setup_box.sh flow as v1/v2; base parquets already built by 02):
+python 02c_build_datasets_v3.py          # av/ar_sft_v3 + av/ar_eval_v3 (bullets, AR token-truncated)
+AV_HF_CKPT=... bash run_av_sft_v3.sh     # from kitft base AV; NLA_NO_TRAIN_EOS=1
+AR_HF_CKPT=... bash run_ar_sft_v3.sh     # from kitft base AR; U[1,120]-token critic inputs
+# RL box (setup_rl_box_lmsys.sh):
+ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl_v3.sh   # KL=0.03, tokens ~U[1,120]
+```
