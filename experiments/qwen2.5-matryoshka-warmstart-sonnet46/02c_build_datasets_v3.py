@@ -6,8 +6,10 @@ re-runs nla.datagen.stage3_build, so NO API calls and NO re-split. v3 changes:
 
   --explanation-format bullets  AV prompt actually says bullet points (v2's
                                 shipped prompt still said "2-3 text snippets" in
-                                <explanation> tags); response is a raw "- "
-                                bullet list, one per line, no wrapper.
+                                <explanation> tags); response text is plain
+                                one-item-per-line (same as v2's list — no
+                                literal "- " markers, which would eat ~1.2
+                                budget tokens/item), no wrapper.
   --ar-truncate-max-tokens N    AR: pre-truncate each critic-input explanation
                                 to its first K tokens, K ~ U[min, N] — the SAME
                                 uniform draw RL's tokens-mode truncation uses,

@@ -16,9 +16,11 @@
 #      with every checkpoint) matches the warm-start's actual prompt. v2 shipped
 #      with the old tagged "2-3 text snippets" prompt here — fixed.
 #
-# The AV emits a raw "- " bullet list (no <explanation> wrapper, never trained
-# to stop), so extract_explanation_open reads the whole output and the tokens-
-# mode opening offset auto-resolves to 0 (no tag in the sidecar template).
+# The AV emits plain one-item-per-line text and never emits EOS (no "- "
+# markers — the prompt says bullet points but markers would eat budget tokens;
+# no <explanation> wrapper; never trained to stop), so extract_explanation_open
+# reads the whole output and the tokens-mode opening offset auto-resolves to 0
+# (no tag in the sidecar template).
 #
 # DEFAULT PROFILE: matches run_rl_v2.sh — one 8×H100 node (actor 4 / critic 2 /
 # rollout 2), 512-sample batch (64×8). Set NUM_ROLLOUT small for a smoke.

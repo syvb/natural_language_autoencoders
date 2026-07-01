@@ -4,9 +4,10 @@
 # v1/v2 checkpoints — v3 is a fresh take and should not inherit their behavior.
 # Pre-download it to $AV_HF_CKPT (default below).
 # Same as run_av_sft_v2.sh but --prompt-data the v3 (bullets-format) av_sft
-# parquet from 02c_build_datasets_v3.py. Targets are a raw "- " bullet list
-# (no <explanation> wrapper); NLA_NO_TRAIN_EOS=1 masks loss at the turn
-# terminator so the actor is never taught to stop.
+# parquet from 02c_build_datasets_v3.py. The prompt says bullet points; the
+# targets are plain one-item-per-line text (no "- " markers, no <explanation>
+# wrapper); NLA_NO_TRAIN_EOS=1 masks loss at the turn terminator so the actor
+# is never taught to stop.
 set -euo pipefail
 cd /workspace/miles
 export PYTHONUNBUFFERED=1 TOKENIZERS_PARALLELISM=false

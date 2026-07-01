@@ -254,8 +254,10 @@ Three changes over v2, all implemented (scripts `*_v3.sh`, builder
    the first rollout that the RL parquet's prompt equals the sidecar's
    template (`NLA_SKIP_TEMPLATE_CHECK=1` to bypass). v3 adds
    `--explanation-format bullets` (`stage3_build`): the prompt says *"a list
-   of bullet points, one per line, each starting with '- '"*, and the SFT
-   targets/critic inputs are literal `- ` bullets. `RL_PARQUET` defaults to
+   of bullet points, one per line"*, while the SFT targets/critic inputs stay
+   plain one-item-per-line text (same as v2's list — literal `- ` markers
+   would eat ~1.2 budget tokens/item with zero reconstruction information and
+   break per-token comparability with v1/v2). `RL_PARQUET` defaults to
    `rl_v3.parquet` so a stale tagged `rl.parquet` on a reused box can't sneak
    back in. The `<concept>{injection_char}</concept>` context is unchanged →
    same injection token (`㈎`/149705, now pinned in
@@ -279,9 +281,9 @@ Three changes over v2, all implemented (scripts `*_v3.sh`, builder
    `NLA_TRUNC_OPENING_OFFSET=0` and zeroes lingering v2 item-mode env vars.
    The item-length penalty is gated to items mode in `reward.py` (a stale
    `NLA_ITEM_LEN_PENALTY` export can't shape v3 rewards). Known cost: K=1
-   groups (~0.8%) produce near-identical `-` outputs → zero advantage; wasted
-   but harmless (`NLA_TRUNC_MIN_TOKENS=2` is the knob — token 1 of a bullets
-   actor is pure marker).
+   groups (~0.8%) likely produce near-identical first tokens → ~zero
+   advantage; wasted but harmless (`NLA_TRUNC_MIN_TOKENS=2` is the knob if
+   the waste bothers you).
 3. **KL 0.03** (v1: 0.01, v2: 0.02) — anchor the AV harder to the warm-start
    reference.
 
@@ -304,16 +306,13 @@ ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl_v3.sh   # KL=0.03, tokens ~U[1
   exceeds the trained max).
 - **During RL (wandb)**: grad-guard skip rate (reference: ~33% intermittent
   was healthy on v1's config; sustained higher or `fve_nrm` stalling ≈0.3 →
-  raise `NLA_TRUNC_MIN_TOKENS` instead of burning steps); `kl_loss` is not
-  comparable to v2's (format tokens contribute ≈0 KL, so v3 reads lower at
-  equal content divergence); format adherence — fraction of rollout lines
-  starting `"- "` (KL is the ONLY thing holding the format; pure reward
-  prefers shedding the ~2-token/item markers) — grep the
-  `NLA_ROLLOUT_TEXT_DUMP` samples; CJK in outputs = injection failure, as
-  always.
-- **Comparisons**: v3 changes prompt format, truncation scheme, KL, and
-  warm-start lineage at once. For per-token FVE curves vs v1/v2, also report
-  marker-stripped content tokens (bullets carry ~2 overhead tokens/item inside
-  the budget — a built-in ~15% handicap at fixed raw-token L). Budget one
-  control (e.g. `KL_LOSS_COEF=0.02` rerun) before tearing the box down if
-  attribution matters.
+  raise `NLA_TRUNC_MIN_TOKENS` instead of burning steps); line structure —
+  the newline separators are the only format tokens and pure reward prefers
+  shedding even those (KL is the counterweight), so grep the
+  `NLA_ROLLOUT_TEXT_DUMP` samples for degeneration into one giant unbroken
+  item; CJK in outputs = injection failure, as always.
+- **Comparisons**: v3 changes prompt wording, truncation scheme, KL, and
+  warm-start lineage at once — but the output format is byte-compatible with
+  v2's list, so per-token FVE curves are directly comparable across v1/v2/v3.
+  Budget one control (e.g. `KL_LOSS_COEF=0.02` rerun) before tearing the box
+  down if attribution matters.

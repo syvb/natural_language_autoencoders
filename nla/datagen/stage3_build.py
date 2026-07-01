@@ -78,16 +78,19 @@ Here is the vector:
 <concept>{injection_char}</concept>
 
 Please provide the list."""
-# v3 (--explanation-format bullets): same untagged / never-stop design as list,
-# but the prompt actually SAYS bullet points and the SFT targets are literal
-# "- " bullets — v2 shipped with a prompt that still described "2-3 text
-# snippets" in <explanation> tags (05_build_rl_parquet built the RL parquet
-# without the format flag), so the actor's instructions and its trained output
-# format disagreed. The <concept>{injection_char}</concept> wrapping is again
-# IDENTICAL so the injection token + neighbor IDs are unchanged.
+# v3 (--explanation-format bullets): same untagged / never-stop design and the
+# same OUTPUT TEXT as list — the difference is the prompt actually SAYS bullet
+# points. v2 shipped with a prompt that still described "2-3 text snippets" in
+# <explanation> tags (05_build_rl_parquet built the RL parquet without the
+# format flag), so the actor's instructions and its trained output format
+# disagreed. The targets deliberately have NO literal "- " markers: each would
+# cost ~1.2 tokens of the truncation budget per item with zero reconstruction
+# information, and would break per-token comparability with v1/v2. The
+# <concept>{injection_char}</concept> wrapping is again IDENTICAL so the
+# injection token + neighbor IDs are unchanged.
 _ACTOR_TEMPLATE_BULLETS = """You are a meticulous AI researcher conducting an important investigation into activation vectors from a language model. Your overall task is to describe the semantic content of that activation vector.
 
-We will pass the vector enclosed in <concept> tags into your context. You must then describe that vector as a list of bullet points, one per line, each starting with "- ", ordered from the most to the least salient aspect.
+We will pass the vector enclosed in <concept> tags into your context. You must then describe that vector as a list of bullet points, one per line, ordered from the most to the least salient aspect.
 
 Here is the vector:
 
@@ -160,18 +163,17 @@ def _format_items(expl: str, fmt: str) -> str:
 
     tagged (v1): the raw explanation unchanged (the <explanation> wrapper is the
     AV response's job, not the text's — the critic sees it unwrapped).
-    list (v2): one item per line (collapse \\n\\n paragraphs → \\n).
-    bullets (v3): one "- " bullet per line. Normalizing here (instead of at
-    stage2) lets any format build from existing base parquets without re-running
-    the API. Used for BOTH the AV-SFT response and the AR-SFT critic input so
-    the critic is trained on exactly the text the actor is trained to emit.
+    list (v2) and bullets (v3): one item per line (collapse \\n\\n paragraphs →
+    \\n). bullets differs from list only in the PROMPT wording — the output text
+    is identical, with no literal "- " markers (see _ACTOR_TEMPLATE_BULLETS).
+    Normalizing here (instead of at stage2) lets any format build from existing
+    base parquets without re-running the API. Used for BOTH the AV-SFT response
+    and the AR-SFT critic input so the critic is trained on exactly the text
+    the actor is trained to emit.
     """
     if fmt == "tagged":
         return expl
-    items = split_into_items(expl)
-    if fmt == "bullets":
-        return "\n".join(f"- {it}" for it in items)
-    return "\n".join(items)
+    return "\n".join(split_into_items(expl))
 
 
 def _build_av_sft_cols(

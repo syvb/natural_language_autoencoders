@@ -50,12 +50,12 @@ def test_format_list_collapses_paragraphs():
     )
 
 
-def test_format_bullets_prefixes_each_item():
-    out = _format_items(EXPL, "bullets")
-    assert out == (
-        "- First feature.\n- Second: lists, code.\n- Final constraint."
-    )
-    assert all(line.startswith("- ") for line in out.split("\n"))
+def test_format_bullets_is_plain_lines_like_list():
+    # bullets (v3) differs from list (v2) only in the PROMPT wording — the
+    # output text is identical unmarked lines (no "- " chars eating the
+    # truncation budget).
+    assert _format_items(EXPL, "bullets") == _format_items(EXPL, "list")
+    assert "- " not in _format_items(EXPL, "bullets")
 
 
 # --------------------------------------------------------------------------- #
@@ -132,6 +132,7 @@ def test_offset_env_override(monkeypatch):
 def test_bullets_template_wording_and_injection_context():
     t = _ACTOR_TEMPLATES["bullets"]
     assert "bullet" in t
+    assert '"- "' not in t          # prompt must not demand literal markers
     assert "<explanation>" not in t
     # identical <concept> wrapping across formats → same injection neighbors
     for fmt in ("tagged", "list"):
