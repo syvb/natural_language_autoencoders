@@ -15,9 +15,12 @@ cd /workspace/miles
 export PYTHONUNBUFFERED=1 TOKENIZERS_PARALLELISM=false
 export WANDB_API_KEY=$(cat /root/.wandb_key)
 AR_PARQUET="${AR_PARQUET:-/workspace/out/ar_sft_v3.parquet}"
+# --nla-sidecar-source: same rationale as run_av_sft_v3.sh — don't inherit the
+# kitft base checkpoint's stale (tagged-template) sidecar into the v3 export.
 /opt/conda/bin/python train_sft.py \
     --train-backend fsdp \
     --custom-actor-cls-path nla.train_actor.NLAFSDPActor \
+    --nla-sidecar-source "$AR_PARQUET" \
     --nla-model-is-critic \
     --loss-type custom_loss \
     --custom-loss-function-path nla.loss.nla_critic_loss \

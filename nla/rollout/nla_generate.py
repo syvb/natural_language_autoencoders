@@ -130,6 +130,40 @@ def _lazy_init(args):
               f"the hard cap; the rollout is POST-TRUNCATED at the K-th newline. Token-limit penalty disabled.")
 
 
+_TEMPLATE_CHECKED = False
+
+
+def _check_prompt_matches_sidecar(messages: list[dict]) -> None:
+    """One-time assert: the RL parquet's actual prompt == the sidecar's template.
+
+    The sidecar template drives tokens-mode budgeting (resolve_opening_offset)
+    and is what every exported checkpoint ships — while the parquet's prompt
+    column is what the actor actually sees. They come from different files and
+    have silently disagreed twice (v2: RL parquet built without the format flag;
+    v3 near-miss: the SFT checkpoint inherited the base model's stale sidecar
+    via resolve_sidecar_source precedence). Comparing them at the first rollout
+    turns that whole class of drift into a loud startup failure.
+    NLA_SKIP_TEMPLATE_CHECK=1 disables (deliberate multi-template experiments).
+    """
+    global _TEMPLATE_CHECKED
+    if _TEMPLATE_CHECKED or os.environ.get("NLA_SKIP_TEMPLATE_CHECK") == "1":
+        return
+    canonical = _CFG.actor_prompt_template.format(injection_char=_CFG.injection_char)
+    user_contents = [m.get("content", "") for m in messages if m.get("role") == "user"]
+    assert any(c == canonical for c in user_contents), (
+        f"RL prompt does not match the sidecar's actor_prompt_template. The "
+        f"parquet prompt and the checkpoint sidecar disagree — the actor is being "
+        f"prompted with a different template than the one the sidecar (and thus "
+        f"the truncation opening-offset and every exported checkpoint) claims. "
+        f"Rebuild the RL parquet with the right --explanation-format, or fix the "
+        f"warm-start's sidecar (--nla-sidecar-source should point at the training "
+        f"parquet, not inherit the base checkpoint's). "
+        f"Sidecar template starts: {_CFG.actor_prompt_template[:120]!r}... "
+        f"Prompt starts: {(user_contents[0] if user_contents else '')[:120]!r}..."
+    )
+    _TEMPLATE_CHECKED = True
+
+
 _LAST_EMBED_CHECK: float = 0.0
 
 
@@ -315,6 +349,7 @@ async def generate(args, sample: Sample, sampling_params: dict[str, Any]) -> Sam
         f"NLADataSource must use apply_chat_template=False; ㊗ substitution "
         f"happens there."
     )
+    _check_prompt_matches_sidecar(messages)
 
     # Random-length truncation: cap generation at a per-group content budget so
     # the actor is rewarded/trained on a random prefix of its explanation. All

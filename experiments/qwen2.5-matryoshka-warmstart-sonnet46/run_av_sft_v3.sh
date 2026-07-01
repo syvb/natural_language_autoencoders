@@ -13,9 +13,16 @@ export PYTHONUNBUFFERED=1 TOKENIZERS_PARALLELISM=false
 export WANDB_API_KEY=$(cat /root/.wandb_key)
 export NLA_NO_TRAIN_EOS=1
 AV_PARQUET="${AV_PARQUET:-/workspace/out/av_sft_v3.parquet}"
+# --nla-sidecar-source: WITHOUT it, resolve_sidecar_source prefers the kitft
+# base checkpoint's nla_meta.yaml (v1 TAGGED template) over the parquet's, and
+# _write_sidecar bakes that stale template into every exported v3 checkpoint —
+# which then feeds RL's opening-offset detection and ships in the released
+# model (the v2 sidecar bug, second leg). Point it at the training parquet so
+# the checkpoint records what the model was actually trained on.
 /opt/conda/bin/python train_sft.py \
     --train-backend fsdp \
     --custom-actor-cls-path nla.train_actor.NLAFSDPActor \
+    --nla-sidecar-source "$AV_PARQUET" \
     --loss-type sft_loss \
     --debug-train-only \
     --disable-compute-advantages-and-returns \

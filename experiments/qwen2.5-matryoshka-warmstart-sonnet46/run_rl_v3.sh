@@ -28,6 +28,14 @@ set -euo pipefail
 export NLA_TRUNC_MODE="${NLA_TRUNC_MODE:-tokens}"
 export NLA_TRUNC_MIN_TOKENS="${NLA_TRUNC_MIN_TOKENS:-1}"
 export NLA_TRUNC_MAX_TOKENS="${NLA_TRUNC_MAX_TOKENS:-120}"
+# The bullets actor emits no "<explanation>\n" opening, so the content budget
+# needs no offset. resolve_opening_offset detects this from the sidecar
+# template, but pin it anyway: a warm-start whose sidecar inherited the base
+# checkpoint's tagged template would silently make U[1,120] into ~U[5,124].
+export NLA_TRUNC_OPENING_OFFSET="${NLA_TRUNC_OPENING_OFFSET:-0}"
+# Zero the v2 item-mode knobs: in a reused shell that ran run_rl_v2.sh their
+# exports linger and would silently flip the mode / shape rewards.
+export NLA_TRUNC_MAX_ITEMS=0 NLA_ITEM_LEN_PENALTY=0
 
 # ───────────────────── checkpoints (v3 warm-start outputs) ──────────────────
 : "${INSTRUCT_MODEL:=Qwen/Qwen2.5-7B-Instruct}"
@@ -35,6 +43,17 @@ export NLA_TRUNC_MAX_TOKENS="${NLA_TRUNC_MAX_TOKENS:-120}"
 : "${CRITIC_SL_CKPT:?v3 warm-start AR: HF dir with value_head.safetensors (token-truncated warm-start)}"
 : "${RUN_DIR:=/workspace/rl_v3}"
 export HF_CKPT="${HF_CKPT:-$ACTOR_SFT_CKPT}"
+
+# The warm-start sidecar must carry the bullets template (run_av_sft_v3.sh's
+# --nla-sidecar-source guarantees this for fresh warm-starts). A tagged one
+# means the checkpoint inherited the base model's stale sidecar — every export
+# would re-ship the wrong prompt and the offset detection would misfire.
+if grep -q "<explanation>" "$ACTOR_SFT_CKPT/nla_meta.yaml" 2>/dev/null; then
+    echo "FATAL: $ACTOR_SFT_CKPT/nla_meta.yaml has the v1 TAGGED actor template." >&2
+    echo "Re-export the warm-start with --nla-sidecar-source pointing at av_sft_v3.parquet" >&2
+    echo "(see run_av_sft_v3.sh), or hand-fix prompt_templates.actor in the sidecar." >&2
+    exit 1
+fi
 
 # ───────────────────────── KL 0.03 (v3 item 1) ──────────────────────────────
 export KL_LOSS_COEF="${KL_LOSS_COEF:-0.03}"
@@ -95,6 +114,7 @@ CFG="$RUN_DIR/launch_config.$(date -u +%Y%m%dT%H%M%SZ).txt"
     echo "git_status=$(git -C "$REPO_ROOT" status --porcelain | tr '\n' ';')"
     for v in INSTRUCT_MODEL ACTOR_SFT_CKPT CRITIC_SL_CKPT RUN_DIR RL_PARQUET KL_LOSS_COEF \
              NLA_TRUNC_MODE NLA_TRUNC_MIN_TOKENS NLA_TRUNC_MAX_TOKENS \
+             NLA_TRUNC_OPENING_OFFSET NLA_TRUNC_SEED NLA_TRUNC_MAX_ITEMS NLA_ITEM_LEN_PENALTY HF_CKPT \
              ACTOR_NODES ACTOR_GPUS CRITIC_NODES CRITIC_GPUS ROLLOUT_GPUS \
              ACTOR_LR CRITIC_LR SAVE_INTERVAL NUM_ROLLOUT ROLLOUT_MAX_RESP ROLLOUT_MAX_CTX \
              LOAD REF_LOAD CRITIC_LOAD; do

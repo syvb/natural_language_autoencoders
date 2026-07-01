@@ -89,8 +89,15 @@ def _lazy_init(args):
 def _item_length_penalty(items: list[str]) -> float:
     """Reward shaping: -coef * Σ_items max(0, item_tokens - target). 0 when off
     or when every item is within target. Penalizes long individual items so the
-    actor spreads content across items instead of one giant one (see _ITEM_LEN_*)."""
+    actor spreads content across items instead of one giant one (see _ITEM_LEN_*).
+
+    ITEMS MODE ONLY: the penalty exists to stop the actor gaming item-count
+    truncation by cramming everything into one item. Token-mode truncation
+    can't be gamed that way, so a lingering NLA_ITEM_LEN_PENALTY export from a
+    v2 shell must not shape v3 rewards."""
     if _ITEM_LEN_PENALTY <= 0 or not items:
+        return 0.0
+    if _TRUNC is None or _TRUNC.mode != "items":
         return 0.0
     excess = 0
     for it in items:

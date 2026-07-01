@@ -239,18 +239,27 @@ Three changes over v2, all implemented (scripts `*_v3.sh`, builder
 `02c_build_datasets_v3.py`):
 
 1. **Prompt actually fixed.** v2 shipped with the v1 "2-3 text snippets in
-   `<explanation>` tags" prompt: `05_build_rl_parquet.py` didn't pass
-   `--explanation-format`, so the RL parquet (and the sidecar inside every
-   pushed v2 checkpoint) kept stage3's tagged default even though the
-   warm-start data was list-format. v3 adds `--explanation-format bullets`
-   (`stage3_build`): the prompt says *"a list of bullet points, one per line,
-   each starting with '- '"*, and the SFT targets/critic inputs are literal
-   `- ` bullets. `05_build_rl_parquet.py` now takes `EXPLANATION_FORMAT` and
-   `run_rl_v3.sh` sets it (and defaults `RL_PARQUET=rl_v3.parquet` so a stale
-   tagged `rl.parquet` on a reused box can't sneak back in). The
-   `<concept>{injection_char}</concept>` context is unchanged → same injection
-   token (`㈎`/149705, now pinned in `injection_token_cache.yaml`) and
-   neighbors (`>`/29, `</`/522).
+   `<explanation>` tags" prompt through TWO independent legs, both fixed:
+   (a) `05_build_rl_parquet.py` didn't pass `--explanation-format`, so the RL
+   parquet kept stage3's tagged default — it now REQUIRES `EXPLANATION_FORMAT`
+   (no default) and verifies a pre-existing output's sidecar template before
+   its skip-if-exists early exit; (b) the SFT scripts passed no
+   `--nla-sidecar-source`, and `resolve_sidecar_source` prefers the
+   hf-checkpoint's sidecar over the training parquet's — so the warm-start
+   loaded the kitft base's TAGGED sidecar and `_write_sidecar` baked it into
+   every exported checkpoint (that's why even the v2 *warm-start* ships the
+   tagged prompt). `run_{av,ar}_sft_v3.sh` now pass `--nla-sidecar-source` =
+   the training parquet. Belt-and-suspenders: `run_rl_v3.sh` aborts if the
+   warm-start sidecar contains `<explanation>`, and `nla_generate` asserts at
+   the first rollout that the RL parquet's prompt equals the sidecar's
+   template (`NLA_SKIP_TEMPLATE_CHECK=1` to bypass). v3 adds
+   `--explanation-format bullets` (`stage3_build`): the prompt says *"a list
+   of bullet points, one per line, each starting with '- '"*, and the SFT
+   targets/critic inputs are literal `- ` bullets. `RL_PARQUET` defaults to
+   `rl_v3.parquet` so a stale tagged `rl.parquet` on a reused box can't sneak
+   back in. The `<concept>{injection_char}</concept>` context is unchanged →
+   same injection token (`㈎`/149705, now pinned in
+   `injection_token_cache.yaml`) and neighbors (`>`/29, `</`/522).
 2. **Back to uniform token truncation, [1, 120]** (v1 mechanism —
    `max_new_tokens` cap, no post-truncation — but full-range uniform instead of
    v1's [16, 150] and v2's tapered item counts). min=1 was what NaN'd v1's
@@ -258,10 +267,21 @@ Three changes over v2, all implemented (scripts `*_v3.sh`, builder
    on `K ~ U[1,120]`-token prefixes (`stage3_build --ar-truncate-max-tokens`,
    same uniform draw RL uses) so step-0 short prefixes are in-distribution, and
    the grad-finiteness guard (`26d9484`) skips any non-finite critic step.
+   ~15% of AR warm-start rows are left untruncated
+   (`--ar-truncate-keep-full-frac`): RL prefixes are capped at 120 too, so
+   without this the critic would never see longer text at ANY stage and
+   full-length round-trip FVE would read artificially low (v2's item
+   truncation left many rows whole — this matches it). For the same reason,
+   compare "full-length" FVE across versions at a common 120-token cap.
    Tokens-mode's `+"<explanation>\n"` budget offset is now format-aware
    (`nla_generate`): 0 when the sidecar template has no tag, so a 1-token
-   budget really is 1 content token. No item-length penalty — token truncation
-   can't be gamed by cramming one giant item.
+   budget really is 1 content token — `run_rl_v3.sh` also pins
+   `NLA_TRUNC_OPENING_OFFSET=0` and zeroes lingering v2 item-mode env vars.
+   The item-length penalty is gated to items mode in `reward.py` (a stale
+   `NLA_ITEM_LEN_PENALTY` export can't shape v3 rewards). Known cost: K=1
+   groups (~0.8%) produce near-identical `-` outputs → zero advantage; wasted
+   but harmless (`NLA_TRUNC_MIN_TOKENS=2` is the knob — token 1 of a bullets
+   actor is pure marker).
 3. **KL 0.03** (v1: 0.01, v2: 0.02) — anchor the AV harder to the warm-start
    reference.
 
@@ -273,3 +293,27 @@ AR_HF_CKPT=... bash run_ar_sft_v3.sh     # from kitft base AR; U[1,120]-token cr
 # RL box (setup_rl_box_lmsys.sh):
 ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl_v3.sh   # KL=0.03, tokens ~U[1,120]
 ```
+
+### Read the signal (v3)
+
+- **Before RL**: run the FVE sweep + front-loading eval on the v3 *warm-start*
+  — it's a fresh SFT from the kitft base with new targets, so the v1/v2
+  baseline ladder (line-1 ΔFVE 0.205 ws → 0.433 v1 → 0.596 v2) does not
+  transfer; without a v3-ws baseline the RL delta is uninterpretable. Use
+  prefix lens `{1,2,5,10,30,60,120}` (v3 uniquely trains the 1-5 regime; 130
+  exceeds the trained max).
+- **During RL (wandb)**: grad-guard skip rate (reference: ~33% intermittent
+  was healthy on v1's config; sustained higher or `fve_nrm` stalling ≈0.3 →
+  raise `NLA_TRUNC_MIN_TOKENS` instead of burning steps); `kl_loss` is not
+  comparable to v2's (format tokens contribute ≈0 KL, so v3 reads lower at
+  equal content divergence); format adherence — fraction of rollout lines
+  starting `"- "` (KL is the ONLY thing holding the format; pure reward
+  prefers shedding the ~2-token/item markers) — grep the
+  `NLA_ROLLOUT_TEXT_DUMP` samples; CJK in outputs = injection failure, as
+  always.
+- **Comparisons**: v3 changes prompt format, truncation scheme, KL, and
+  warm-start lineage at once. For per-token FVE curves vs v1/v2, also report
+  marker-stripped content tokens (bullets carry ~2 overhead tokens/item inside
+  the budget — a built-in ~15% handicap at fixed raw-token L). Budget one
+  control (e.g. `KL_LOSS_COEF=0.02` rerun) before tearing the box down if
+  attribution matters.

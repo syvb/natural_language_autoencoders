@@ -28,6 +28,10 @@ class _Tok:
 
 class _Cfg:
     critic_prompt_template = "Summary: <text>{explanation}</text> <summary>"
+    # matches the stub messages ("x ㊗ y") so the prompt-vs-sidecar template
+    # check passes for the wiring tests that aren't about it
+    actor_prompt_template = "x {injection_char} y"
+    injection_char = "㊗"
 
 
 def _args():
@@ -230,3 +234,40 @@ def test_completed_within_budget_keeps_close_tag_content(monkeypatch):
     assert out.status == Status.COMPLETED
     critic_tokens = out.multimodal_train_inputs[gen.MM_CRITIC_TOKENS_KEY]
     assert critic_tokens is not None
+
+
+# --------------------------------------------------------------------------- #
+# _check_prompt_matches_sidecar — parquet prompt vs sidecar template drift
+# (the v2 wrong-prompt bug class) must fail loudly at the first rollout.
+# --------------------------------------------------------------------------- #
+
+class _TplCfg:
+    actor_prompt_template = "Describe: <concept>{injection_char}</concept> now."
+    injection_char = "X"
+
+
+def test_template_check_passes_on_match(monkeypatch):
+    monkeypatch.setattr(gen, "_CFG", _TplCfg())
+    monkeypatch.setattr(gen, "_TEMPLATE_CHECKED", False)
+    gen._check_prompt_matches_sidecar(
+        [{"role": "user", "content": "Describe: <concept>X</concept> now."}]
+    )
+    assert gen._TEMPLATE_CHECKED  # one-time: subsequent calls short-circuit
+
+
+def test_template_check_fails_on_drift(monkeypatch):
+    import pytest
+    monkeypatch.setattr(gen, "_CFG", _TplCfg())
+    monkeypatch.setattr(gen, "_TEMPLATE_CHECKED", False)
+    with pytest.raises(AssertionError, match="does not match the sidecar"):
+        gen._check_prompt_matches_sidecar(
+            [{"role": "user", "content": "A DIFFERENT (e.g. tagged v1) prompt <concept>X</concept>"}]
+        )
+
+
+def test_template_check_env_bypass(monkeypatch):
+    monkeypatch.setattr(gen, "_CFG", _TplCfg())
+    monkeypatch.setattr(gen, "_TEMPLATE_CHECKED", False)
+    monkeypatch.setenv("NLA_SKIP_TEMPLATE_CHECK", "1")
+    gen._check_prompt_matches_sidecar([{"role": "user", "content": "whatever"}])
+    assert not gen._TEMPLATE_CHECKED  # bypass never marks checked

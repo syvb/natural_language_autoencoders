@@ -137,3 +137,22 @@ def test_bullets_template_wording_and_injection_context():
     for fmt in ("tagged", "list"):
         assert "<concept>{injection_char}</concept>" in _ACTOR_TEMPLATES[fmt]
     assert "<concept>{injection_char}</concept>" in t
+
+
+def test_keep_full_frac_leaves_a_deterministic_slice_untruncated():
+    text = "- " + " ".join(f"w{i}" for i in range(300))
+    tok = _tok_for(text)
+    full = sum(
+        _maybe_truncate_to_tokens(text, r, 1, 120, 0, tok, keep_full_frac=0.15) == text
+        for r in range(400)
+    )
+    assert 30 <= full <= 90  # ~15% of 400, generous tolerance
+    # deterministic: same rows keep-full on a second pass
+    a = [_maybe_truncate_to_tokens(text, r, 1, 120, 0, tok, keep_full_frac=0.15) for r in range(50)]
+    b = [_maybe_truncate_to_tokens(text, r, 1, 120, 0, tok, keep_full_frac=0.15) for r in range(50)]
+    assert a == b
+    # frac 0 → nothing kept full (text is 301 tokens > 120)
+    assert all(
+        _maybe_truncate_to_tokens(text, r, 1, 120, 0, tok, keep_full_frac=0.0) != text
+        for r in range(50)
+    )

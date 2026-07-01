@@ -133,6 +133,12 @@ def test_item_length_penalty(monkeypatch):
     monkeypatch.setattr(reward, "_TOKENIZER", _CharTok())
     monkeypatch.setattr(reward, "_ITEM_LEN_PENALTY", 0.01)
     monkeypatch.setattr(reward, "_ITEM_LEN_TARGET", 5)
+    # the penalty only applies in items mode (see the gating test below)
+    monkeypatch.setattr(
+        reward, "_TRUNC",
+        TruncationConfig(enabled=True, min_tokens=1, max_tokens=0, seed=0,
+                         mode="items", max_items=10),
+    )
     assert reward._item_length_penalty(["abc"]) == 0.0                  # within target
     assert reward._item_length_penalty(["abcdefghij"]) == -0.01 * 5     # 10 chars, excess 5
     assert reward._item_length_penalty(["aa", "bb", "cc"]) == 0.0       # many short items: no penalty
@@ -166,3 +172,30 @@ def test_mse_to_reward_nan_guard():
     assert out[0] == reward.FAILED_EXTRACTION_REWARD
     assert out[1] == reward.FAILED_EXTRACTION_REWARD
     assert math.isfinite(out[2])
+
+
+class _WordTokenizer:
+    def __call__(self, text, add_special_tokens=False):
+        return {"input_ids": text.split()}
+
+
+def test_item_length_penalty_gated_to_items_mode(monkeypatch):
+    """A stale NLA_ITEM_LEN_PENALTY export (v2 shell) must not shape tokens-mode
+    (v3) rewards — the penalty only makes sense against item-count truncation."""
+    monkeypatch.setattr(reward, "_TOKENIZER", _WordTokenizer())
+    monkeypatch.setattr(reward, "_ITEM_LEN_PENALTY", 0.1)
+    monkeypatch.setattr(reward, "_ITEM_LEN_TARGET", 2)
+    long_items = ["one two three four five", "six seven eight nine ten"]
+
+    monkeypatch.setattr(
+        reward, "_TRUNC",
+        TruncationConfig(enabled=True, min_tokens=1, max_tokens=120, seed=0, mode="tokens"),
+    )
+    assert reward._item_length_penalty(long_items) == 0.0
+
+    monkeypatch.setattr(
+        reward, "_TRUNC",
+        TruncationConfig(enabled=True, min_tokens=1, max_tokens=0, seed=0,
+                         mode="items", max_items=10),
+    )
+    assert reward._item_length_penalty(long_items) < 0.0

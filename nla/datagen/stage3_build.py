@@ -32,6 +32,7 @@ as needed. Data-gen's job is just "get vectors out of the model".
 """
 
 import argparse
+import random
 from dataclasses import replace
 from typing import Any  # noqa: F401 — tokenizer: Any
 
@@ -220,7 +221,8 @@ def _maybe_truncate_explanation(
 
 
 def _maybe_truncate_to_tokens(
-    expl: str, row_key: int, min_tokens: int, max_tokens: int, seed: int, tokenizer: Any
+    expl: str, row_key: int, min_tokens: int, max_tokens: int, seed: int, tokenizer: Any,
+    keep_full_frac: float = 0.0,
 ) -> str:
     """v3 AR warm-start truncation: keep the first K TOKENS of the (already
     formatted) explanation, K ~ U[min_tokens, max_tokens] — the SAME uniform draw
@@ -230,9 +232,18 @@ def _maybe_truncate_to_tokens(
     backstop, this warm-start exposure is the first line of defense).
     Stripped like extract_explanation_open strips the RL rollout prefix, so the
     warm-start critic input matches the RL-time critic input byte-for-byte.
-    max_tokens <= 0 → no truncation."""
+
+    keep_full_frac: fraction of rows (deterministic per-row draw) left UNTRUNCATED.
+    With every row truncated to K <= max_tokens, text longer than max_tokens would
+    be out-of-distribution for the critic at every stage (RL prefixes are also
+    capped), making full-length round-trip evals read artificially low. A small
+    untruncated slice keeps full-length text in-distribution — matching v2's item
+    truncation, which left many rows whole. max_tokens <= 0 → no truncation."""
     if max_tokens <= 0:
         return expl
+    if keep_full_frac > 0.0:
+        if random.Random(f"nla-trunc-keepfull:{seed}:{row_key}").random() < keep_full_frac:
+            return expl
     ids = tokenizer(expl, add_special_tokens=False)["input_ids"]
     k = sample_truncation_length(seed, row_key, min_tokens, max_tokens)
     if k >= len(ids):
@@ -249,7 +260,7 @@ def _maybe_truncate_to_tokens(
 def _build_ar_sft_cols(
     batch: pa.RecordBatch, critic_template: str, suffix_ids: list[int], tokenizer: Any,
     row_offset: int = 0, trunc_max_items: int = 0, trunc_taper: float = 2.0, trunc_seed: int = 0,
-    trunc_min_tokens: int = 1, trunc_max_tokens: int = 0,
+    trunc_min_tokens: int = 1, trunc_max_tokens: int = 0, trunc_keep_full_frac: float = 0.0,
     fmt: str = "tagged",
 ) -> dict[str, pa.Array]:
     api_expl = batch.column("api_explanation").to_pylist()
@@ -261,7 +272,8 @@ def _build_ar_sft_cols(
             expl, row_offset + j, trunc_max_items, trunc_taper, trunc_seed
         )
         expl = _maybe_truncate_to_tokens(
-            expl, row_offset + j, trunc_min_tokens, trunc_max_tokens, trunc_seed, tokenizer
+            expl, row_offset + j, trunc_min_tokens, trunc_max_tokens, trunc_seed, tokenizer,
+            keep_full_frac=trunc_keep_full_frac,
         )
         prompt = critic_template.format(explanation=expl)
         # Verify the tokenized prompt ENDS with the expected suffix IDs.
@@ -314,6 +326,11 @@ def main() -> None:
     p.add_argument("--ar-truncate-min-tokens", type=int, default=1,
                    help="(ar_sft) lower bound of the uniform token-count draw (with "
                         "--ar-truncate-max-tokens).")
+    p.add_argument("--ar-truncate-keep-full-frac", type=float, default=0.0,
+                   help="(ar_sft, with --ar-truncate-max-tokens) fraction of rows left "
+                        "untruncated so full-length text stays in-distribution for the "
+                        "critic (RL prefixes are capped at max_tokens, so without this "
+                        "the critic never sees text longer than max_tokens anywhere).")
     p.add_argument("--ar-truncate-seed", type=int, default=0,
                    help="(ar_sft) seed for the per-row truncation draw.")
     p.add_argument("--keep-debug-metadata", action=argparse.BooleanOptionalAction, default=True,
@@ -406,6 +423,7 @@ def main() -> None:
                         trunc_seed=args.ar_truncate_seed,
                         trunc_min_tokens=args.ar_truncate_min_tokens,
                         trunc_max_tokens=args.ar_truncate_max_tokens,
+                        trunc_keep_full_frac=args.ar_truncate_keep_full_frac,
                         fmt=args.explanation_format,
                     )
                 case "rl":
