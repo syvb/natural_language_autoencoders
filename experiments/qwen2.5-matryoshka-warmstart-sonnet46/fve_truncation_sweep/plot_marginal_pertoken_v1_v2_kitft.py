@@ -18,7 +18,7 @@ SRCS = [
     ("", "v1 RLed NLA", "#d62728", "-", 2.2),
     ("_kitft", "kitft (base verbalizer)", "#888888", "-.", 2.0),
 ]
-YMIN, YMAX = -0.04, 0.14   # clip so the main curves fill the panel
+YMIN, YMAX = -0.05, 0.35   # fit the full raw v1 spike (~0.32); token-1 dips annotated off-scale
 
 
 def load(suf, cap):
