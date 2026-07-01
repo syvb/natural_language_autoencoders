@@ -16,7 +16,6 @@ XCAP_TOK = 120
 WIN = 5
 SRCS = [
     ("_iter0000200", "v2 RL (iter 200)", "#2ca02c", "-", 2.2),
-    ("", "v1 RLed NLA", "#d62728", "-", 2.0),
     ("_kitft", "kitft (base verbalizer)", "#888888", "-.", 2.0),
 ]
 YMIN, YMAX = -0.04, 0.14   # clip so the main curves fill the panel
@@ -56,7 +55,7 @@ if kmin and kmin[0] < YMIN:
                 arrowprops=dict(arrowstyle="->", color="#888888", lw=1))
 ax.set_xlabel("token index in AV explanation (content tokens)")
 ax.set_ylabel(f"additional FVE per token  (ΔFVE, {WIN}-tok rolling mean)")
-ax.set_title("Marginal variance explained per token — v1 vs v2 vs kitft")
+ax.set_title("Marginal variance explained per token — v2 vs kitft")
 ax.grid(alpha=.3); ax.legend(fontsize=10)
 fig.tight_layout()
 out = os.path.join(R, "fig_marginal_pertoken_v1_v2_kitft.png")
