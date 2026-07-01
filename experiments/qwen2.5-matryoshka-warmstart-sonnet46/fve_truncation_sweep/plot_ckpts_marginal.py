@@ -69,18 +69,24 @@ a1.set_xlabel("token index in AV explanation (content tokens)")
 a1.set_ylabel(f"additional FVE per token  (ΔFVE, {WIN}-tok rolling mean)")
 a1.set_xlim(0, XCAP_TOK); a1.set_title("Marginal variance explained per token")
 a1.grid(alpha=.3); a1.legend(fontsize=9)
-a1.set_yscale("symlog", linthresh=0.01)
 
 a2.axhline(0, color="k", lw=.8, alpha=.5)
 a2.set_xlabel("list-item (line) index in AV explanation")
 a2.set_ylabel("additional FVE per list item  (ΔFVE)")
 a2.set_xlim(0, XCAP_LINE); a2.set_title("Marginal variance explained per list item")
 a2.grid(alpha=.3); a2.legend(fontsize=9)
-a2.set_yscale("symlog", linthresh=0.01)
 
+# symlog version (default)
+a1.set_yscale("symlog", linthresh=0.01); a2.set_yscale("symlog", linthresh=0.01)
 fig.suptitle("Additional variance explained per token / per list item — 4 v2 RL checkpoints + v1 NLA (symlog y)",
              y=1.02, fontsize=13)
 fig.tight_layout(); fig.savefig(os.path.join(R, "fve_truncation_ckpts_marginal.png"), dpi=140, bbox_inches="tight")
+# linear version
+a1.set_yscale("linear"); a2.set_yscale("linear")
+a1.relim(); a1.autoscale(axis="y"); a2.relim(); a2.autoscale(axis="y")
+fig.suptitle("Additional variance explained per token / per list item — 4 v2 RL checkpoints + v1 NLA (linear y)",
+             y=1.02, fontsize=13)
+fig.tight_layout(); fig.savefig(os.path.join(R, "fve_truncation_ckpts_marginal_linear.png"), dpi=140, bbox_inches="tight")
 plt.close(fig)
 
 # quick numeric readout: first line/token contribution + where marginal-per-line first goes <=0
