@@ -269,12 +269,11 @@ Three changes over v2, all implemented (scripts `*_v3.sh`, builder
    on `K ~ U[1,120]`-token prefixes (`stage3_build --ar-truncate-max-tokens`,
    same uniform draw RL uses) so step-0 short prefixes are in-distribution, and
    the grad-finiteness guard (`26d9484`) skips any non-finite critic step.
-   ~15% of AR warm-start rows are left untruncated
+   2% of AR warm-start rows are left untruncated
    (`--ar-truncate-keep-full-frac`): RL prefixes are capped at 120 too, so
    without this the critic would never see longer text at ANY stage and
-   full-length round-trip FVE would read artificially low (v2's item
-   truncation left many rows whole — this matches it). For the same reason,
-   compare "full-length" FVE across versions at a common 120-token cap.
+   full-length round-trip FVE would read artificially low. Still compare
+   "full-length" FVE across versions at a common 120-token cap.
    Tokens-mode's `+"<explanation>\n"` budget offset is now format-aware
    (`nla_generate`): 0 when the sidecar template has no tag, so a 1-token
    budget really is 1 content token — `run_rl_v3.sh` also pins
