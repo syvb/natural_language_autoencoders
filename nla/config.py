@@ -188,6 +188,15 @@ def load_nla_config(sidecar_source: str, tokenizer) -> NLAConfig:
     # schema v1 wrote "num_hidden_layers" (clashed with HF's config.json key).
     # v2 writes "extraction_layer_index". Read both for back-compat.
     critic_k = critic_meta.get("extraction_layer_index", critic_meta.get("num_hidden_layers"))
+    if critic_k is None and kind == "nla_dataset":
+        # Dataset sidecars have no critic block, but the extraction layer IS K:
+        # the critic is the K+1-layer truncation of the model the activation came
+        # from. This makes a training parquet a complete critic config source
+        # (needed since the SFT scripts point --nla-sidecar-source at the parquet
+        # so exported checkpoints don't inherit a stale base-model sidecar).
+        # train_actor cross-checks the loaded checkpoint has K+1 layers, so a
+        # wrong value here still fails loudly.
+        critic_k = extraction.get("layer_index")
 
     cfg = NLAConfig(
         d_model=d_model,
