@@ -41,14 +41,17 @@ def thresh(L, F, t):
     return None
 
 
+# (suffix, label, color, ls, lw, marker); the 4 v2 ckpts + the v1 RLed NLA (red dashed) for reference
+SRCS = [(f"_iter{it}", f"iter {int(it)}", COLORS[it], "-", 2.2, "o") for it in ITERS]
+SRCS.append(("", "v1 RLed NLA", "#d62728", "--", 1.8, "^"))
 arms = []
-for it in ITERS:
-    tL, tF = load(f"token_fve_iter{it}.csv", XCAP)
-    fL, fF = load(f"token_fve_iter{it}.csv")
-    kL, kF = load(f"lines_fve_iter{it}.csv")
+for suf, label, color, ls, lw, mk in SRCS:
+    tL, tF = load(f"token_fve{suf}.csv", XCAP)
+    fL, fF = load(f"token_fve{suf}.csv")
+    kL, kF = load(f"lines_fve{suf}.csv")
     if tL is None:
-        print(f"  [skip] iter_{it}: csv missing"); continue
-    arms.append(dict(it=it, label=f"iter {int(it)}", color=COLORS[it], tL=tL, tF=tF, kL=kL, kF=kF,
+        print(f"  [skip] {label}: token_fve{suf}.csv missing"); continue
+    arms.append(dict(label=label, color=color, ls=ls, lw=lw, mk=mk, tL=tL, tF=tF, kL=kL, kF=kF,
                      full=float(fF[-1]), peak=float(fF.max()), peak_at=int(fL[int(fF.argmax())])))
 
 print(f"{'ckpt':10s} {'tok>=0':>7s} {'tok>=.5':>8s} {'peak(@tok)':>12s} {'full':>6s}")
@@ -59,23 +62,23 @@ for d in arms:
 # ---- linear: token + line FVE ----
 fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 5.4))
 for d in arms:
-    a1.plot(d["tL"], d["tF"], color=d["color"], lw=2.2, label=f"{d['label']}  (full={d['full']:.3f})")
+    a1.plot(d["tL"], d["tF"], color=d["color"], ls=d["ls"], lw=d["lw"], label=f"{d['label']}  (full={d['full']:.3f})")
 a1.axhline(0, color="k", lw=.6, alpha=.4); a1.axhline(0.5, color="green", lw=.7, ls=":", alpha=.6)
 a1.set_xlabel("AV explanation truncation length (content tokens)"); a1.set_ylabel("round-trip FVE")
 a1.set_xlim(0, XCAP); a1.set_title("FVE vs token-truncation length"); a1.grid(alpha=.3); a1.legend(loc="lower right", fontsize=9)
 for d in arms:
-    a2.plot(d["kL"], d["kF"], marker="o", ms=3.5, color=d["color"], lw=2.2, label=d["label"])
+    a2.plot(d["kL"], d["kF"], marker=d["mk"], ms=3.5, color=d["color"], ls=d["ls"], lw=d["lw"], label=d["label"])
 a2.axhline(0, color="k", lw=.6, alpha=.4); a2.axhline(0.5, color="green", lw=.7, ls=":", alpha=.6)
 a2.set_xlabel("AV explanation truncation length (lines)"); a2.set_ylabel("round-trip FVE")
 a2.set_xlim(0, 40); a2.set_title("FVE vs line-truncation length"); a2.grid(alpha=.3); a2.legend(loc="lower right", fontsize=9)
-fig.suptitle("Round-trip FVE vs AV-explanation truncation — 4 v2 RL checkpoints (AV+matched critic)", y=1.02, fontsize=13)
+fig.suptitle("Round-trip FVE vs AV-explanation truncation — 4 v2 RL checkpoints + v1 NLA", y=1.02, fontsize=13)
 fig.tight_layout(); fig.savefig(os.path.join(R, "fve_truncation_ckpts_compare.png"), dpi=140, bbox_inches="tight")
 plt.close(fig)
 
 # ---- log-log: unexplained variance 1-FVE ----
 fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 5.4))
 for d in arms:
-    a1.loglog(d["tL"], 1 - d["tF"], color=d["color"], lw=2.2, label=d["label"])
+    a1.loglog(d["tL"], 1 - d["tF"], color=d["color"], ls=d["ls"], lw=d["lw"], label=d["label"])
 for d in arms:
     a1.axhline(1 - d["full"], ls="--", color=d["color"], lw=1, alpha=.5)
 a1.set_xlabel("AV explanation truncation length (content tokens, log)")
@@ -83,13 +86,13 @@ a1.set_ylabel("unexplained variance  1 − FVE  (log)")
 a1.set_xlim(right=XCAP); a1.set_title("Reconstruction error vs token-truncation length")
 a1.grid(which="both", alpha=.3); a1.legend(loc="lower left", fontsize=9)
 for d in arms:
-    a2.loglog(d["kL"], 1 - d["kF"], marker="o", ms=3.5, color=d["color"], lw=2.2, label=d["label"])
+    a2.loglog(d["kL"], 1 - d["kF"], marker=d["mk"], ms=3.5, color=d["color"], ls=d["ls"], lw=d["lw"], label=d["label"])
 for d in arms:
     a2.axhline(1 - d["full"], ls="--", color=d["color"], lw=1, alpha=.5)
 a2.set_xlabel("AV explanation truncation length (lines, log)")
 a2.set_ylabel("unexplained variance  1 − FVE  (log)")
 a2.set_title("Reconstruction error vs line-truncation length"); a2.grid(which="both", alpha=.3); a2.legend(loc="lower left", fontsize=9)
-fig.suptitle("log-log reconstruction error (1 − FVE) vs AV-explanation truncation — 4 v2 RL checkpoints", y=1.02, fontsize=13)
+fig.suptitle("log-log reconstruction error (1 − FVE) vs AV-explanation truncation + v1 NLA", y=1.02, fontsize=13)
 fig.tight_layout(); fig.savefig(os.path.join(R, "fve_truncation_ckpts_compare_loglog.png"), dpi=140, bbox_inches="tight")
 plt.close(fig)
 print("\nwrote fve_truncation_ckpts_compare.png + fve_truncation_ckpts_compare_loglog.png")

@@ -51,15 +51,18 @@ def smooth(y, w):
     return np.convolve(y, k, mode="same")
 
 
+# (suffix, label, color, ls, marker): 4 v2 ckpts + v1 RLed NLA (red dashed)
+SRCS = [(f"_iter{it}", f"iter {int(it)}", COLORS[it], "-", "o") for it in ITERS]
+SRCS.append(("", "v1 RLed NLA", "#d62728", "--", "^"))
+
 fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 5.4))
-for it in ITERS:
-    color = COLORS[it]; lab = f"iter {int(it)}"
-    tL, tF = load(f"token_fve_iter{it}.csv", XCAP_TOK)
+for suf, lab, color, ls, mk in SRCS:
+    tL, tF = load(f"token_fve{suf}.csv", XCAP_TOK)
     if tL is not None:
-        a1.plot(tL, smooth(marginal(tF), WIN), color=color, lw=2.0, label=lab)
-    kL, kF = load(f"lines_fve_iter{it}.csv", XCAP_LINE)
+        a1.plot(tL, smooth(marginal(tF), WIN), color=color, ls=ls, lw=2.0, label=lab)
+    kL, kF = load(f"lines_fve{suf}.csv", XCAP_LINE)
     if kL is not None:
-        a2.plot(kL, marginal(kF), marker="o", ms=3.5, color=color, lw=2.0, label=lab)
+        a2.plot(kL, marginal(kF), marker=mk, ms=3.5, color=color, ls=ls, lw=2.0, label=lab)
 
 a1.axhline(0, color="k", lw=.8, alpha=.5)
 a1.set_xlabel("token index in AV explanation (content tokens)")
@@ -75,18 +78,18 @@ a2.set_xlim(0, XCAP_LINE); a2.set_title("Marginal variance explained per list it
 a2.grid(alpha=.3); a2.legend(fontsize=9)
 a2.set_yscale("symlog", linthresh=0.01)
 
-fig.suptitle("Additional variance explained per token / per list item — 4 v2 RL checkpoints (symlog y)",
+fig.suptitle("Additional variance explained per token / per list item — 4 v2 RL checkpoints + v1 NLA (symlog y)",
              y=1.02, fontsize=13)
 fig.tight_layout(); fig.savefig(os.path.join(R, "fve_truncation_ckpts_marginal.png"), dpi=140, bbox_inches="tight")
 plt.close(fig)
 
 # quick numeric readout: first line/token contribution + where marginal-per-line first goes <=0
-print(f"{'ckpt':10s} {'ΔFVE line1':>10s} {'ΔFVE line2':>10s} {'first K with ΔFVE<0':>20s}")
-for it in ITERS:
-    kL, kF = load(f"lines_fve_iter{it}.csv")
+print(f"{'src':12s} {'ΔFVE line1':>10s} {'ΔFVE line2':>10s} {'first K with ΔFVE<0':>20s}")
+for suf, lab, *_ in SRCS:
+    kL, kF = load(f"lines_fve{suf}.csv")
     if kL is None:
         continue
     m = marginal(kF)
     neg = next((int(kL[i]) for i in range(3, len(m)) if m[i] < 0), None)
-    print(f"iter {int(it):<5d} {m[0]:>10.3f} {m[1]:>10.3f} {str(neg):>20s}")
+    print(f"{lab:12s} {m[0]:>10.3f} {m[1]:>10.3f} {str(neg):>20s}")
 print("\nwrote fve_truncation_ckpts_marginal.png")
