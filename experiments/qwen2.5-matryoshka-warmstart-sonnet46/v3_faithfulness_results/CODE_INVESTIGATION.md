@@ -121,3 +121,31 @@ neutralized it (+0.001), i.e. one concrete thing truncation-RL did to the text
 was *purge low-value meta-commentary and densify everything else* — leaving
 sequence-structural effects, not lexical-class effects, as the only remaining
 variation.
+
+## Addendum 3: the completed paraphrase 2×2 — prediction falsified, story revised
+
+`para_quotes` cell (quotes paraphrased span-by-span, prose byte-identical;
+qpk_result.json). Predicted 0.05–0.17 under the "quotes anchor, prose
+elaborates" story. **Observed: 0.500** — the prediction was wrong.
+
+| quotes \ prose | prose intact | prose paraphrased |
+|---|---|---|
+| **quotes intact** | 0.650 | 0.637 |
+| **quotes paraphrased** | **0.500** | 0.165 |
+| quotes deleted | 0.051 | — |
+
+Rewording EITHER channel alone is tolerable (−0.013 / −0.150); rewording BOTH
+collapses (−0.485 ≫ additive −0.163). And paraphrased quotes are worth +0.45
+over DELETED quotes (0.500 vs 0.051) — most of a quote's value survives
+meaning-preserving rewording, provided the surrounding prose keeps its exact
+form. The information is REDUNDANTLY encoded across the two channels, and the
+critic can absorb rewording in one channel by leaning on exact forms in the
+other; only simultaneous rewording of everything destroys it.
+
+This softens the "brittle lexical code" reading of the original paraphrase
+result: per-channel, the pair is substantially paraphrase-tolerant; the 25%
+retention headline is specifically the cost of rewording ALL surface forms at
+once. Note the asymmetry still holds — quotes intact alone (22% of chars)
+preserves more (0.637) than prose intact alone (78% of chars, 0.500) — quotes
+remain the denser channel per character, but "anchor vs elaboration" was too
+strong; "redundant dual encoding" fits all cells.
