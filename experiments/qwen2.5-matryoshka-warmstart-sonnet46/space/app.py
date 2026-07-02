@@ -120,55 +120,131 @@ def gpu_analyze(token_ids: list[int], idx: int) -> dict:
     return {"lines": lines, "fve": fve, "cos": cos}
 
 
-# ── viz (palette per the validated reference set; text wears ink, not series) ─
+# ── viz + ui (pure CPU; palette per the validated reference set) ─────────────
 CSS = """
-.nlaviz{
-  --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
-  --grid:#e1e0d9; --axis:#c3c2b7; --pos:#2a78d6; --neg:#e34948;
-  --wash:rgba(11,11,11,.04); --ring:rgba(11,11,11,.10);
-  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
-  background:var(--surface); border:1px solid var(--ring); border-radius:12px;
-  padding:16px 18px; color:var(--ink);
+/* layout — overflow:visible: gradio's default overflow:hidden breaks position:sticky */
+.gradio-container{max-width:1360px !important; margin:0 auto !important;
+  overflow:visible !important;}
+#nla-header h1{font-size:23px; margin-bottom:0;}
+#nla-header p{margin-top:6px;}
+#nla-click-idx{display:none !important;}
+.nla-side{position:sticky !important; top:14px; align-self:flex-start !important;}
+
+/* design tokens (light) + dark overrides */
+.gradio-container{
+  --nla-surface:#fcfcfb; --nla-ink:#0b0b0b; --nla-ink2:#52514e; --nla-muted:#898781;
+  --nla-grid:#e1e0d9; --nla-axis:#c3c2b7; --nla-pos:#2a78d6; --nla-neg:#e34948;
+  --nla-warn:#c98500; --nla-wash:rgba(11,11,11,.045); --nla-ring:rgba(11,11,11,.10);
+  --nla-hover:rgba(42,120,214,.16); --nla-sel:#2a78d6;
 }
-.dark .nlaviz{
-  --surface:#1a1a19; --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
-  --grid:#2c2c2a; --axis:#383835; --pos:#3987e5; --neg:#e66767;
-  --wash:rgba(255,255,255,.05); --ring:rgba(255,255,255,.10);
+.dark .gradio-container, .gradio-container.dark{
+  --nla-surface:#1a1a19; --nla-ink:#ffffff; --nla-ink2:#c3c2b7; --nla-muted:#898781;
+  --nla-grid:#2c2c2a; --nla-axis:#383835; --nla-pos:#3987e5; --nla-neg:#e66767;
+  --nla-warn:#c98500; --nla-wash:rgba(255,255,255,.055); --nla-ring:rgba(255,255,255,.10);
+  --nla-hover:rgba(57,135,229,.30); --nla-sel:#3987e5;
 }
+
+/* token panel — long texts scroll inside the panel, never the page */
+.tokpanel{background:var(--nla-surface); border:1px solid var(--nla-ring);
+  border-radius:12px; overflow:hidden;
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
+.tokhead{display:flex; justify-content:space-between; gap:12px; padding:8px 14px;
+  font-size:10.5px; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--nla-muted); border-bottom:1px solid var(--nla-grid);}
+.tokhead .trunc{color:var(--nla-warn); text-transform:none; letter-spacing:0;}
+.tokscroll{padding:12px 14px 16px; max-height:56vh; overflow-y:auto;
+  scrollbar-width:thin; white-space:pre-wrap; overflow-wrap:anywhere;
+  font-size:14px; line-height:2.0; color:var(--nla-ink);}
+.nla-tok{cursor:pointer; border-radius:4px; padding:2.5px 0;}
+.nla-tok:nth-child(2n){background:var(--nla-wash);}
+.nla-tok:hover, .nla-tok:focus-visible{background:var(--nla-hover); outline:none;}
+.nla-tok.sel{background:var(--nla-sel); color:#fff;}
+.nla-tok .nl{color:var(--nla-muted); font-size:10px;}
+.nla-tok.sel .nl{color:rgba(255,255,255,.75);}
+
+/* results card */
+.nlaviz{background:var(--nla-surface); border:1px solid var(--nla-ring);
+  border-radius:12px; padding:16px 18px; color:var(--nla-ink);
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
 .nlaviz .title{font-size:13px; font-weight:600; margin-bottom:2px;}
-.nlaviz .sub{font-size:11.5px; color:var(--ink2); margin-bottom:12px;}
-.nlaviz .chips{display:flex; gap:18px; margin-bottom:14px; flex-wrap:wrap;}
+.nlaviz .sub{font-size:11.5px; color:var(--nla-ink2); margin-bottom:12px;}
+.nlaviz .chips{display:flex; gap:22px; margin-bottom:14px; flex-wrap:wrap;}
 .nlaviz .chip .v{font-size:20px; font-weight:650;}
-.nlaviz .chip .l{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
-.nlaviz .row{display:grid; grid-template-columns:18px minmax(180px,46%) 1fr 62px;
+.nlaviz .chip .l{font-size:10.5px; color:var(--nla-muted); text-transform:uppercase;
+  letter-spacing:.04em; margin-top:1px;}
+.nlaviz .row{display:grid; grid-template-columns:16px minmax(0,1fr) 96px 48px;
   gap:10px; align-items:center; padding:5px 6px; border-radius:6px;}
-.nlaviz .row:hover{background:var(--wash);}
-.nlaviz .idx{font-size:11px; color:var(--muted); text-align:right;
+.nlaviz .row:hover{background:var(--nla-wash);}
+.nlaviz .idx{font-size:11px; color:var(--nla-muted); text-align:right;
   font-variant-numeric:tabular-nums;}
-.nlaviz .line{font-size:12.5px; color:var(--ink); white-space:nowrap;
-  overflow:hidden; text-overflow:ellipsis;}
+.nlaviz .line{font-size:12.5px; line-height:1.45; color:var(--nla-ink);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
 .nlaviz .track{position:relative; height:14px;}
-.nlaviz .zero{position:absolute; top:-3px; bottom:-3px; width:1px; background:var(--axis);}
+.nlaviz .zero{position:absolute; top:-3px; bottom:-3px; width:1px; background:var(--nla-axis);}
 .nlaviz .bar{position:absolute; top:2px; height:10px;}
-.nlaviz .bar.pos{background:var(--pos); border-radius:0 4px 4px 0;}
-.nlaviz .bar.neg{background:var(--neg); border-radius:4px 0 0 4px;}
-.nlaviz .val{font-size:11.5px; color:var(--ink2); text-align:right;
+.nlaviz .bar.pos{background:var(--nla-pos); border-radius:0 4px 4px 0;}
+.nlaviz .bar.neg{background:var(--nla-neg); border-radius:4px 0 0 4px;}
+.nlaviz .val{font-size:11.5px; color:var(--nla-ink2); text-align:right;
   font-variant-numeric:tabular-nums;}
-.nlaviz .axisrow{display:grid; grid-template-columns:18px minmax(180px,46%) 1fr 62px;
+.nlaviz .axisrow{display:grid; grid-template-columns:16px minmax(0,1fr) 96px 48px;
   gap:10px; padding:2px 6px 0;}
-.nlaviz .axislab{position:relative; height:14px; font-size:10px; color:var(--muted);
+.nlaviz .axislab{position:relative; height:14px; font-size:10px; color:var(--nla-muted);
   font-variant-numeric:tabular-nums;}
 .nlaviz .axislab span{position:absolute; transform:translateX(-50%);}
-.nlaviz .note{font-size:11px; color:var(--muted); margin-top:10px;}
-.nlaviz .warn{color:#c98500;}
-.tokwrap .token{cursor:pointer;}
+.nlaviz .note{font-size:11px; color:var(--nla-ink2); margin-top:10px;}
+.nlaviz .warnic{color:var(--nla-warn);}
+.nlaviz .empty{padding:36px 12px; text-align:center; color:var(--nla-muted); font-size:13px;}
 """
+
+# Clicks on the custom token spans are routed to the backend through a hidden
+# textbox (#nla-click-idx): set its value to the token index, dispatch `input`.
+CLICK_JS = """
+() => {
+  const send = (t) => {
+    document.querySelectorAll('.nla-tok.sel').forEach((x) => x.classList.remove('sel'));
+    t.classList.add('sel');
+    const box = document.querySelector('#nla-click-idx textarea, #nla-click-idx input');
+    if (!box) return;
+    box.value = t.dataset.i;
+    box.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('.nla-tok');
+    if (t) send(t);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const t = e.target.closest && e.target.closest('.nla-tok');
+    if (t) { e.preventDefault(); send(t); }
+  });
+}
+"""
+
+
+def _card(msg: str) -> str:
+    return f'<div class="nlaviz"><div class="empty">{msg}</div></div>'
+
+
+EMPTY_CARD = _card("👈 Click any token to read its activation.")
+
+
+def render_tokens(pieces: list[str], n_total: int) -> str:
+    spans = []
+    for i, p in enumerate(pieces):
+        body = html_lib.escape(p).replace("\n", '<span class="nl">⏎</span><br>')
+        spans.append(f'<span class="nla-tok" data-i="{i}" title="#{i}" '
+                     f'role="button" tabindex="0">{body}</span>')
+    trunc = (f' <span class="trunc">✂ truncated to the first {len(pieces)}</span>'
+             if n_total > len(pieces) else "")
+    head = (f'<div class="tokhead"><span>{len(pieces)} tokens{trunc}</span>'
+            f'<span>click a token to analyze it</span></div>')
+    return f'<div class="tokpanel">{head}<div class="tokscroll">{"".join(spans)}</div></div>'
 
 
 def render_viz(state: dict | None, mode: str) -> str:
     if not state:
-        return ""
-    lines, fve = state["lines"], state["fve"]
+        return EMPTY_CARD
+    lines, fve, cos = state["lines"], state["fve"], state["cos"]
     marginal = [fve[0]] + [fve[k] - fve[k - 1] for k in range(1, len(fve))]
     vals = marginal if mode == "marginal" else fve
     title = ("Additional FVE per explanation line (ΔFVE)" if mode == "marginal"
@@ -186,34 +262,37 @@ def render_viz(state: dict | None, mode: str) -> str:
         left = zero_pct if x >= 0 else zero_pct - w
         cls = "pos" if x >= 0 else "neg"
         tip = (f"line {i + 1} — ΔFVE {marginal[i]:+.3f}, cumulative {fve[i]:.3f}, "
-               f"cos {state['cos'][i]:.3f}")
+               f"cos {cos[i]:.3f}")
         rows.append(
             f'<div class="row" title="{html_lib.escape(tip)}">'
             f'<div class="idx">{i + 1}</div>'
-            f'<div class="line">{html_lib.escape(ln)}</div>'
+            f'<div class="line" title="{html_lib.escape(ln)}">{html_lib.escape(ln)}</div>'
             f'<div class="track"><div class="zero" style="left:{zero_pct:.2f}%"></div>'
             f'<div class="bar {cls}" style="left:{left:.2f}%;width:{max(w, 0.4):.2f}%"></div></div>'
             f'<div class="val">{x:+.3f}</div></div>'
         )
+    axis_spans = [f'<span style="left:{zero_pct:.2f}%">0</span>',
+                  f'<span style="left:100%">{hi:.2f}</span>']
+    if zero_pct >= 10:  # negative bars present and the lo label won't collide with "0"
+        axis_spans.insert(0, f'<span style="left:0%">{lo:.2f}</span>')
     axis = (f'<div class="axisrow"><div></div><div></div>'
-            f'<div class="axislab"><span style="left:{zero_pct:.2f}%">0</span>'
-            f'<span style="left:100%">{hi:.2f}</span></div><div></div></div>')
+            f'<div class="axislab">{"".join(axis_spans)}</div><div></div></div>')
 
-    full_fve, full_cos = fve[-1], state["cos"][-1]
     tok_piece = html_lib.escape(state.get("token", ""))
     chips = (
         f'<div class="chips">'
-        f'<div class="chip"><div class="v">{full_fve:.3f}</div><div class="l">FVE · all {len(lines)} lines</div></div>'
-        f'<div class="chip"><div class="v">{full_cos:.3f}</div><div class="l">cosine</div></div>'
+        f'<div class="chip"><div class="v">{fve[-1]:.3f}</div><div class="l">FVE · all {len(lines)} lines</div></div>'
+        f'<div class="chip"><div class="v">{cos[-1]:.3f}</div><div class="l">cosine</div></div>'
         f'<div class="chip"><div class="v">{tok_piece or "—"}</div><div class="l">token @ {state.get("pos", "?")}</div></div>'
         f'</div>'
     )
     notes = []
     if state.get("pos", GOOD_MIN_POS) < GOOD_MIN_POS:
-        notes.append('<span class="warn">⚠ very early position — little left-context; '
-                     'explanations may be generic (training sampled positions ≥ 50).</span>')
+        notes.append('<span class="warnic">⚠</span> very early position — little left-context; '
+                     'explanations may be generic (training sampled positions ≥ 50).')
     if any(CJK_RE.search(ln) for ln in lines):
-        notes.append('<span class="warn">⚠ stray CJK character in output (minor known drift of the RL policy).</span>')
+        notes.append('<span class="warnic">⚠</span> stray CJK character in output '
+                     '(minor known drift of the RL policy).')
     note_html = f'<div class="note">{" ".join(notes)}</div>' if notes else ""
     return (f'<div class="nlaviz"><div class="title">{title}</div>'
             f'<div class="sub">{sub}</div>{chips}{"".join(rows)}{axis}{note_html}</div>')
@@ -223,94 +302,94 @@ def render_viz(state: dict | None, mode: str) -> str:
 def tokenize_text(text: str):
     text = (text or "").strip()
     if not text:
-        return gr.update(value=None), None, "Enter some text first.", ""
-    ids = tok(text, add_special_tokens=True)["input_ids"][:MAX_TEXT_TOKENS]
+        return "", None, _card("Enter some text first.")
+    all_ids = tok(text, add_special_tokens=True)["input_ids"]
+    ids = all_ids[:MAX_TEXT_TOKENS]
     pieces = [tok.decode([t]) for t in ids]
-    spans = [(p, "t1" if j % 2 == 0 else "t2") for j, p in enumerate(pieces)]
-    msg = (f"**{len(ids)} tokens.** Click any token to read its layer-{LAYER} "
-           f"activation through the NLA. Later tokens carry more context.")
-    return spans, {"ids": ids, "pieces": pieces}, msg, ""
+    return render_tokens(pieces, len(all_ids)), {"ids": ids, "pieces": pieces}, EMPTY_CARD
 
 
 def analyze_at(tokstate: dict | None, idx, mode: str):
     if not tokstate:
-        return None, "", "Tokenize some text first."
+        return None, _card("Tokenize some text first.")
     ids, pieces = tokstate["ids"], tokstate["pieces"]
     try:
         idx = int(idx)
     except (TypeError, ValueError):
-        return None, "", "Click a token (or enter a valid position)."
+        return None, _card("Click a token (or enter a valid position).")
     if not (0 <= idx < len(ids)):
-        return None, "", f"Position must be in [0, {len(ids) - 1}]."
+        return None, _card(f"Position must be in [0, {len(ids) - 1}].")
     res = gpu_analyze(ids, idx)
     res["token"] = pieces[idx].strip() or repr(pieces[idx])
     res["pos"] = idx
     if not res["lines"]:
-        return None, "", "The AV produced no output for this activation — try another token."
-    return res, render_viz(res, mode), ""
+        return None, _card("The AV produced no output for this activation — try another token.")
+    return res, render_viz(res, mode)
 
 
-def on_token_click(tokstate: dict | None, mode: str, evt: gr.SelectData):
-    return analyze_at(tokstate, evt.index, mode)
+def on_token_click(tokstate: dict | None, mode: str, idx: str):
+    return analyze_at(tokstate, idx, mode)
 
 
 def analyze_text(text: str, idx, mode: str):
     """Self-contained (text + position) — no State dependency. Powers the
     'Analyze position' button and the public API."""
-    text = (text or "").strip()
-    if not text:
-        return None, "", "Enter some text first."
-    ids = tok(text, add_special_tokens=True)["input_ids"][:MAX_TEXT_TOKENS]
-    pieces = [tok.decode([t]) for t in ids]
-    return analyze_at({"ids": ids, "pieces": pieces}, idx, mode)
+    tokens_html, tokstate, _ = tokenize_text(text)
+    if tokstate is None:
+        return tokens_html, None, None, _card("Enter some text first.")
+    res, viz_html = analyze_at(tokstate, idx, mode)
+    return tokens_html, tokstate, res, viz_html
 
 
 def on_mode_change(state: dict | None, mode: str):
     return render_viz(state, mode)
 
 
-with gr.Blocks(css=CSS, title="NLA v3 explorer") as demo:
+with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
     gr.Markdown(
         "# 🔬 NLA v3 — read a language model's mind, one token at a time\n"
-        "A **natural-language autoencoder** trained on Qwen2.5-7B layer-20 activations: "
-        "an *actor* (AV) verbalizes the activation at the token you click into a "
-        "salience-ordered list, and a *critic* (AR) reconstructs the activation from the text. "
-        "**FVE** (fraction of variance explained) measures how much of the vector the first *k* "
-        "lines recover — truncation-RL trained the actor to front-load what matters. "
-        f"[AV/AR checkpoints](https://huggingface.co/{RL_REPO}) · iter 200, KL 0.03, U[1,120]-token truncation."
+        "A **natural-language autoencoder** for Qwen2.5-7B layer-20 activations: click a token "
+        "and the *actor* verbalizes its activation into a salience-ordered list of lines, while "
+        "the *critic* reconstructs the vector from each line-prefix — the bars show how much of "
+        "the vector (**FVE**, fraction of variance explained) the first *k* lines recover. "
+        "Truncation-RL trained the actor to front-load what matters. "
+        f"[AV/AR checkpoints](https://huggingface.co/{RL_REPO}) · iter 200, KL 0.03, "
+        "U[1,120]-token truncation.",
+        elem_id="nla-header",
     )
-    with gr.Row():
-        with gr.Column(scale=5):
-            text_in = gr.Textbox(label="Text", lines=6,
-                                 placeholder="Paste any text, then Tokenize…",
-                                 value=DEFAULT_TEXTS[0])
-            with gr.Row():
-                tokenize_btn = gr.Button("Tokenize", variant="primary")
-                mode = gr.Radio(["marginal", "cumulative"], value="marginal",
-                                label="FVE view", scale=0)
-            with gr.Row():
-                pos_in = gr.Number(label="…or analyze token position", precision=0,
-                                   value=None, scale=2)
-                pos_btn = gr.Button("Analyze position", scale=1)
-            gr.Examples(examples=[[t] for t in DEFAULT_TEXTS], inputs=[text_in],
-                        label="Try one of these")
-        with gr.Column(scale=7):
-            status = gr.Markdown("")
-            tokens_out = gr.HighlightedText(
-                label="Tokens — click one", combine_adjacent=False, show_legend=False,
-                elem_classes=["tokwrap"],
-                color_map={"t1": "rgba(42,120,214,0.10)", "t2": "rgba(42,120,214,0.22)"},
-            )
-    viz = gr.HTML("")
     tok_state = gr.State(None)
     res_state = gr.State(None)
+    tokens_out = gr.HTML(render=False)
+    viz = gr.HTML(EMPTY_CARD, render=False)
 
-    tokenize_btn.click(tokenize_text, [text_in], [tokens_out, tok_state, status, viz],
+    with gr.Row(equal_height=False):
+        with gr.Column(scale=6):
+            text_in = gr.Textbox(label="Text", lines=5, max_lines=10,
+                                 placeholder="Paste any text, then Tokenize…",
+                                 value=DEFAULT_TEXTS[0])
+            tokenize_btn = gr.Button("Tokenize", variant="primary")
+            gr.Examples(examples=[[t] for t in DEFAULT_TEXTS], inputs=[text_in],
+                        fn=tokenize_text, outputs=[tokens_out, tok_state, viz],
+                        run_on_click=True, label="Or try one of these")
+            tokens_out.render()
+        with gr.Column(scale=5, elem_classes=["nla-side"]):
+            mode = gr.Radio(["marginal", "cumulative"], value="marginal", label="FVE view")
+            viz.render()
+            with gr.Accordion("Analyze a token position by number", open=False):
+                with gr.Row():
+                    pos_in = gr.Number(label="token position", precision=0,
+                                       value=None, scale=2)
+                    pos_btn = gr.Button("Analyze", scale=1)
+    # hidden bridge: CLICK_JS writes the clicked token index here (display:none)
+    click_idx = gr.Textbox(value="", label="clicked token index", elem_id="nla-click-idx")
+
+    tokenize_btn.click(tokenize_text, [text_in], [tokens_out, tok_state, viz],
                        api_name="tokenize")
-    text_in.submit(tokenize_text, [text_in], [tokens_out, tok_state, status, viz])
-    tokens_out.select(on_token_click, [tok_state, mode], [res_state, viz, status])
-    pos_btn.click(analyze_text, [text_in, pos_in, mode], [res_state, viz, status],
-                  api_name="analyze")
+    text_in.submit(tokenize_text, [text_in], [tokens_out, tok_state, viz])
+    click_idx.input(on_token_click, [tok_state, mode, click_idx], [res_state, viz])
+    pos_btn.click(analyze_text, [text_in, pos_in, mode],
+                  [tokens_out, tok_state, res_state, viz], api_name="analyze")
     mode.change(on_mode_change, [res_state, mode], [viz])
+    demo.load(tokenize_text, [text_in], [tokens_out, tok_state, viz])
 
 demo.launch()
