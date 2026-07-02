@@ -8,7 +8,7 @@ Pipeline per click (all on a ZeroGPU slice):
                was built).
   2. VERBALIZE the v3 AV (actor): inject normalize(v, injection_scale) at the
                ㈎ marker embedding, sample a newline list at temperature 1
-               (matching the RL rollout distribution), keep 10 lines.
+               (matching the RL rollout distribution), keep N_LINES lines.
   3. RECONSTRUCT the v3 AR (critic) reads cumulative line prefixes (1..k) and
                predicts v̂_k; FVE_k = 1 − ||n(v̂_k)−n(v)||² / ||n(v)−μ||² with
                μ = population mean of normalized held-out activations (mu.npy).
@@ -38,7 +38,7 @@ from nla_inference import NLACritic
 RL_REPO = "syvb/nla-qwen2.5-7b-L20-v3-rl"
 RL_ITER = "iter_0000200"
 EXTRACTOR_ID = "Qwen/Qwen2.5-7B-Instruct"
-N_LINES = 10
+N_LINES = 9  # lines 10+ tend to degenerate — cap before quality falls off
 MAX_TEXT_TOKENS = 2048
 GOOD_MIN_POS = 10  # early positions have little left-context; training used >=50
 

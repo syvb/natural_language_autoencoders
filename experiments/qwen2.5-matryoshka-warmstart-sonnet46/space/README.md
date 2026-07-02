@@ -24,7 +24,7 @@ layer-20 activations:
   reconstructs the activation from text.
 
 Click any token of any text: the Space extracts the layer-20 hidden state at
-that position, verbalizes it into 10 lines, then reconstructs the vector from
+that position, verbalizes it into 9 lines, then reconstructs the vector from
 cumulative line prefixes and plots **FVE** (fraction of variance explained) per
 line — marginal or cumulative. The v3 pair was RL-trained with random
 token-truncation (~U[1,120]) so the actor front-loads the most

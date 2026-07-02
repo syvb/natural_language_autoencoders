@@ -38,7 +38,7 @@ from nla_inference import NLACritic
 RL_REPO = "syvb/nla-qwen2.5-7b-L20-v3-rl"
 RL_ITER = "iter_0000200"
 EXTRACTOR_ID = "Qwen/Qwen2.5-7B-Instruct"
-N_LINES = 10
+N_LINES = 9  # keep in sync with app.py — lines 10+ tend to degenerate
 MAX_TEXT_TOKENS = 2048
 HERE = Path(__file__).resolve().parent
 
