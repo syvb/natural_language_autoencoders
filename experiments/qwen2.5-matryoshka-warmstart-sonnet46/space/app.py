@@ -21,7 +21,8 @@ import spaces  # must be imported before any CUDA touch
 import html as html_lib
 import json
 import re
-from threading import Thread
+from collections import OrderedDict
+from threading import Lock, Thread
 
 import gradio as gr
 import numpy as np
@@ -108,7 +109,11 @@ class _StopAfterLines(StoppingCriteria):
         return len(_complete_lines(text)) >= N_LINES
 
 
-@spaces.GPU(duration=45)
+# duration: measured worst case ≈11s end-to-end (2048-token prefix, cold
+# worker attach). 30s covers a pathologically slow cold weight-transfer while
+# still beating the 60s default — shorter budgets get better ZeroGPU queue
+# priority for visitors, so don't pad this further.
+@spaces.GPU(duration=30)
 def gpu_analyze(token_ids: list[int], idx: int):
     """Extract activation at token idx, verbalize, score cumulative prefixes.
 
@@ -374,8 +379,37 @@ def tokenize_text(text: str):
         return "", None, _card("Enter some text first.")
     all_ids = tok(text, add_special_tokens=True)["input_ids"]
     ids = all_ids[:MAX_TEXT_TOKENS]
-    pieces = [tok.decode([t]) for t in ids]
+    # one Rust-side batch call vs 2048 sequential decode() round-trips
+    pieces = tok.batch_decode([[t] for t in ids])
     return render_tokens(pieces, len(all_ids)), {"ids": ids, "pieces": pieces}, EMPTY_CARD
+
+
+# Cross-user result cache. Greedy decode ⇒ deterministic, and the whole
+# pipeline depends only on the clicked token's left-context, so the key is the
+# token-id PREFIX ids[:idx+1]. Hits skip the GPU queue and visitor quota
+# entirely — repeat clicks (especially on the preloaded example texts) drop
+# from seconds to network latency. Lives in the main process (not the ZeroGPU
+# worker), so it survives worker eviction. ~20MB at capacity.
+_CACHE_MAX = 1024
+_result_cache: OrderedDict = OrderedDict()  # prefix tuple -> {lines, fve, cos}
+_cache_lock = Lock()
+
+
+def _cache_get(key: tuple) -> dict | None:
+    with _cache_lock:
+        res = _result_cache.get(key)
+        if res is None:
+            return None
+        _result_cache.move_to_end(key)
+        return dict(res)
+
+
+def _cache_put(key: tuple, res: dict) -> None:
+    with _cache_lock:
+        _result_cache[key] = res
+        _result_cache.move_to_end(key)
+        while len(_result_cache) > _CACHE_MAX:
+            _result_cache.popitem(last=False)
 
 
 def analyze_at(tokstate: dict | None, idx, mode: str):
@@ -394,7 +428,12 @@ def analyze_at(tokstate: dict | None, idx, mode: str):
         yield None, _card(f"Position must be in [0, {len(ids) - 1}].")
         return
     meta = {"token": pieces[idx].strip() or repr(pieces[idx]), "pos": idx}
-    res = None
+    key = tuple(ids[: idx + 1])
+    res = _cache_get(key)
+    if res is not None:
+        res.update(meta)
+        yield res, render_viz(res, mode)
+        return
     for res in gpu_analyze(ids, idx):
         res.update(meta)
         if res.get("fve") is None:
@@ -402,6 +441,7 @@ def analyze_at(tokstate: dict | None, idx, mode: str):
     if res is None or not res["lines"]:
         yield None, _card("The AV produced no output for this activation — try another token.")
         return
+    _cache_put(key, {"lines": res["lines"], "fve": res["fve"], "cos": res["cos"]})
     yield res, render_viz(res, mode)
 
 
@@ -471,4 +511,8 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
     mode.change(on_mode_change, [res_state, mode], [viz])
     demo.load(tokenize_text, [text_in], [tokens_out, tok_state, viz])
 
+# Gradio's default_concurrency_limit=1 would serialize ALL visitors through
+# one event slot; ZeroGPU runs concurrent GPU tasks fine (each attaches its
+# own slice), so let clicks from different users proceed in parallel.
+demo.queue(default_concurrency_limit=4)
 demo.launch()
