@@ -11,7 +11,7 @@ from matplotlib import cm, colors
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RES = os.path.join(HERE, "results")
-d = json.load(open(os.path.join(RES, "fve_by_line.json")))
+d = json.load(open(os.path.join(RES, os.environ.get("FBL_JSON", "fve_by_line.json"))))
 
 K = 10
 BAR = "#cfe8f5"        # light blue bar
@@ -52,7 +52,8 @@ for n, ex in enumerate(d["examples"]):
         ax.spines[sp].set_visible(False)
     ax.tick_params(axis="x", labelsize=9)
     fig.tight_layout()
-    out = os.path.join(RES, f"fve_lines_overlay_ex{n}.png")
+    prefix = os.environ.get("FBL_PREFIX", "fve_lines_overlay_ex")
+    out = os.path.join(RES, f"{prefix}{n}.png")
     fig.savefig(out, dpi=140, bbox_inches="tight")
     plt.close(fig)
     print(f"wrote {os.path.basename(out)}  (doc {ex['doc_id']}, FVE@1={fves[0]:.2f} @{K}={fves[-1]:.2f})")
