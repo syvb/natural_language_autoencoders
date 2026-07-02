@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NLA v3 — activation explorer (precomputed)</title>
+<style>
+/* Ported from the Space's app.py CSS — keep the two visually in sync.
+   Palette = the Space's validated set; light + dark via media query,
+   overridable with <html data-theme="light|dark"> (?theme= query param). */
+:root{
+  --nla-surface:#fcfcfb; --nla-page:#f6f6f4; --nla-ink:#0b0b0b; --nla-ink2:#52514e;
+  --nla-muted:#898781; --nla-grid:#e1e0d9; --nla-axis:#c3c2b7; --nla-pos:#2a78d6;
+  --nla-neg:#e34948; --nla-warn:#c98500; --nla-wash:rgba(11,11,11,.045);
+  --nla-ring:rgba(11,11,11,.10); --nla-hover:rgba(42,120,214,.16); --nla-sel:#2a78d6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme=light]){
+    --nla-surface:#1a1a19; --nla-page:#111110; --nla-ink:#ffffff; --nla-ink2:#c3c2b7;
+    --nla-muted:#898781; --nla-grid:#2c2c2a; --nla-axis:#383835; --nla-pos:#3987e5;
+    --nla-neg:#e66767; --nla-warn:#c98500; --nla-wash:rgba(255,255,255,.055);
+    --nla-ring:rgba(255,255,255,.10); --nla-hover:rgba(57,135,229,.30); --nla-sel:#3987e5;
+  }
+}
+:root[data-theme=dark]{
+  --nla-surface:#1a1a19; --nla-page:#111110; --nla-ink:#ffffff; --nla-ink2:#c3c2b7;
+  --nla-muted:#898781; --nla-grid:#2c2c2a; --nla-axis:#383835; --nla-pos:#3987e5;
+  --nla-neg:#e66767; --nla-warn:#c98500; --nla-wash:rgba(255,255,255,.055);
+  --nla-ring:rgba(255,255,255,.10); --nla-hover:rgba(57,135,229,.30); --nla-sel:#3987e5;
+}
+*{box-sizing:border-box;}
+body{margin:0; background:var(--nla-page); color:var(--nla-ink);
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
+.wrap{max-width:1200px; margin:0 auto; padding:14px 16px 18px;}
+header h1{font-size:18px; margin:0 0 2px;}
+header p{margin:0 0 12px; font-size:12.5px; color:var(--nla-ink2); line-height:1.5;}
+header a{color:var(--nla-pos); text-decoration:none;}
+header a:hover{text-decoration:underline;}
+
+.tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;}
+.tabs button{font:inherit; font-size:12px; padding:5px 12px; border-radius:999px;
+  border:1px solid var(--nla-ring); background:var(--nla-surface);
+  color:var(--nla-ink2); cursor:pointer;}
+.tabs button:hover{background:var(--nla-wash);}
+.tabs button.on{background:var(--nla-sel); border-color:var(--nla-sel); color:#fff;}
+
+.cols{display:grid; grid-template-columns:minmax(0,6fr) minmax(0,5fr); gap:14px;
+  align-items:start;}
+@media (max-width:880px){ .cols{grid-template-columns:minmax(0,1fr);} .side{position:static;} }
+.side{position:sticky; top:12px;}
+
+.modebar{display:flex; gap:0; margin-bottom:8px; border:1px solid var(--nla-ring);
+  border-radius:8px; overflow:hidden; width:max-content; background:var(--nla-surface);}
+.modebar button{font:inherit; font-size:11.5px; padding:5px 12px; border:none;
+  background:transparent; color:var(--nla-ink2); cursor:pointer;}
+.modebar button.on{background:var(--nla-sel); color:#fff;}
+
+/* token panel */
+.tokpanel{background:var(--nla-surface); border:1px solid var(--nla-ring);
+  border-radius:12px; overflow:hidden;}
+.tokhead{display:flex; justify-content:space-between; gap:12px; padding:8px 14px;
+  font-size:10.5px; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--nla-muted); border-bottom:1px solid var(--nla-grid);}
+.tokscroll{padding:12px 14px 16px; max-height:62vh; overflow-y:auto;
+  scrollbar-width:thin; white-space:pre-wrap; overflow-wrap:anywhere;
+  font-size:14px; line-height:2.0; color:var(--nla-ink);}
+.nla-tok{cursor:pointer; border-radius:4px; padding:2.5px 0;}
+.nla-tok:nth-child(2n){background:var(--nla-wash);}
+.nla-tok:hover, .nla-tok:focus-visible{background:var(--nla-hover); outline:none;}
+.nla-tok.sel{background:var(--nla-sel); color:#fff;}
+.nla-tok .nl{color:var(--nla-muted); font-size:10px;}
+.nla-tok.sel .nl{color:rgba(255,255,255,.75);}
+
+/* results card */
+.nlaviz{background:var(--nla-surface); border:1px solid var(--nla-ring);
+  border-radius:12px; padding:16px 18px; color:var(--nla-ink);}
+.nlaviz .title{font-size:13px; font-weight:600; margin-bottom:2px;}
+.nlaviz .sub{font-size:11.5px; color:var(--nla-ink2); margin-bottom:12px;}
+.nlaviz .chips{display:flex; gap:22px; margin-bottom:14px; flex-wrap:wrap;}
+.nlaviz .chip .v{font-size:20px; font-weight:650;}
+.nlaviz .chip .l{font-size:10.5px; color:var(--nla-muted); text-transform:uppercase;
+  letter-spacing:.04em; margin-top:1px;}
+.nlaviz .row{display:grid; grid-template-columns:16px minmax(0,1fr) 96px 48px;
+  gap:10px; align-items:center; padding:5px 6px; border-radius:6px;}
+.nlaviz .row:hover{background:var(--nla-wash);}
+.nlaviz .idx{font-size:11px; color:var(--nla-muted); text-align:right;
+  font-variant-numeric:tabular-nums;}
+.nlaviz .line{font-size:12.5px; line-height:1.45; color:var(--nla-ink);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.nlaviz .track{position:relative; height:14px;}
+.nlaviz .zero{position:absolute; top:-3px; bottom:-3px; width:1px; background:var(--nla-axis);}
+.nlaviz .bar{position:absolute; top:2px; height:10px;}
+.nlaviz .bar.pos{background:var(--nla-pos); border-radius:0 4px 4px 0;}
+.nlaviz .bar.neg{background:var(--nla-neg); border-radius:4px 0 0 4px;}
+.nlaviz .val{font-size:11.5px; color:var(--nla-ink2); text-align:right;
+  font-variant-numeric:tabular-nums;}
+.nlaviz .axisrow{display:grid; grid-template-columns:16px minmax(0,1fr) 96px 48px;
+  gap:10px; padding:2px 6px 0;}
+.nlaviz .axislab{position:relative; height:14px; font-size:10px; color:var(--nla-muted);
+  font-variant-numeric:tabular-nums;}
+.nlaviz .axislab span{position:absolute; transform:translateX(-50%);}
+.nlaviz .note{font-size:11px; color:var(--nla-ink2); margin-top:10px;}
+.nlaviz .warnic{color:var(--nla-warn);}
+.nlaviz .empty{padding:36px 12px; text-align:center; color:var(--nla-muted); font-size:13px;}
+
+footer{margin-top:12px; font-size:11px; color:var(--nla-muted);}
+footer a{color:var(--nla-pos); text-decoration:none;}
+footer a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🔬 NLA v3 — read a language model's mind, one token at a time</h1>
+    <p>A <b>natural-language autoencoder</b> for Qwen2.5-7B layer-20 activations:
+    click a token and the <i>actor</i> verbalizes its activation into a
+    salience-ordered list of lines, while the <i>critic</i> reconstructs the vector
+    from each line-prefix — the bars show how much of the vector
+    (<b>FVE</b>, fraction of variance explained) the first <i>k</i> lines recover.
+    Every result below is a precomputed greedy decode; to analyze <i>your own</i>
+    text, use the <a href="https://huggingface.co/spaces/syvb/nla-v3-explorer"
+    target="_blank" rel="noopener">live Space</a>.</p>
+  </header>
+  <div class="tabs" id="tabs"></div>
+  <div class="cols">
+    <section id="tok-slot">
+      <div class="tokpanel"><div class="tokscroll" id="loading">loading precomputed data…</div></div>
+    </section>
+    <aside class="side">
+      <div class="modebar" id="modebar" hidden>
+        <button data-m="marginal" class="on">marginal ΔFVE</button>
+        <button data-m="cumulative">cumulative FVE</button>
+      </div>
+      <div id="viz-slot"></div>
+    </aside>
+  </div>
+  <footer id="foot"></footer>
+</div>
+<script>
+"use strict";
+// Injected by build_embed.py: {"url": "..."} to fetch, or {"inline": {...}}.
+const DATA_SOURCE = __DATA_SOURCE__;
+const GOOD_MIN_POS = 10;
+const CJK_RE = /[　-ヿ㐀-䶿一-鿿＀-￯]/;
+
+let DATA = null, curText = 0, curPos = null, mode = "marginal";
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const f3 = (x) => x.toFixed(3);
+const s3 = (x) => (x >= 0 ? "+" : "") + x.toFixed(3);
+
+function card(msg) {
+  return `<div class="nlaviz"><div class="empty">${msg}</div></div>`;
+}
+
+function renderTabs() {
+  $("#tabs").innerHTML = DATA.entries.map((e, i) =>
+    `<button data-t="${i}" title="${esc(e.text.slice(0, 90))}…"
+       class="${i === curText ? "on" : ""}">Example ${i + 1}</button>`).join("");
+}
+
+function renderTokens() {
+  const e = DATA.entries[curText];
+  const spans = e.pieces.map((p, i) => {
+    const body = esc(p).replace(/\n/g, '<span class="nl">⏎</span><br>');
+    const sel = i === curPos ? " sel" : "";
+    return `<span class="nla-tok${sel}" data-i="${i}" title="#${i}" role="button" tabindex="0">${body}</span>`;
+  }).join("");
+  $("#tok-slot").innerHTML =
+    `<div class="tokpanel"><div class="tokhead"><span>${e.pieces.length} tokens · precomputed</span>` +
+    `<span>click a token to inspect it</span></div>` +
+    `<div class="tokscroll">${spans}</div></div>`;
+}
+
+function renderViz() {
+  if (curPos === null) { $("#viz-slot").innerHTML = card("👈 Click any token to read its activation."); return; }
+  const e = DATA.entries[curText];
+  const res = e.results[curPos];
+  if (!res) { $("#viz-slot").innerHTML = card("This position wasn't precomputed — try it on the live Space."); return; }
+  const { lines, fve, cos } = res;
+  const marginal = fve.map((v, k) => k === 0 ? v : v - fve[k - 1]);
+  const vals = mode === "marginal" ? marginal : fve;
+  const title = mode === "marginal" ? "Additional FVE per explanation line (ΔFVE)"
+                                    : "Cumulative round-trip FVE by explanation-line prefix";
+  const sub = mode === "marginal" ? "how much reconstruction each successive line adds"
+                                  : "reconstruction quality from lines 1..k only";
+  const lo = Math.min(0, Math.min(...vals)), hi = Math.max(0.05, Math.max(...vals));
+  const span = hi - lo, zeroPct = (0 - lo) / span * 100;
+
+  const rows = lines.map((ln, i) => {
+    const x = vals[i], w = Math.abs(x) / span * 100;
+    const left = x >= 0 ? zeroPct : zeroPct - w;
+    const cls = x >= 0 ? "pos" : "neg";
+    const tip = `line ${i + 1} — ΔFVE ${s3(marginal[i])}, cumulative ${f3(fve[i])}, cos ${f3(cos[i])}`;
+    return `<div class="row" title="${esc(tip)}"><div class="idx">${i + 1}</div>` +
+      `<div class="line" title="${esc(ln)}">${esc(ln)}</div>` +
+      `<div class="track"><div class="zero" style="left:${zeroPct.toFixed(2)}%"></div>` +
+      `<div class="bar ${cls}" style="left:${left.toFixed(2)}%;width:${Math.max(w, 0.4).toFixed(2)}%"></div></div>` +
+      `<div class="val">${s3(x)}</div></div>`;
+  }).join("");
+
+  const axisSpans = [`<span style="left:${zeroPct.toFixed(2)}%">0</span>`,
+                     `<span style="left:100%">${hi.toFixed(2)}</span>`];
+  if (zeroPct >= 10) axisSpans.unshift(`<span style="left:0%">${lo.toFixed(2)}</span>`);
+  const axis = `<div class="axisrow"><div></div><div></div>` +
+    `<div class="axislab">${axisSpans.join("")}</div><div></div></div>`;
+
+  const piece = e.pieces[curPos].trim() || JSON.stringify(e.pieces[curPos]);
+  const chips = `<div class="chips">` +
+    `<div class="chip"><div class="v">${f3(fve[fve.length - 1])}</div><div class="l">FVE · all ${lines.length} lines</div></div>` +
+    `<div class="chip"><div class="v">${f3(cos[cos.length - 1])}</div><div class="l">cosine</div></div>` +
+    `<div class="chip"><div class="v">${esc(piece)}</div><div class="l">token @ ${curPos}</div></div></div>`;
+
+  const notes = [];
+  if (curPos < GOOD_MIN_POS)
+    notes.push('<span class="warnic">⚠</span> very early position — little left-context; ' +
+               'explanations may be generic (training sampled positions ≥ 50).');
+  if (lines.some((ln) => CJK_RE.test(ln)))
+    notes.push('<span class="warnic">⚠</span> stray CJK character in output ' +
+               '(minor known drift of the RL policy).');
+  const noteHtml = notes.length ? `<div class="note">${notes.join(" ")}</div>` : "";
+
+  $("#viz-slot").innerHTML = `<div class="nlaviz"><div class="title">${title}</div>` +
+    `<div class="sub">${sub}</div>${chips}${rows}${axis}${noteHtml}</div>`;
+}
+
+function syncHash() {
+  try {
+    const h = `#t=${curText}` + (curPos !== null ? `&p=${curPos}` : "") + `&m=${mode}`;
+    history.replaceState(null, "", h);
+  } catch (e) { /* sandboxed iframes may forbid this */ }
+}
+
+function selectText(t, pos = null) {
+  curText = t; curPos = pos;
+  renderTabs(); renderTokens(); renderViz(); syncHash();
+}
+
+function boot(data) {
+  if (!data.entries || !data.entries.every((e) => e.pieces)) {
+    $("#tok-slot").innerHTML = card(
+      "precache.json predates the 'pieces' field — regenerate it (precompute_on_vast.sh) and redeploy.");
+    return;
+  }
+  DATA = data;
+  $("#modebar").hidden = false;
+  const m = (location.hash.match(/[#&]m=(\w+)/) || [])[1];
+  if (m === "cumulative" || m === "marginal") mode = m;
+  document.querySelectorAll("#modebar button").forEach((b) =>
+    b.classList.toggle("on", b.dataset.m === mode));
+  const t = Math.min(parseInt((location.hash.match(/[#&]t=(\d+)/) || [])[1] || "0", 10) || 0,
+                     DATA.entries.length - 1);
+  const pRaw = (location.hash.match(/[#&]p=(\d+)/) || [])[1];
+  const p = pRaw === undefined ? null :
+    Math.min(parseInt(pRaw, 10), DATA.entries[t].pieces.length - 1);
+  selectText(t, p);
+  const d = new Date((DATA.meta.generated_unix || 0) * 1000);
+  $("#foot").innerHTML = `Precomputed greedy decodes of
+    <a href="https://huggingface.co/${esc(DATA.meta.rl_repo)}" target="_blank"
+    rel="noopener">${esc(DATA.meta.rl_repo)}</a> (${esc(DATA.meta.rl_iter)})
+    · generated ${d.toISOString().slice(0, 10)}
+    · <a href="https://huggingface.co/spaces/syvb/nla-v3-explorer" target="_blank"
+    rel="noopener">analyze your own text on the live Space</a>`;
+}
+
+document.addEventListener("click", (ev) => {
+  const tok = ev.target.closest(".nla-tok");
+  if (tok) {
+    document.querySelectorAll(".nla-tok.sel").forEach((x) => x.classList.remove("sel"));
+    tok.classList.add("sel");
+    curPos = +tok.dataset.i; renderViz(); syncHash(); return;
+  }
+  const tab = ev.target.closest(".tabs button");
+  if (tab) { selectText(+tab.dataset.t); return; }
+  const mb = ev.target.closest("#modebar button");
+  if (mb) {
+    mode = mb.dataset.m;
+    document.querySelectorAll("#modebar button").forEach((b) =>
+      b.classList.toggle("on", b === mb));
+    renderViz(); syncHash();
+  }
+});
+document.addEventListener("keydown", (ev) => {
+  if (ev.key !== "Enter" && ev.key !== " ") return;
+  const tok = ev.target.closest && ev.target.closest(".nla-tok");
+  if (tok) { ev.preventDefault(); tok.click(); }
+});
+
+const themeParam = new URLSearchParams(location.search).get("theme");
+if (themeParam === "dark" || themeParam === "light")
+  document.documentElement.dataset.theme = themeParam;
+
+if (DATA_SOURCE.inline) {
+  boot(DATA_SOURCE.inline);
+} else {
+  fetch(DATA_SOURCE.url).then((r) => {
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  }).then(boot).catch((err) => {
+    $("#tok-slot").innerHTML = card(
+      `couldn't load precomputed data (${esc(String(err))}) — ` +
+      `<a href="https://huggingface.co/spaces/syvb/nla-v3-explorer">use the live Space</a>`);
+  });
+}
+</script>
+</body>
+</html>

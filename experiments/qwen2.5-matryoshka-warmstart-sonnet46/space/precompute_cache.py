@@ -75,7 +75,10 @@ def main() -> None:
     docs = []
     for text in texts:
         ids = tok(text.strip(), add_special_tokens=True)["input_ids"][:MAX_TEXT_TOKENS]
-        docs.append({"text": text, "ids": ids})
+        # pieces: per-token display strings — unused by app.py (it re-derives
+        # them) but required by the static embed page (build_embed.py).
+        docs.append({"text": text, "ids": ids,
+                     "pieces": tok.batch_decode([[t] for t in ids])})
     flat = [(d_i, idx) for d_i, d in enumerate(docs) for idx in range(len(d["ids"]))]
     print(f"{len(docs)} texts, {len(flat)} positions total", flush=True)
 
@@ -158,7 +161,7 @@ def main() -> None:
     pos = 0
     for d in docs:
         n = len(d["ids"])
-        entries.append({"text": d["text"], "ids": d["ids"],
+        entries.append({"text": d["text"], "ids": d["ids"], "pieces": d["pieces"],
                         "results": results[pos : pos + n]})
         pos += n
     payload = {

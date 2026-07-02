@@ -52,6 +52,14 @@ Checkpoints: [syvb/nla-qwen2.5-7b-L20-v3-rl](https://huggingface.co/syvb/nla-qwe
 - `deploy.sh` — regenerates assets, **vendors `nla_inference.py` from the repo
   root** (not committed here, to avoid a drifting duplicate), and uploads to
   `syvb/nla-v3-explorer`.
+- `embed.html` — fully static, client-side explorer for embedding in posts
+  (no Gradio, no GPU, no server). It fetches `precache.json` from the Space
+  repo (CORS-enabled), so redeploying the Space refreshes its data with no
+  HTML rebuild. Deep links: `#t=<text>&p=<pos>&m=<marginal|cumulative>`;
+  theme override: `?theme=dark|light`.
+- `build_embed.py` — regenerates `embed.html` from `embed_template.html`.
+  Only needed when the template changes; `--inline` bakes the data into a
+  self-contained ~0.5MB file (no network needed at view time).
 
 Deploy: `bash deploy.sh` (needs `~/.hf_token`). The `NLACritic` class and the
 injection/normalization helpers come from the repo-root `nla_inference.py`.
