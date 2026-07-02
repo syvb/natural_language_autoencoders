@@ -99,7 +99,9 @@ def extract(texts):
 
 
 base_acts = extract(NEUTRAL_BASES)
-del bm
+# `layers` still references ALL 28 original decoder layers — without dropping it
+# ~15GB stays resident after `del bm` and a 24GB card OOMs loading the AV.
+del bm, layers
 torch.cuda.empty_cache()
 V = np.load(DIRS)
 
