@@ -143,6 +143,16 @@ for trait in TRAITS:
         bn = float(np.linalg.norm(b))
         for r in R_GRID:
             conds.append((trait, r, bi, (b + r * bn * vh).astype(np.float32)))
+
+# Optional sharding for multi-GPU fan-out: SHARD=i NSHARDS=n takes conds[i::n]
+# (deterministic — conds order is fixed by the loops above). Merge the per-shard
+# JSONs by concatenation; row order across shards doesn't matter downstream
+# (consumers group by (trait, r, base_idx)).
+SHARD = int(os.environ.get("SHARD", "0"))
+NSHARDS = int(os.environ.get("NSHARDS", "1"))
+if NSHARDS > 1:
+    conds = conds[SHARD::NSHARDS]
+    print(f"shard {SHARD}/{NSHARDS}", flush=True)
 print(f"conditions: {len(conds)}", flush=True)
 
 rows = []
