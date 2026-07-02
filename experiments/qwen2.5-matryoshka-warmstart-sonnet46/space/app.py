@@ -7,7 +7,8 @@ Pipeline per click (all on a ZeroGPU slice):
                at the last token of the truncated prefix (how training data
                was built).
   2. VERBALIZE the v3 AV (actor): inject normalize(v, injection_scale) at the
-               ㈎ marker embedding, greedy-decode a newline list, keep 10 lines.
+               ㈎ marker embedding, sample a newline list at temperature 1
+               (matching the RL rollout distribution), keep 10 lines.
   3. RECONSTRUCT the v3 AR (critic) reads cumulative line prefixes (1..k) and
                predicts v̂_k; FVE_k = 1 − ||n(v̂_k)−n(v)||² / ||n(v)−μ||² with
                μ = population mean of normalized held-out activations (mu.npy).
@@ -134,7 +135,11 @@ def gpu_analyze(token_ids: list[int], idx: int):
         gen = Thread(target=av.generate, kwargs=dict(  # generate() is no_grad
             inputs_embeds=emb,
             attention_mask=torch.ones(1, emb.shape[1], device="cuda", dtype=torch.long),
-            max_new_tokens=220, do_sample=False, pad_token_id=tok.eos_token_id,
+            # temperature-1 sampling (never greedy) — matches the RL rollout
+            # distribution. top_p/top_k passed explicitly so a checkpoint's
+            # generation_config.json can never silently reshape the sampling.
+            max_new_tokens=220, do_sample=True, temperature=1.0, top_p=1.0,
+            top_k=0, pad_token_id=tok.eos_token_id,
             stopping_criteria=StoppingCriteriaList([_StopAfterLines()]),
             streamer=streamer,
         ))
@@ -384,7 +389,8 @@ def tokenize_text(text: str):
     return render_tokens(pieces, len(all_ids)), {"ids": ids, "pieces": pieces}, EMPTY_CARD
 
 
-# Cross-user result cache. Greedy decode ⇒ deterministic, and the whole
+# Cross-user result cache: one temperature-1 sample per position, first
+# computation wins and everyone sees that stored sample afterwards. The
 # pipeline depends only on the clicked token's left-context, so the key is the
 # token-id PREFIX ids[:idx+1]. Hits skip the GPU queue and visitor quota
 # entirely — repeat clicks (especially on the preloaded example texts) drop

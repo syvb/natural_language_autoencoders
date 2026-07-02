@@ -261,7 +261,7 @@ function boot(data) {
     Math.min(parseInt(pRaw, 10), DATA.entries[t].pieces.length - 1);
   selectText(t, p);
   const d = new Date((DATA.meta.generated_unix || 0) * 1000);
-  $("#foot").innerHTML = `Precomputed greedy decodes of
+  $("#foot").innerHTML = `Precomputed samples from
     <a href="https://huggingface.co/${esc(DATA.meta.rl_repo)}" target="_blank"
     rel="noopener">${esc(DATA.meta.rl_repo)}</a> (${esc(DATA.meta.rl_iter)})
     · generated ${d.toISOString().slice(0, 10)}

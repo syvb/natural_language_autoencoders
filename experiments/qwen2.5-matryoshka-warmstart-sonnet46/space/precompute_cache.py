@@ -9,10 +9,10 @@ Mirrors app.py's per-click pipeline (KEEP IN SYNC — same sidecar-driven
 config, same line splitting, same FVE formula):
   1. EXTRACT   truncated base model, layer-LAYER hidden state at each position
                (forwarded per-prefix, exactly like a click).
-  2. VERBALIZE the AV greedy-decodes the injected vector. Batched across
-               positions — greedy is prefix-stable, so taking the first
-               N_LINES lines of a full 220-token decode equals app.py's
-               stop-after-N-lines early exit (up to bf16 batch noise).
+  2. VERBALIZE the AV samples one decode per position at temperature 1
+               (never greedy — matches the RL rollout distribution and
+               app.py). Batched; the first N_LINES complete lines of a
+               220-token sample are kept, same post-processing as app.py.
   3. RECONSTRUCT critic scores cumulative line prefixes; FVE vs mu.npy.
 
 Needs ~16GB VRAM (models are loaded one stage at a time) and ~45GB of HF
@@ -101,7 +101,7 @@ def main() -> None:
     torch.cuda.empty_cache()
     print(f"extraction done in {time.time() - t0:.0f}s", flush=True)
 
-    # ── stage 2: AV verbalization, batched greedy ─────────────────────────────
+    # ── stage 2: AV verbalization, batched temperature-1 sampling ─────────────
     t0 = time.time()
     av = AutoModelForCausalLM.from_pretrained(av_dir, torch_dtype=torch.bfloat16)
     av.to("cuda").eval()
@@ -124,7 +124,10 @@ def main() -> None:
             out = av.generate(
                 inputs_embeds=emb,
                 attention_mask=torch.ones(emb.shape[:2], device="cuda", dtype=torch.long),
-                max_new_tokens=220, do_sample=False, pad_token_id=tok.eos_token_id,
+                # explicit top_p/top_k: a checkpoint's generation_config.json
+                # must never silently reshape the sampling (keep in sync w/ app.py)
+                max_new_tokens=220, do_sample=True, temperature=1.0, top_p=1.0,
+                top_k=0, pad_token_id=tok.eos_token_id,
             )  # inputs_embeds ⇒ returns generated tokens only
             for text in tok.batch_decode(out, skip_special_tokens=True):
                 all_lines.append(
