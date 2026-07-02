@@ -1,0 +1,39 @@
+AV: inj_char='㈎' id=149705 neighbors=(29,522) injection_scale=150.0
+prefix lengths (content tokens): [1, 2, 5, 10, 30, 60, 120] + full
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 171.23it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 148.50it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /workspace/hf_dl/ar_v3 and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+mse_scale=59.86651818838306
+evaluating 150 samples from 150 docs
+  16/150  (cjk so far=0)
+  32/150  (cjk so far=0)
+  48/150  (cjk so far=0)
+  64/150  (cjk so far=0)
+  80/150  (cjk so far=0)
+  96/150  (cjk so far=0)
+  112/150  (cjk so far=0)
+  128/150  (cjk so far=0)
+  144/150  (cjk so far=0)
+  150/150  (cjk so far=0)
+
+========================================================================
+N=150  mse_scale=59.867  raw-mean baseline (denom)=0.7293
+CJK-in-AV-output: 0/150
+------------------------------------------------------------------------
+INFORMATION-UPFRONT — round-trip FVE by AV content-token prefix length:
+    prefix       FVE   dir-MSE     cos
+         1   -0.3116    0.9565   0.522
+         2   -0.2188    0.8889   0.556
+         5    0.0044    0.7261   0.637
+        10    0.1098    0.6492   0.675
+        30    0.3494    0.4745   0.763
+        60    0.4439    0.4056   0.797
+       120    0.4726    0.3846   0.808
+      full    0.4438    0.4057   0.797
+------------------------------------------------------------------------
+CRITIC-ONLY (gold Sonnet text, full -> AR):  FVE=0.4757  dir-MSE=0.3824  cos=0.8088
+========================================================================
+FVE_EVAL_DONE

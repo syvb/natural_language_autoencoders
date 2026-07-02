@@ -1,0 +1,164 @@
+sidecar OK: bullets template, inj=㈎/149705, scale=150.0
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:03,  1.05s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:02<00:02,  1.06s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:03<00:01,  1.00s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.43it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.22it/s]
+
+=== sample 0 (row 0, CJK_chars=0) ===
+MODEL:
+"some of" opens a noun phrase requiring completion
+List of accomplishments being enumerated, more items expected
+Biographical profile genre, third-person celebratory tone continues
+Subject's musical talent being highlighted, songwriting likely next
+Pattern of superlatives and achievements building throughout text
+"some of" typically precedes "her own" or "the best" here
+Transition from acting to music career being established
+Sentence structure mirrors earlier "not only...but also" pattern
+Informal, enthusiastic fan-blog register maintained throughout
+Specific song titles or accolades may follow the noun phrase.
+--- GOLD:
+"of" opens an incomplete noun phrase requiring completion
+Object of "writes some of" expects music-related noun ("her own songs/music")
+Parallel structure: singing ability stated, songwriting elaborated next
+List item #4 still being described with biographical/achievement details
+Listicle format signals more facts follow after this item concludes
+Laudatory, celebratory tone about Nia Franklin cont
+
+=== sample 1 (row 628, CJK_chars=0) ===
+MODEL:
+"are" opens a predicate requiring noun phrase or adjective complement
+Product description genre expects technical specifications to follow
+"2000 Series" signals a product line, model details likely next
+Pattern of product listings continues; description elaborates features
+Technical networking domain: expect specs like speed, compatibility, features
+Previous entries described features; this entry likely mirrors that structure
+"high performance" adjective pair suggests continued positive marketing language
+List of products implies this entry will be brief, like prior entries
+Passive or active construction describing product capabilities expected
+Price or availability information may follow the product description sentence.
+--- GOLD:
+"Are" is a linking verb expecting predicate complement
+Product description genre: specifications or features follow
+Specific model introduced, technical details now expected
+List pattern established: features/specs enumerated with commas
+Commercial catalog tone: promotional yet informative language
+GarrettCom 5846 is a specific industrial networking device
+"Serial Fiber Links" suggests data transm
+
+=== sample 2 (row 1259, CJK_chars=0) ===
+MODEL:
+Final token "thereby" signals an upcoming causal consequence clause
+Causal chain: removing dead material leads to specific ecological benefit
+List of ecological benefits pattern continues, another expected
+Formal conservation report register, technical ecological vocabulary expected
+Parallel structure: "removing X, Y, and Z" pattern completing
+Soil/aeration topic just introduced, related ecological benefit follows
+Sentence incomplete; subordinate clause or noun phrase required next
+Document lists multiple ecological benefits; another benefit likely follows
+Passive/nominalized constructions dominate; similar phrasing expected next
+Section on ecological benefits still ongoing; more benefits may follow after this sentence.
+--- GOLD:
+"Thereby" signals an imminent consequence or result clause
+Ongoing list of fire/burn benefits, another item expected
+Listicle format (5 items) with item 3 of 5 in progress
+Parallel grammatical structure: "help reduce... thereby [verb]-ing [noun]"
+Domain: ecological land management, technical conservation vocabulary
+Reducing leaf litter leads logically to pest/disease/fuel reduction
+Pattern: each b
+
+=== sample 3 (row 1875, CJK_chars=0) ===
+MODEL:
+Final token "Beautiful" begins a new sentence or clause
+Adjective "Beautiful" likely starts a noun phrase or predicate
+Book review genre: evaluative praise of visual/aesthetic qualities expected
+Pattern of praising specific photographic qualities continues throughout
+Contrast structure: "not X, but Y" pattern may extend further
+Subject of beauty likely relates to photography, images, or book
+Formal but accessible register maintained throughout review
+Series of positive attributes building toward concluding endorsement
+Reference to "this book" or "the images" likely follows
+Sentence likely short and punchy, matching review's declarative style throughout.
+--- GOLD:
+"Beautiful" opens a new sentence, adjective likely predicating subject noun phrase
+Subject noun phrase describing Gollings' photographs or buildings expected next
+Laudatory, celebratory tone throughout; superlatives and praise will continue
+Essay introduces specific exemplary images or qualities after general claims
+Rhythmic tricolon patterns used repeatedly; list of qualities may follow
+Transitio
+
+=== sample 4 (row 2512, CJK_chars=0) ===
+MODEL:
+Final token "the" begins a noun phrase, completion imminent
+Negative review pattern: complaint about vehicle condition expected
+"Never had a car that's in the" idiomatically precedes "shop" or "hospital"
+Review section context: customer testimonials listing pros/cons
+Contrast structure: positive review followed by negative review
+Automotive dealership review genre with star ratings and dates
+Informal register with colloquial phrasing throughout reviews
+Pattern of specific vehicle details (make, model, year) in reviews
+Sequential review format: more reviews likely follow this one
+Overall positive sentiment dominates, negative review is brief exception here.
+--- GOLD:
+Adjective phrase incomplete, superlative or condition expected next
+Positive review continuing, praising vehicle quality or condition
+"in the" requires noun phrase completion, likely condition-related
+Pattern of enthusiastic first-time ownership experience being expressed
+Reviewer expressing pleasant surprise, "best/greatest/such" condition likely
+Informal review register, simple vocabulary, perso
+
+=== sample 5 (row 3129, CJK_chars=0) ===
+MODEL:
+Final token "character" ends a clause about character design difficulty
+Contrast established: original vs. improved character design outcome
+Narrative momentum: problem stated, solution/fix now expected
+First-person developer voice continues, likely describing the fix
+Game development update blog post genre, feature-by-feature structure
+List of updates ongoing; more features likely described after this
+Hedged language ("I think", "I've been working") signals continued uncertainty
+Specific technical details expected: new character model description
+Transition to next update topic likely after character design section
+Informal conversational tone maintained throughout, contractions expected next.
+--- GOLD:
+Final token "2D" closes a spatial/technical explanation about animation difficulty.
+Animation quality critique just stated; further justification or elaboration likely follows.
+Apologetic/humble tone about team's limitations, often followed by optimistic pivot.
+Informal dev blog register: casual, first-person, community-facing update style.
+Sequential weekly update structure suggests another issue
+
+=== sample 6 (row 3760, CJK_chars=0) ===
+MODEL:
+Final token "electronics" mid-phrase, noun expecting continuation
+Product description genre: technical specification list expected
+"Small household appliance" phrase typically followed by functional description
+Pattern of product listings: each entry describes features and use cases
+Recurring structure: product name, then brief functional description
+Domain: kitchen appliance/electronics product catalog context
+Previous entries mention heating, cooking, and food preparation functions
+Sentence likely continues with "device" or similar noun completing phrase
+Register: neutral, factual, third-person product description prose
+List of related products continues; more entries likely follow this one.
+--- GOLD:
+Final token "electronics" expects continuation like "device" or category description
+Definition/description sentence structure requires completing the appositive clause
+The text is a web search results page with mixed snippets and listings
+Product catalog and directory listing genre dominates, influencing next content
+Pattern of company/product descriptions cycling through technical specifications
+
+=== sample 7 (row 4382, CJK_chars=0) ===
+MODEL:
+"talking" expects object: about something specific next
+Nuclear fusion energy topic requires technical specification
+List of fusion reactor types just completed, now elaborating
+Technical/scientific register with precise numerical details expected
+"talking about" or "talking of" likely completes the phrase
+Specific reactor design or power output figure expected next
+Pattern of escalating specificity: concept → design → specs
+Domain vocabulary: megawatts, megajoules, or reactor capacity likely
+Author's skeptical framing may color how specs are presented
+Parenthetical asides and hedging suggest continued measured tone ahead.
+--- GOLD:
+"talking" is incomplete, continuation of Navy's plans expected
+Introductory clause "the Navy is talking" requires complement phrase
+"Talking about" idiom likely, followed by power source specifics
+Technical exposition pattern: capability described, then practical requirements follow
+Megajoule-scale energy demands imply massive power generation discussion
+Naval vessel power systems (nuclear, capaci
+
+SAMPLES_OK total_cjk=0 (a few stray chars = minor; whole-output Chinese = injection failure)
