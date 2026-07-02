@@ -32,10 +32,6 @@
 body{margin:0; background:var(--nla-page); color:var(--nla-ink);
   font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
 .wrap{max-width:1200px; margin:0 auto; padding:14px 16px 18px;}
-header h1{font-size:18px; margin:0 0 2px;}
-header p{margin:0 0 12px; font-size:12.5px; color:var(--nla-ink2); line-height:1.5;}
-header a{color:var(--nla-pos); text-decoration:none;}
-header a:hover{text-decoration:underline;}
 
 .tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;}
 .tabs button{font:inherit; font-size:12px; padding:5px 12px; border-radius:999px;
@@ -110,17 +106,6 @@ footer a:hover{text-decoration:underline;}
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>🔬 NLA v3 — read a language model's mind, one token at a time</h1>
-    <p>A <b>natural-language autoencoder</b> for Qwen2.5-7B layer-20 activations:
-    click a token and the <i>actor</i> verbalizes its activation into a
-    salience-ordered list of lines, while the <i>critic</i> reconstructs the vector
-    from each line-prefix — the bars show how much of the vector
-    (<b>FVE</b>, fraction of variance explained) the first <i>k</i> lines recover.
-    Every result below is a precomputed greedy decode; to analyze <i>your own</i>
-    text, use the <a href="https://huggingface.co/spaces/syvb/nla-v3-explorer"
-    target="_blank" rel="noopener">live Space</a>.</p>
-  </header>
   <div class="tabs" id="tabs"></div>
   <div class="cols">
     <section id="tok-slot">
@@ -233,9 +218,28 @@ function syncHash() {
   } catch (e) { /* sandboxed iframes may forbid this */ }
 }
 
+function randomPos(entry) {
+  // avoid the low-context early positions the card would warn about
+  const n = entry.pieces.length;
+  const lo = Math.min(GOOD_MIN_POS, n - 1);
+  const cands = [];
+  for (let i = lo; i < n; i++) if (entry.results[i]) cands.push(i);
+  if (!cands.length) for (let i = 0; i < n; i++) if (entry.results[i]) cands.push(i);
+  return cands.length ? cands[Math.floor(Math.random() * cands.length)] : 0;
+}
+
+function scrollSelIntoView() {
+  const panel = $(".tokscroll"), sel = $(".nla-tok.sel");
+  if (!panel || !sel) return;
+  const dp = panel.getBoundingClientRect(), ds = sel.getBoundingClientRect();
+  // scroll only the panel (never the page — this may live in an iframe)
+  panel.scrollTop += ds.top - dp.top - panel.clientHeight / 2 + ds.height / 2;
+}
+
 function selectText(t, pos = null) {
-  curText = t; curPos = pos;
-  renderTabs(); renderTokens(); renderViz(); syncHash();
+  curText = t;
+  curPos = pos === null ? randomPos(DATA.entries[t]) : pos;
+  renderTabs(); renderTokens(); renderViz(); syncHash(); scrollSelIntoView();
 }
 
 function boot(data) {
