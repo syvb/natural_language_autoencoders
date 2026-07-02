@@ -652,6 +652,26 @@ class NLACritic:
         h = self.backbone.model(ids, use_cache=False).last_hidden_state[0, -1]  # last token
         return self.value_head(h).float().cpu()
 
+    @torch.inference_mode()
+    def reconstruct_batch(self, explanations: list[str]) -> torch.Tensor:
+        """Batched reconstruct(): one right-padded forward, each row read at its
+        own last real token. Right padding keeps positions 0..L-1 unshifted and
+        the mask hides the tail, so per-row output matches reconstruct() up to
+        batched-kernel reduction order (bf16 noise). Returns [N, d_model]."""
+        prompts = [self.template.format(explanation=e) for e in explanations]
+        pad = self.tokenizer.pad_token_id
+        if pad is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+        enc = self.tokenizer(prompts, return_tensors="pt", padding=True,
+                             padding_side="right", add_special_tokens=True
+                             ).to(self.device)
+        h = self.backbone.model(input_ids=enc["input_ids"],
+                                attention_mask=enc["attention_mask"],
+                                use_cache=False).last_hidden_state
+        last = enc["attention_mask"].sum(dim=1) - 1
+        rows = torch.arange(h.shape[0], device=h.device)
+        return self.value_head(h[rows, last]).float().cpu()
+
     def score(self, explanation: str,
               original: np.ndarray | torch.Tensor) -> tuple[float, float]:
         """(direction-MSE, cos-sim). Both pred+gold L2-normalized to mse_scale

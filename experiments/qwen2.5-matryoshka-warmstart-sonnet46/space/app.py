@@ -21,13 +21,15 @@ import spaces  # must be imported before any CUDA touch
 import html as html_lib
 import json
 import re
+from threading import Thread
 
 import gradio as gr
 import numpy as np
 import torch
 import yaml
 from huggingface_hub import snapshot_download
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import (AutoModelForCausalLM, AutoTokenizer, StoppingCriteria,
+                          StoppingCriteriaList, TextIteratorStreamer)
 
 from nla_inference import NLACritic
 
@@ -91,33 +93,70 @@ def _normalize(v: torch.Tensor, scale: float) -> torch.Tensor:
     return v / v.norm().clamp_min(1e-12) * scale
 
 
-@spaces.GPU(duration=75)
-def gpu_analyze(token_ids: list[int], idx: int) -> dict:
-    """Extract activation at token idx, verbalize, score cumulative prefixes."""
+def _complete_lines(text: str) -> list[str]:
+    """Non-empty lines that are newline-terminated (drops a trailing partial)."""
+    return [ln.strip() for ln in text.split("\n")[:-1] if ln.strip()]
+
+
+class _StopAfterLines(StoppingCriteria):
+    """End decoding once N_LINES complete non-empty lines exist — don't burn
+    decode steps on lines the UI will discard. With inputs_embeds, input_ids
+    here is the generated portion only (matches the decode below)."""
+
+    def __call__(self, input_ids, scores, **kwargs) -> bool:
+        text = tok.decode(input_ids[0], skip_special_tokens=True)
+        return len(_complete_lines(text)) >= N_LINES
+
+
+@spaces.GPU(duration=45)
+def gpu_analyze(token_ids: list[int], idx: int):
+    """Extract activation at token idx, verbalize, score cumulative prefixes.
+
+    Generator: yields {"lines": [...], "fve": None} as each explanation line
+    finishes decoding (streamed to the UI), then the final dict with fve/cos.
+    """
     with torch.inference_mode():
-        ids = torch.tensor([token_ids], device="cuda")
-        hs = extractor.model(ids, use_cache=False, output_hidden_states=True).hidden_states
-        v = hs[-1][0, idx].float()  # pre-norm output of block LAYER (norm is Identity)
+        # Causal attention ⇒ extracting at the last token of the truncated
+        # prefix is identical to position idx of the full text (and is how
+        # training data was built) — don't forward the suffix.
+        ids = torch.tensor([token_ids[: idx + 1]], device="cuda")
+        # norm is Identity ⇒ last_hidden_state is the raw block-LAYER output
+        v = extractor.model(ids, use_cache=False).last_hidden_state[0, -1].float()
 
         emb = av.get_input_embeddings()(_prompt_ids.to("cuda")).clone()
         emb[0, INJ_POS] = _normalize(v, INJECTION_SCALE).to(torch.bfloat16)
-        out = av.generate(
+        streamer = TextIteratorStreamer(tok, skip_special_tokens=True)
+        gen = Thread(target=av.generate, kwargs=dict(  # generate() is no_grad
             inputs_embeds=emb,
             attention_mask=torch.ones(1, emb.shape[1], device="cuda", dtype=torch.long),
             max_new_tokens=220, do_sample=False, pad_token_id=tok.eos_token_id,
-        )
-        text = tok.decode(out[0], skip_special_tokens=True)
+            stopping_criteria=StoppingCriteriaList([_StopAfterLines()]),
+            streamer=streamer,
+        ))
+        gen.start()
+        text, shown = "", 0
+        for piece in streamer:
+            text += piece
+            done = _complete_lines(text)
+            if len(done) > shown:
+                shown = len(done)
+                yield {"lines": done[:N_LINES], "fve": None}
+        gen.join()
         lines = [ln.strip() for ln in re.split(r"\n+", text) if ln.strip()][:N_LINES]
+        if not lines:
+            yield {"lines": [], "fve": [], "cos": []}
+            return
 
         gold_n = _normalize(v.cpu(), MSE_SCALE)
         denom = ((gold_n - MU) ** 2).mean().item()
+        preds = critic.reconstruct_batch(
+            ["\n".join(lines[:k]) for k in range(1, len(lines) + 1)])
         fve, cos = [], []
-        for k in range(1, len(lines) + 1):
-            pred = critic.reconstruct("\n".join(lines[:k]))
+        for pred in preds:
             pred_n = _normalize(pred, MSE_SCALE)
             fve.append(1.0 - ((pred_n - gold_n) ** 2).mean().item() / denom)
             cos.append(float(pred_n @ gold_n / (pred_n.norm() * gold_n.norm())))
-    return {"lines": lines, "fve": fve, "cos": cos}
+    yield {"lines": lines, "fve": fve, "cos": cos}
 
 
 # ── viz + ui (pure CPU; palette per the validated reference set) ─────────────
@@ -184,6 +223,9 @@ CSS = """
 .nlaviz .bar{position:absolute; top:2px; height:10px;}
 .nlaviz .bar.pos{background:var(--nla-pos); border-radius:0 4px 4px 0;}
 .nlaviz .bar.neg{background:var(--nla-neg); border-radius:4px 0 0 4px;}
+.nlaviz .pend{position:absolute; top:2px; height:10px; width:100%; border-radius:4px;
+  background:var(--nla-wash); animation:nlapulse 1.2s ease-in-out infinite;}
+@keyframes nlapulse{50%{opacity:.3;}}
 .nlaviz .val{font-size:11.5px; color:var(--nla-ink2); text-align:right;
   font-variant-numeric:tabular-nums;}
 .nlaviz .axisrow{display:grid; grid-template-columns:16px minmax(0,1fr) 96px 48px;
@@ -241,9 +283,36 @@ def render_tokens(pieces: list[str], n_total: int) -> str:
     return f'<div class="tokpanel">{head}<div class="tokscroll">{"".join(spans)}</div></div>'
 
 
+def render_pending(state: dict, mode: str) -> str:
+    """Streaming view: lines appear as they decode; bars are shimmer stubs."""
+    title = ("Additional FVE per explanation line (ΔFVE)" if mode == "marginal"
+             else "Cumulative round-trip FVE by explanation-line prefix")
+    tok_piece = html_lib.escape(state.get("token", ""))
+    chips = (
+        f'<div class="chips">'
+        f'<div class="chip"><div class="v">…</div><div class="l">FVE</div></div>'
+        f'<div class="chip"><div class="v">…</div><div class="l">cosine</div></div>'
+        f'<div class="chip"><div class="v">{tok_piece or "—"}</div><div class="l">token @ {state.get("pos", "?")}</div></div>'
+        f'</div>'
+    )
+    rows = []
+    for i, ln in enumerate(state["lines"]):
+        rows.append(
+            f'<div class="row"><div class="idx">{i + 1}</div>'
+            f'<div class="line">{html_lib.escape(ln)}</div>'
+            f'<div class="track"><div class="pend"></div></div>'
+            f'<div class="val">·</div></div>'
+        )
+    return (f'<div class="nlaviz"><div class="title">{title}</div>'
+            f'<div class="sub">verbalizing the activation…</div>{chips}{"".join(rows)}'
+            f'<div class="note">reconstruction scores arrive when all lines are decoded.</div></div>')
+
+
 def render_viz(state: dict | None, mode: str) -> str:
     if not state:
         return EMPTY_CARD
+    if state.get("fve") is None:
+        return render_pending(state, mode)
     lines, fve, cos = state["lines"], state["fve"], state["cos"]
     marginal = [fve[0]] + [fve[k] - fve[k - 1] for k in range(1, len(fve))]
     vals = marginal if mode == "marginal" else fve
@@ -310,25 +379,34 @@ def tokenize_text(text: str):
 
 
 def analyze_at(tokstate: dict | None, idx, mode: str):
+    """Generator: streams (res_state, viz_html) — partial cards while the AV
+    decodes, then the final scored card."""
     if not tokstate:
-        return None, _card("Tokenize some text first.")
+        yield None, _card("Tokenize some text first.")
+        return
     ids, pieces = tokstate["ids"], tokstate["pieces"]
     try:
         idx = int(idx)
     except (TypeError, ValueError):
-        return None, _card("Click a token (or enter a valid position).")
+        yield None, _card("Click a token (or enter a valid position).")
+        return
     if not (0 <= idx < len(ids)):
-        return None, _card(f"Position must be in [0, {len(ids) - 1}].")
-    res = gpu_analyze(ids, idx)
-    res["token"] = pieces[idx].strip() or repr(pieces[idx])
-    res["pos"] = idx
-    if not res["lines"]:
-        return None, _card("The AV produced no output for this activation — try another token.")
-    return res, render_viz(res, mode)
+        yield None, _card(f"Position must be in [0, {len(ids) - 1}].")
+        return
+    meta = {"token": pieces[idx].strip() or repr(pieces[idx]), "pos": idx}
+    res = None
+    for res in gpu_analyze(ids, idx):
+        res.update(meta)
+        if res.get("fve") is None:
+            yield gr.skip(), render_viz(res, mode)
+    if res is None or not res["lines"]:
+        yield None, _card("The AV produced no output for this activation — try another token.")
+        return
+    yield res, render_viz(res, mode)
 
 
 def on_token_click(tokstate: dict | None, mode: str, idx: str):
-    return analyze_at(tokstate, idx, mode)
+    yield from analyze_at(tokstate, idx, mode)
 
 
 def analyze_text(text: str, idx, mode: str):
@@ -336,9 +414,10 @@ def analyze_text(text: str, idx, mode: str):
     'Analyze position' button and the public API."""
     tokens_html, tokstate, _ = tokenize_text(text)
     if tokstate is None:
-        return tokens_html, None, None, _card("Enter some text first.")
-    res, viz_html = analyze_at(tokstate, idx, mode)
-    return tokens_html, tokstate, res, viz_html
+        yield tokens_html, None, None, _card("Enter some text first.")
+        return
+    for res, viz_html in analyze_at(tokstate, idx, mode):
+        yield tokens_html, tokstate, res, viz_html
 
 
 def on_mode_change(state: dict | None, mode: str):
