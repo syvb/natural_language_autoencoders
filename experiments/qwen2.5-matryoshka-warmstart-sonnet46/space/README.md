@@ -41,9 +41,21 @@ Checkpoints: [syvb/nla-qwen2.5-7b-L20-v3-rl](https://huggingface.co/syvb/nla-qwe
 - `requirements.txt`, `README.md` — Space config (the front-matter above is the card).
 - `mu.npy`, `default_texts.json` — data assets; regenerate with `build_assets.py`.
 - `build_assets.py` — rebuilds the two data assets from the v3 held-out eval set.
+- `precache.json` — baked per-position results (lines + FVE/cos) for every token
+  of every default text; the app serves these instantly with no GPU task.
+- `precompute_cache.py` — regenerates `precache.json` on any CUDA box (~16GB
+  VRAM, models staged sequentially). Mirrors `app.py`'s pipeline — keep in sync.
+- `precompute_on_vast.sh` — one command to run the above on a cheap rented
+  Vast.ai GPU and fetch the result back (~$0.5, ~30-60 min). Run it whenever
+  `default_texts.json` or the checkpoint changes; `deploy.sh` warns when
+  `precache.json` no longer covers the current default texts.
 - `deploy.sh` — regenerates assets, **vendors `nla_inference.py` from the repo
   root** (not committed here, to avoid a drifting duplicate), and uploads to
   `syvb/nla-v3-explorer`.
 
 Deploy: `bash deploy.sh` (needs `~/.hf_token`). The `NLACritic` class and the
 injection/normalization helpers come from the repo-root `nla_inference.py`.
+
+Changing the example texts: edit `build_assets.py`'s selection (or
+`default_texts.json` directly), run `bash precompute_on_vast.sh`, then
+`bash deploy.sh`.

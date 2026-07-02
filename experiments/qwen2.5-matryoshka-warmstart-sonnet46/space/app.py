@@ -390,12 +390,30 @@ def tokenize_text(text: str):
 # entirely — repeat clicks (especially on the preloaded example texts) drop
 # from seconds to network latency. Lives in the main process (not the ZeroGPU
 # worker), so it survives worker eviction. ~20MB at capacity.
+#
+# Two levels: PRECACHE (baked by precompute_cache.py for every position of the
+# default texts; immutable, never evicted) then a runtime LRU for everything
+# else. A stale precache (texts changed, tokenizer drift) just misses — clicks
+# fall through to the GPU path.
 _CACHE_MAX = 1024
 _result_cache: OrderedDict = OrderedDict()  # prefix tuple -> {lines, fve, cos}
 _cache_lock = Lock()
 
+PRECACHE: dict = {}
+try:
+    for _entry in json.load(open("precache.json"))["entries"]:
+        for _i, _res in enumerate(_entry["results"]):
+            if _res is not None:
+                PRECACHE[tuple(_entry["ids"][: _i + 1])] = _res
+    print(f"[precache] {len(PRECACHE)} positions preloaded")
+except FileNotFoundError:
+    print("[precache] no precache.json — default-text clicks compute live")
+
 
 def _cache_get(key: tuple) -> dict | None:
+    res = PRECACHE.get(key)
+    if res is not None:
+        return dict(res)
     with _cache_lock:
         res = _result_cache.get(key)
         if res is None:
