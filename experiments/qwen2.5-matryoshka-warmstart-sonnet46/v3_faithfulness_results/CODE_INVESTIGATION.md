@@ -90,3 +90,34 @@ the quotes (+0.21: para_keepquotes 0.637 vs quotesonly 0.427) but is nearly
 worthless alone (noquote 0.051). Sequential attribution splits credit by
 position over content the two classes largely share; ablation reveals the
 asymmetric dependence: quotes anchor, prose elaborates.
+
+## Addendum 2: token categories with different marginal FVE (index-controlled)
+
+`token_category_analysis.py` (fig_token_categories.png) — excess ΔFVE of each
+category vs other tokens in the same index bin, bootstrap CI over samples.
+Significant v3 RL effects:
+
+| category | %tok | excess ΔFVE |
+|---|---|---|
+| token right AFTER a quote mark | 13.3% | **+0.023** |
+| subword continuation | 13.7% | +0.005 |
+| stopword | 8.8% | +0.004 (driven by IN-quote stopwords +0.008 — pseudo-quotes are function-word-heavy) |
+| last token of line | 7.4% | +0.003 |
+| newline | 7.4% | −0.005 |
+| quote mark `"` | 13.4% | **−0.030** |
+| first token of line | 8.0% | **−0.035** (in-quote line-openers: −0.093) |
+
+The dominant pattern is **defer-and-deliver**: structural openers (quote marks,
+line-initial tokens) score far BELOW peers — a prefix ending mid-promise
+actively degrades the critic's estimate — and the payoff lands immediately
+after (`after_quote_tok` +0.023) and as words complete (subword +0.005).
+Reconciles with deletion-saliency (quote marks matter when REMOVED — they're
+parsing syntax, not payload).
+
+Warm-start contrast: real lexical stratification exists pre-RL — in-quote
++0.021 (the 10× premium), **meta-vocabulary ("pattern"/"domain"/"register")
+−0.017 at 12.6% of tokens**. RL cut that schema vocabulary to 4.0% and
+neutralized it (+0.001), i.e. one concrete thing truncation-RL did to the text
+was *purge low-value meta-commentary and densify everything else* — leaving
+sequence-structural effects, not lexical-class effects, as the only remaining
+variation.
