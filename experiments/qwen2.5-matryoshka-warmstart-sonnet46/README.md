@@ -315,3 +315,27 @@ ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl_v3.sh   # KL=0.03, tokens ~U[1
   v2's list, so per-token FVE curves are directly comparable across v1/v2/v3.
   Budget one control (e.g. `KL_LOSS_COEF=0.02` rerun) before tearing the box
   down if attribution matters.
+
+### v3 RL outcome (2026-07-02) — 200 steps, complete
+
+Run: 8×H100 (actor4/critic2/rollout2), 512-batch, KL 0.03, tokens ~U[1,120],
+offset 0, ~41 s/step, **zero grad-guard skips across all 200 steps** (v1's
+config skipped ~33% — the U[1,120] AR warm-start pre-calibration + offset-0
+fix removed the instability at the source). raw_reward −0.507→−0.261,
+critic fve_nrm 0.30→0.64, plateau ≈ step 110.
+
+Round-trip FVE at iter_0000200 (150 held-out, evaluated FROM the HF upload;
+warm-start baseline in parens): 1tok −0.31 (−0.31) | 2 −0.00 (−0.22) |
+5 0.29 (0.00) | 10 **0.45** (0.11) | 30 0.65 (0.35) | 60 0.68 (0.44) |
+120 0.69 (0.47) | full 0.67 (0.44). A 10-token prefix now beats the
+warm-start's full output. Full-length sits near its own peak (0.667 vs
+0.693@120) — v2's over-extension dip is largely gone. Critic-on-gold fell to
+0.44 (critic specialized to the AV's phrasing — expected under co-training).
+Caveat: 8/150 outputs contain a stray CJK char (minor leak, up from 0/150
+at warm-start) — check at higher KL-drift before drawing conclusions.
+
+Artifacts (all public): per-50-step inference-ready checkpoints in
+`syvb/nla-qwen2.5-7b-L20-v3-rl` (iter_00000{50,100,150,200}/{av,ar}),
+resumable iter_0000200 (actor DCP + optimizer, critic hf) in
+`syvb/nla-qwen2.5-7b-L20-v3-rl-checkpoints`, eval in
+`v3_warmstart_results/v3_rl200_fve.txt`.
