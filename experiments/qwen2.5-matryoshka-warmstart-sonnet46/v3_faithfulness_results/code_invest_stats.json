@@ -1,0 +1,29 @@
+[
+ {
+  "name": "v3rl",
+  "mean_quotes_per_expl": 11.27,
+  "frac_expl_with_quote": 0.99,
+  "mean_quote_char_frac": 0.2208925912115074,
+  "mean_copy4gram_rate": 0.0011081266678811237,
+  "median_words_per_line": 7,
+  "median_lines": 14.0
+ },
+ {
+  "name": "v3ws",
+  "mean_quotes_per_expl": 4.25,
+  "frac_expl_with_quote": 0.99,
+  "mean_quote_char_frac": 0.05704063116232037,
+  "mean_copy4gram_rate": 0.0,
+  "median_words_per_line": 9,
+  "median_lines": 10.0
+ },
+ {
+  "name": "gold_sonnet",
+  "mean_quotes_per_expl": 3.57,
+  "frac_expl_with_quote": 1.0,
+  "mean_quote_char_frac": 0.055327289663230604,
+  "mean_copy4gram_rate": 0.0008170229476840852,
+  "median_words_per_line": 9.0,
+  "median_lines": 10.0
+ }
+]
