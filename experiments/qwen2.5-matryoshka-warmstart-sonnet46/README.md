@@ -339,3 +339,22 @@ Artifacts (all public): per-50-step inference-ready checkpoints in
 resumable iter_0000200 (actor DCP + optimizer, critic hf) in
 `syvb/nla-qwen2.5-7b-L20-v3-rl-checkpoints`, eval in
 `v3_warmstart_results/v3_rl200_fve.txt`.
+
+### v3 faithfulness probes (2026-07-02) — paraphrase robustness + order optimality
+
+`eval_paraphrase_order.py` on 100 held-out samples (fig:
+`v3_faithfulness_results/fig_paraphrase_order.png`):
+
+- **Paraphrase robustness — the v3 RL gains are largely NOT paraphrase-robust.**
+  Line-wise meaning-preserving paraphrase (Haiku): v3 RL pair full-length FVE
+  0.650 → 0.165 (**25% retention**) vs the pre-RL warm-start pair 0.431 → 0.314
+  (**73% retention**). RL made the AV↔AR channel brittle to wording: much of the
+  added FVE rides on exact surface forms — partly verbatim source quotes (e.g.
+  line 1 `" some of" sings own music`), which paraphrase legitimately destroys,
+  and partly co-adapted phrasing conventions. Either way, treat v3's FVE as
+  substantially lexical, not purely semantic; the cross-critic matrix (eval #2)
+  would split quote-reliance from pair-specific code.
+- **Order optimality — real but imperfect front-loading.** Model order captures
+  ~58-72% of the greedy-oracle ordering gap over random (k=1: model 0.352 vs
+  oracle 0.527 vs random 0.056). Order is irrelevant at full length (random
+  0.66 ≈ orig 0.65 ✓), so this isolates ordering. Cross-sample floor −0.93.
