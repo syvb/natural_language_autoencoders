@@ -60,8 +60,19 @@ def main() -> None:
         body = re.search(r"<body>(.*)</body>", page, re.DOTALL).group(1)
         page = (style
                 + "<style>.wrap{padding:4px 2px 10px;}"
-                  ".tokscroll{max-height:320px;}</style>"
+                  ".tokscroll{max-height:320px;}"
+                  # side-by-side panels: the iframe viewport (340-700px) never
+                  # reaches the page's 880px two-column breakpoint
+                  "@media (min-width:560px){"
+                  ".cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}}"
+                  "</style>"
                 + body)
+        # LessWrong's publish pipeline entity-decodes widget source once; the
+        # fragment must be a fixed point of that transform or publishing
+        # breaks the JS (learned the hard way with "&quot;" in the escaper)
+        import html as html_lib
+        assert html_lib.unescape(page) == page, (
+            "widget fragment contains decodable HTML entities — publish-unsafe")
     out.write_text(page)
     print(f"wrote {out} ({out.stat().st_size / 1e3:.0f} kB, "
           f"{'widget fragment, ' if args.widget else ''}"

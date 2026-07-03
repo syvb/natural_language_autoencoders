@@ -96,7 +96,7 @@ body{margin:0; background:var(--nla-page); color:var(--nla-ink);
 footer{margin-top:12px; font-size:11px; color:var(--nla-muted);}
 footer a{color:var(--nla-pos); text-decoration:none;}
 footer a:hover{text-decoration:underline;}
-</style><style>.wrap{padding:4px 2px 10px;}.tokscroll{max-height:320px;}</style>
+</style><style>.wrap{padding:4px 2px 10px;}.tokscroll{max-height:320px;}@media (min-width:560px){.cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}}</style>
 <div class="wrap">
   <div class="tabs" id="tabs"></div>
   <div class="cols">
@@ -123,8 +123,10 @@ const CJK_RE = /[　-ヿ㐀-䶿一-鿿＀-￯]/;
 let DATA = null, curText = 0, curPos = null, mode = "marginal";
 
 const $ = (s) => document.querySelector(s);
-const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+// numeric refs built at runtime — the SOURCE must contain no decodable
+// entity sequences (LessWrong's publish pipeline entity-decodes widget
+// source once; a spelled-out named entity here would decode into broken JS)
+const esc = (s) => s.replace(/[&<>"]/g, (c) => "&#" + c.charCodeAt(0) + ";");
 const f3 = (x) => x.toFixed(3);
 const s3 = (x) => (x >= 0 ? "+" : "") + x.toFixed(3);
 

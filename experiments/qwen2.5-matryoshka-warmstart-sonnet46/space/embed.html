@@ -131,8 +131,10 @@ const CJK_RE = /[　-ヿ㐀-䶿一-鿿＀-￯]/;
 let DATA = null, curText = 0, curPos = null, mode = "marginal";
 
 const $ = (s) => document.querySelector(s);
-const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+// numeric refs built at runtime — the SOURCE must contain no decodable
+// entity sequences (LessWrong's publish pipeline entity-decodes widget
+// source once; a spelled-out named entity here would decode into broken JS)
+const esc = (s) => s.replace(/[&<>"]/g, (c) => "&#" + c.charCodeAt(0) + ";");
 const f3 = (x) => x.toFixed(3);
 const s3 = (x) => (x >= 0 ? "+" : "") + x.toFixed(3);
 
