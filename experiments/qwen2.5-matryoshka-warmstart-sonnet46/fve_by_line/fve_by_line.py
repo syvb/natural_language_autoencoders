@@ -22,6 +22,10 @@ from nla_inference import NLACritic
 AV_DIR = os.environ["AV_DIR"]; AR_DIR = os.environ["AR_DIR"]; EVAL = os.environ["EVAL"]
 OUT = os.environ.get("OUT", "/workspace/fve_by_line.json")
 N_EX = int(sys.argv[1]) if len(sys.argv) > 1 else 6
+import os as _os
+_T = float(_os.environ.get("NLA_GEN_TEMP", "0"))
+GEN_KW = (dict(do_sample=True, temperature=_T, top_p=1.0, top_k=0)
+          if _T > 0 else dict(do_sample=False))
 SEED = int(sys.argv[2]) if len(sys.argv) > 2 else 0
 MAXNEW = 384
 dev = "cuda"
@@ -64,7 +68,7 @@ def av_gen(idx):
     v = torch.tensor([allv[idx]], dtype=torch.float32, device=dev)
     e = inject_at_marked_positions(pids, emb(pids), normalize_activation(v, scale), inj_id, left, right)
     out = av.generate(inputs_embeds=e, attention_mask=torch.ones_like(pids),
-                      max_new_tokens=MAXNEW, do_sample=False, pad_token_id=tok.eos_token_id)
+                      max_new_tokens=MAXNEW, **GEN_KW, pad_token_id=tok.eos_token_id)
     return tok.decode(out[0], skip_special_tokens=True)
 
 

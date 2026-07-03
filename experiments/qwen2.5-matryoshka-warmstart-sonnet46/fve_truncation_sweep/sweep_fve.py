@@ -23,6 +23,12 @@ EVAL = os.environ.get("EVAL", "/workspace/out/av_eval.parquet")
 OUTDIR = os.environ.get("OUTDIR", "/workspace/sweep"); os.makedirs(OUTDIR, exist_ok=True)
 TAG = os.environ.get("TAG", "kl0.01/iter_0000200")
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 100
+# Sampling: NLA_GEN_TEMP>0 -> ancestral sampling at that temperature with
+# explicit top_p/top_k (matches the RL rollout distribution); unset/0 -> greedy.
+_T = float(os.environ.get("NLA_GEN_TEMP", "0"))
+GEN_KW = (dict(do_sample=True, temperature=_T, top_p=1.0, top_k=0)
+          if _T > 0 else dict(do_sample=False))
+_SEED = int(os.environ.get("NLA_GEN_SEED", "0"))
 dev = "cuda"
 
 meta = yaml.safe_load(open(f"{AV_DIR}/nla_meta.yaml"))
@@ -64,12 +70,13 @@ def av_generate(bp, bv):
     e = emb(inp)
     V = torch.stack([normalize_activation(torch.tensor(v, dtype=torch.float32).view(1, -1), inj_scale)[0] for v in bv])
     out = av.generate(inputs_embeds=inject_at_marked_positions(inp, e, V, inj_id, left, right),
-                      attention_mask=att, max_new_tokens=256, do_sample=False, pad_token_id=pad)
+                      attention_mask=att, max_new_tokens=256, pad_token_id=pad, **GEN_KW)
     return [tok.decode(o, skip_special_tokens=True) for o in out]
 
 
 CJK = re.compile(r"[　-ヿ㐀-䶿一-鿿＀-￯]")
 expls = []; ncjk = 0
+torch.manual_seed(_SEED)
 BG = 16
 for s in range(0, len(sel), BG):
     for txt in av_generate(prompts[s:s+BG], vecs[s:s+BG]):

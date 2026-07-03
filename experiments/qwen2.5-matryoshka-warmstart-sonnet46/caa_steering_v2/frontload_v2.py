@@ -32,6 +32,9 @@ OUT_NAME = os.environ.get("OUT_NAME", "frontload_v2_raw.json")
 LAYER = 20
 R_GRID = sorted(set([0.15, 0.2] + [round(0.25 + 0.01 * i, 3) for i in range(76)] + [1.1, 1.25, 1.5, 2.0]))  # dense 0.25-1.0
 TRAITS = ["sycophancy", "neuroticism", "yellow"]
+_T = float(os.environ.get("NLA_GEN_TEMP", "0"))
+GEN_KW = (dict(do_sample=True, temperature=_T, top_p=1.0, top_k=0)
+          if _T > 0 else dict(do_sample=False))
 dev = "cuda"
 os.makedirs(OUT, exist_ok=True)
 
@@ -130,7 +133,7 @@ def av_batch(vecs):
     Vt = normalize_activation(torch.from_numpy(np.stack(vecs)).to(dev), scale)
     e2 = inject_at_marked_positions(ids, e, Vt, inj_id, left, right)
     out = av.generate(inputs_embeds=e2, attention_mask=torch.ones(n, S, device=dev),
-                      max_new_tokens=256, do_sample=False, pad_token_id=atok.eos_token_id)
+                      max_new_tokens=256, pad_token_id=atok.eos_token_id, **GEN_KW)
     return [atok.decode(o, skip_special_tokens=True) for o in out]
 
 
@@ -158,6 +161,7 @@ if NSHARDS > 1:
 print(f"conditions: {len(conds)}", flush=True)
 
 rows = []
+torch.manual_seed(int(os.environ.get("NLA_GEN_SEED", "0")))
 B = 24
 for s in range(0, len(conds), B):
     chunk = conds[s:s + B]
