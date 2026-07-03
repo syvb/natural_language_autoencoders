@@ -20,6 +20,13 @@ cp "$HERE"/app.py "$HERE"/README.md "$HERE"/requirements.txt \
    "$HERE"/mu.npy "$HERE"/default_texts.json "$BUILD/"
 cp "$REPO_ROOT/nla_inference.py" "$BUILD/nla_inference.py"   # vendored at deploy, not committed
 
+if [[ -f "$HERE/steering_dirs.npz" ]]; then
+  cp "$HERE/steering_dirs.npz" "$BUILD/"
+else
+  echo "WARNING: no steering_dirs.npz — the steering UI will be hidden."
+  echo "  Generate with: STEPS=dirs bash precompute_on_vast.sh"
+fi
+
 # precache.json: baked per-position results for the default texts (instant
 # clicks, no GPU). Optional — the Space works without it, just slower.
 if [[ -f "$HERE/precache.json" ]]; then

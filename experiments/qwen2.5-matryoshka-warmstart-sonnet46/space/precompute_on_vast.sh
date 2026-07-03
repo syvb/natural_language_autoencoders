@@ -7,8 +7,13 @@
 #
 # Usage:
 #   bash precompute_on_vast.sh                 # provision → run → fetch → destroy
+#   STEPS=dirs bash precompute_on_vast.sh      # only rebuild steering_dirs.npz
+#   STEPS=cache bash precompute_on_vast.sh     # only resample precache.json
 #   INSTANCE_ID=1234567 bash precompute_on_vast.sh   # reuse an existing box
 #   KEEP_BOX=1 bash precompute_on_vast.sh      # don't destroy afterwards
+#
+# STEPS defaults to "cache,dirs". NOTE: "cache" RESAMPLES every explanation —
+# don't include it if published material depends on the current samples.
 #
 # Needs: ~/.hf_token, vastai CLI (~/.local/bin/vastai) with your SSH key registered.
 set -euo pipefail
@@ -68,7 +73,8 @@ echo "=== push token + code ==="
 ssh "${SSH_OPTS[@]}" -p "$PORT" "root@$IP" \
   "umask 077; printf '%s' '$(cat ~/.hf_token)' > /root/.hf_token; mkdir -p /workspace/precache"
 rsync -az -e "ssh ${SSH_OPTS[*]} -p $PORT" \
-  "$HERE/precompute_cache.py" "$HERE/default_texts.json" "$HERE/mu.npy" \
+  "$HERE/precompute_cache.py" "$HERE/build_steering_dirs.py" \
+  "$HERE/default_texts.json" "$HERE/mu.npy" \
   "$REPO_ROOT/nla_inference.py" "root@$IP:/workspace/precache/"
 
 echo "=== install deps ==="
@@ -76,19 +82,30 @@ ssh "${SSH_OPTS[@]}" -p "$PORT" "root@$IP" \
   '/opt/conda/bin/pip install -q transformers==4.57.1 "huggingface_hub>=0.34,<1.0" \
      safetensors pyyaml numpy accelerate hf_transfer orjson httpx'
 
-echo "=== run precompute (streams; ~20-40 min incl. 45GB of downloads) ==="
-ssh "${SSH_OPTS[@]}" -p "$PORT" "root@$IP" \
-  'cd /workspace/precache && HF_TOKEN=$(cat /root/.hf_token) HF_HUB_ENABLE_HF_TRANSFER=1 \
-   /opt/conda/bin/python precompute_cache.py --out /workspace/precache/precache.json'
+STEPS="${STEPS:-cache,dirs}"
+if [[ ",$STEPS," == *",dirs,"* ]]; then
+  echo "=== build steering directions ==="
+  ssh "${SSH_OPTS[@]}" -p "$PORT" "root@$IP" \
+    'cd /workspace/precache && HF_TOKEN=$(cat /root/.hf_token) HF_HUB_ENABLE_HF_TRANSFER=1 \
+     /opt/conda/bin/python build_steering_dirs.py --out /workspace/precache/steering_dirs.npz'
+  scp "${SSH_OPTS[@]}" -P "$PORT" "root@$IP:/workspace/precache/steering_dirs.npz" "$HERE/steering_dirs.npz"
+fi
 
-echo "=== fetch precache.json ==="
-scp "${SSH_OPTS[@]}" -P "$PORT" "root@$IP:/workspace/precache/precache.json" "$HERE/precache.json"
-python3 -c "
+if [[ ",$STEPS," == *",cache,"* ]]; then
+  echo "=== run precompute (streams; ~20-40 min incl. 45GB of downloads) ==="
+  ssh "${SSH_OPTS[@]}" -p "$PORT" "root@$IP" \
+    'cd /workspace/precache && HF_TOKEN=$(cat /root/.hf_token) HF_HUB_ENABLE_HF_TRANSFER=1 \
+     /opt/conda/bin/python precompute_cache.py --out /workspace/precache/precache.json'
+
+  echo "=== fetch precache.json ==="
+  scp "${SSH_OPTS[@]}" -P "$PORT" "root@$IP:/workspace/precache/precache.json" "$HERE/precache.json"
+  python3 -c "
 import json
 d = json.load(open('$HERE/precache.json'))
 n = sum(len(e['results']) for e in d['entries'])
 ok = sum(r is not None for e in d['entries'] for r in e['results'])
 print(f\"precache.json: {len(d['entries'])} texts, {ok}/{n} positions, gpu={d['meta']['gpu']}\")"
+fi
 
 if [[ "$created_here" == 1 && -z "${KEEP_BOX:-}" ]]; then
   echo "=== destroy instance $INSTANCE_ID ==="

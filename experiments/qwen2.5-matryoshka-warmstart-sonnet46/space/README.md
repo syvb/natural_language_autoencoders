@@ -28,7 +28,9 @@ that position, verbalizes it into 9 lines, then reconstructs the vector from
 cumulative line prefixes and plots **FVE** (fraction of variance explained) per
 line — marginal or cumulative. The v3 pair was RL-trained with random
 token-truncation (~U[1,120]) so the actor front-loads the most
-reconstruction-relevant content.
+reconstruction-relevant content. An optional control **steers** the
+activation with a CAA-style trait direction (sycophancy / neuroticism /
+yellow) at adjustable strength before verbalization.
 
 Checkpoints: [syvb/nla-qwen2.5-7b-L20-v3-rl](https://huggingface.co/syvb/nla-qwen2.5-7b-L20-v3-rl)
 (iter 200). Code: [natural_language_autoencoders](https://github.com/kitft/natural_language_autoencoders).
@@ -48,7 +50,15 @@ Checkpoints: [syvb/nla-qwen2.5-7b-L20-v3-rl](https://huggingface.co/syvb/nla-qwe
 - `precompute_on_vast.sh` — one command to run the above on a cheap rented
   Vast.ai GPU and fetch the result back (~$0.5, ~30-60 min). Run it whenever
   `default_texts.json` or the checkpoint changes; `deploy.sh` warns when
-  `precache.json` no longer covers the current default texts.
+  `precache.json` no longer covers the current default texts. `STEPS=dirs`
+  or `STEPS=cache` selects which assets to rebuild (default both; note
+  `cache` resamples every explanation).
+- `steering_dirs.npz`, `build_steering_dirs.py` — unit L20 trait directions
+  (sycophancy / neuroticism / yellow; same recipe as
+  `caa_steering_v2/build_dirs_min.py`) behind the app's "Steer the
+  activation" control, which adds r·‖v‖·d̂ to the clicked activation before
+  verbalization. Steered results bypass the precache (computed live, then
+  LRU-cached).
 - `deploy.sh` — regenerates assets, **vendors `nla_inference.py` from the repo
   root** (not committed here, to avoid a drifting duplicate), and uploads to
   `syvb/nla-v3-explorer`.

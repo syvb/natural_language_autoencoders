@@ -61,6 +61,18 @@ MU = torch.tensor(np.load("mu.npy"), dtype=torch.float32)  # normalized-space me
 DEFAULT_TEXTS = json.load(open("default_texts.json"))
 CJK_RE = re.compile(r"[　-ヿ㐀-䶿一-鿿＀-￯]")
 
+# Unit L20 trait directions (build_steering_dirs.py — the "genuine" CAA-style
+# directions from caa_steering_v2/FRONTLOADING.md). Steering adds r·‖v‖·d̂ to
+# the clicked activation before verbalization, matching that experiment.
+STEER_DIRS: dict[str, torch.Tensor] = {}
+try:
+    _z = np.load("steering_dirs.npz")
+    STEER_DIRS = {k.removesuffix("_L20_genuine_unit"): torch.tensor(_z[k], dtype=torch.float32)
+                  for k in _z.files if k.endswith("_L20_genuine_unit")}
+    print(f"[steer] directions loaded: {sorted(STEER_DIRS)}")
+except FileNotFoundError:
+    print("[steer] no steering_dirs.npz — steering UI hidden")
+
 # ── models (global scope; ZeroGPU manages the .to("cuda")) ──────────────────
 tok = AutoTokenizer.from_pretrained(AV_DIR)
 
@@ -115,8 +127,13 @@ class _StopAfterLines(StoppingCriteria):
 # still beating the 60s default — shorter budgets get better ZeroGPU queue
 # priority for visitors, so don't pad this further.
 @spaces.GPU(duration=30)
-def gpu_analyze(token_ids: list[int], idx: int):
+def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
+                strength: float = 0.0):
     """Extract activation at token idx, verbalize, score cumulative prefixes.
+
+    steer/strength: add strength·‖v‖·d̂_steer to the extracted activation
+    before verbalization (CAA-style; FVE is then measured against the steered
+    vector — that's what was verbalized).
 
     Generator: yields {"lines": [...], "fve": None} as each explanation line
     finishes decoding (streamed to the UI), then the final dict with fve/cos.
@@ -128,6 +145,8 @@ def gpu_analyze(token_ids: list[int], idx: int):
         ids = torch.tensor([token_ids[: idx + 1]], device="cuda")
         # norm is Identity ⇒ last_hidden_state is the raw block-LAYER output
         v = extractor.model(ids, use_cache=False).last_hidden_state[0, -1].float()
+        if steer:
+            v = v + strength * v.norm() * STEER_DIRS[steer].to(v.device)
 
         emb = av.get_input_embeddings()(_prompt_ids.to("cuda")).clone()
         emb[0, INJ_POS] = _normalize(v, INJECTION_SCALE).to(torch.bfloat16)
@@ -293,6 +312,13 @@ def render_tokens(pieces: list[str], n_total: int) -> str:
     return f'<div class="tokpanel">{head}<div class="tokscroll">{"".join(spans)}</div></div>'
 
 
+def _steer_chip(state: dict) -> str:
+    if not state.get("steer"):
+        return ""
+    return (f'<div class="chip"><div class="v">{html_lib.escape(state["steer"])} '
+            f'· r={state["strength"]:g}</div><div class="l">steered</div></div>')
+
+
 def render_pending(state: dict, mode: str) -> str:
     """Streaming view: lines appear as they decode; bars are shimmer stubs."""
     title = ("Additional FVE per explanation line (ΔFVE)" if mode == "marginal"
@@ -303,6 +329,7 @@ def render_pending(state: dict, mode: str) -> str:
         f'<div class="chip"><div class="v">…</div><div class="l">FVE</div></div>'
         f'<div class="chip"><div class="v">…</div><div class="l">cosine</div></div>'
         f'<div class="chip"><div class="v">{tok_piece or "—"}</div><div class="l">token @ {state.get("pos", "?")}</div></div>'
+        f'{_steer_chip(state)}'
         f'</div>'
     )
     rows = []
@@ -363,6 +390,7 @@ def render_viz(state: dict | None, mode: str) -> str:
         f'<div class="chip"><div class="v">{fve[-1]:.3f}</div><div class="l">FVE · all {len(lines)} lines</div></div>'
         f'<div class="chip"><div class="v">{cos[-1]:.3f}</div><div class="l">cosine</div></div>'
         f'<div class="chip"><div class="v">{tok_piece or "—"}</div><div class="l">token @ {state.get("pos", "?")}</div></div>'
+        f'{_steer_chip(state)}'
         f'</div>'
     )
     notes = []
@@ -416,10 +444,12 @@ except FileNotFoundError:
     print("[precache] no precache.json — default-text clicks compute live")
 
 
-def _cache_get(key: tuple) -> dict | None:
-    res = PRECACHE.get(key)
-    if res is not None:
-        return dict(res)
+def _precache_get(prefix: tuple) -> dict | None:
+    res = PRECACHE.get(prefix)
+    return dict(res) if res is not None else None
+
+
+def _cache_get(key) -> dict | None:
     with _cache_lock:
         res = _result_cache.get(key)
         if res is None:
@@ -436,7 +466,8 @@ def _cache_put(key: tuple, res: dict) -> None:
             _result_cache.popitem(last=False)
 
 
-def analyze_at(tokstate: dict | None, idx, mode: str):
+def analyze_at(tokstate: dict | None, idx, mode: str,
+               steer: str = "none", strength: float = 0.0):
     """Generator: streams (res_state, viz_html) — partial cards while the AV
     decodes, then the final scored card."""
     if not tokstate:
@@ -451,14 +482,22 @@ def analyze_at(tokstate: dict | None, idx, mode: str):
     if not (0 <= idx < len(ids)):
         yield None, _card(f"Position must be in [0, {len(ids) - 1}].")
         return
+    # strength 0 (or unknown trait) ⇒ plain unsteered analysis, shared cache
+    strength = round(max(0.0, min(4.0, float(strength or 0.0))), 3)
+    steer_key = steer if steer in STEER_DIRS and strength > 0 else None
     meta = {"token": pieces[idx].strip() or repr(pieces[idx]), "pos": idx}
-    key = tuple(ids[: idx + 1])
-    res = _cache_get(key)
+    if steer_key:
+        meta.update(steer=steer_key, strength=strength)
+    prefix = tuple(ids[: idx + 1])
+    key = (prefix, steer_key, strength) if steer_key else prefix
+    res = None if steer_key else _precache_get(prefix)
+    if res is None:
+        res = _cache_get(key)
     if res is not None:
         res.update(meta)
         yield res, render_viz(res, mode)
         return
-    for res in gpu_analyze(ids, idx):
+    for res in gpu_analyze(ids, idx, steer_key, strength):
         res.update(meta)
         if res.get("fve") is None:
             yield gr.skip(), render_viz(res, mode)
@@ -469,19 +508,28 @@ def analyze_at(tokstate: dict | None, idx, mode: str):
     yield res, render_viz(res, mode)
 
 
-def on_token_click(tokstate: dict | None, mode: str, idx: str):
-    yield from analyze_at(tokstate, idx, mode)
+def on_token_click(tokstate: dict | None, mode: str, steer: str, strength, idx: str):
+    yield from analyze_at(tokstate, idx, mode, steer, strength)
 
 
-def analyze_text(text: str, idx, mode: str):
+def analyze_text(text: str, idx, mode: str, steer: str = "none", strength: float = 0.0):
     """Self-contained (text + position) — no State dependency. Powers the
     'Analyze position' button and the public API."""
     tokens_html, tokstate, _ = tokenize_text(text)
     if tokstate is None:
         yield tokens_html, None, None, _card("Enter some text first.")
         return
-    for res, viz_html in analyze_at(tokstate, idx, mode):
+    for res, viz_html in analyze_at(tokstate, idx, mode, steer, strength):
         yield tokens_html, tokstate, res, viz_html
+
+
+def on_steer_change(tokstate: dict | None, res: dict | None, mode: str,
+                    steer: str, strength):
+    """Re-analyze the currently selected token under the new steering setting."""
+    if not tokstate or not res:
+        yield gr.skip(), gr.skip()
+        return
+    yield from analyze_at(tokstate, res.get("pos"), mode, steer, strength)
 
 
 def on_mode_change(state: dict | None, mode: str):
@@ -496,6 +544,8 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
         "the *critic* reconstructs the vector from each line-prefix — the bars show how much of "
         "the vector (**FVE**, fraction of variance explained) the first *k* lines recover. "
         "Truncation-RL trained the actor to front-load what matters. "
+        "You can also **steer** the clicked activation along a trait direction "
+        "(sycophancy / neuroticism / yellow) at adjustable strength before it's verbalized. "
         f"[AV/AR checkpoints](https://huggingface.co/{RL_REPO}) · iter 200, KL 0.03, "
         "U[1,120]-token truncation.",
         elem_id="nla-header",
@@ -517,6 +567,19 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
             tokens_out.render()
         with gr.Column(scale=5, elem_classes=["nla-side"]):
             mode = gr.Radio(["marginal", "cumulative"], value="marginal", label="FVE view")
+            with gr.Accordion("Steer the activation", open=False,
+                              visible=bool(STEER_DIRS)):
+                with gr.Row():
+                    steer_dd = gr.Dropdown(["none"] + sorted(STEER_DIRS),
+                                           value="none", label="trait direction", scale=2)
+                    strength_in = gr.Slider(0.0, 2.0, value=0.6, step=0.05,
+                                            label="strength r", scale=3)
+                gr.Markdown(
+                    "Adds **r·‖v‖·d̂** to the clicked activation before the actor "
+                    "verbalizes it — the CAA-style *genuine* trait directions from the "
+                    "front-loading experiments. The trait typically enters the list "
+                    "around r≈0.3 and reaches line 1 by r≈1. Changing these re-runs "
+                    "the selected token.")
             viz.render()
             with gr.Accordion("Analyze a token position by number", open=False):
                 with gr.Row():
@@ -529,9 +592,14 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
     tokenize_btn.click(tokenize_text, [text_in], [tokens_out, tok_state, viz],
                        api_name="tokenize")
     text_in.submit(tokenize_text, [text_in], [tokens_out, tok_state, viz])
-    click_idx.input(on_token_click, [tok_state, mode, click_idx], [res_state, viz])
-    pos_btn.click(analyze_text, [text_in, pos_in, mode],
+    click_idx.input(on_token_click, [tok_state, mode, steer_dd, strength_in, click_idx],
+                    [res_state, viz])
+    pos_btn.click(analyze_text, [text_in, pos_in, mode, steer_dd, strength_in],
                   [tokens_out, tok_state, res_state, viz], api_name="analyze")
+    steer_dd.change(on_steer_change, [tok_state, res_state, mode, steer_dd, strength_in],
+                    [res_state, viz])
+    strength_in.release(on_steer_change, [tok_state, res_state, mode, steer_dd, strength_in],
+                        [res_state, viz])
     mode.change(on_mode_change, [res_state, mode], [viz])
     demo.load(tokenize_text, [text_in], [tokens_out, tok_state, viz])
 
