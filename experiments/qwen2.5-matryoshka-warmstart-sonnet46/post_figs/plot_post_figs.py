@@ -48,7 +48,7 @@ if tL is not None and kL is not None:
     a1.plot(kLf, kFf, color=C_BASE, lw=2.0, ls="--", label=f"{BASE}  (full={kFfull[-1]:.3f})")
     a1.axhline(0, color="k", lw=.6, alpha=.4); a1.axhline(0.5, color="green", lw=.7, ls=":", alpha=.6)
     a1.set_xlabel("explanation truncation length (content tokens)")
-    a1.set_ylabel("round-trip FVE"); a1.set_xlim(0, max(tLf.max(), kLf.max()))
+    a1.set_ylabel("round-trip FVE"); a1.set_xlim(0, kLf.max())  # x exactly spans the kitft curve
     a1.set_title("Reconstruction quality vs truncation length")
     a1.grid(alpha=.3); a1.legend(loc="lower right", fontsize=10)
     fig.tight_layout(); fig.savefig(f"{HERE}/fig1a_fve_truncation.png", dpi=150, bbox_inches="tight")
