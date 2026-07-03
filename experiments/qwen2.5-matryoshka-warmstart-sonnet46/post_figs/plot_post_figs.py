@@ -88,6 +88,9 @@ ITERS = ["0000050", "0000100", "0000150", "0000200"]
 CMAP = plt.get_cmap("viridis")
 fig, ax = plt.subplots(figsize=(8.8, 5.2))
 any_it = False
+wL, wF = load("token_fve_t1_ws.csv", XCAP)
+if wL is not None:
+    ax.plot(wL, wF, color="#ff7f0e", lw=2.0, ls=":", label="warm-start (RL step 0)")
 for i, it in enumerate(ITERS):
     L, F = load(f"token_fve_t1_iter{it}.csv", XCAP)
     if L is None:
