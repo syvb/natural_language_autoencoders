@@ -65,3 +65,18 @@ if ours and chunks:
     plt.close(fig); print("fig7 ok")
 else:
     print("fig7 skipped (chunks CSV missing)")
+
+# ---- solo (no-control) variant ----
+if ours:
+    fig, ax = plt.subplots(figsize=(8.0, 5.0))
+    ks, m = marginal(ours)
+    ax.bar(ks, m, color=C_OURS, alpha=.85, width=0.72)
+    for k, v in zip(ks, m):
+        ax.text(k, v + (0.006 if v >= 0 else -0.014), f"{v:.3f}", ha="center", fontsize=8.5)
+    ax.axhline(0, color="k", lw=.8, alpha=.5)
+    ax.set_xlabel("list line index")
+    ax.set_ylabel("additional FVE from this line (ΔFVE)")
+    ax.set_title("Average marginal FVE per list line")
+    ax.set_xticks(range(1, K + 1)); ax.grid(alpha=.3, axis="y")
+    fig.tight_layout(); fig.savefig(f"{HERE}/fig6_marginal_perline_solo.png", dpi=150, bbox_inches="tight")
+    plt.close(fig); print("fig6 solo ok")
