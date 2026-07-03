@@ -196,6 +196,7 @@ CSS = """
 #nla-header h1{font-size:23px; margin-bottom:0;}
 #nla-header p{margin-top:6px;}
 #nla-click-idx{display:none !important;}
+#nla-steer-r{display:none !important;}
 .nla-side{position:sticky !important; top:14px; align-self:flex-start !important;}
 
 /* design tokens (light) + dark overrides */
@@ -287,6 +288,23 @@ CLICK_JS = """
     if (e.key !== 'Enter' && e.key !== ' ') return;
     const t = e.target.closest && e.target.closest('.nla-tok');
     if (t) { e.preventDefault(); send(t); }
+  });
+  // Debounced steering-strength bridge: a drag fires an input event per tick,
+  // which would launch a GPU run at every intermediate value. Instead the
+  // slider is NOT wired to the backend directly — we wait until it has
+  // settled for 500ms, then poke the hidden #nla-steer-r box, whose .input
+  // listener re-runs with the slider's (final) value.
+  let steerT = null;
+  document.addEventListener('input', (e) => {
+    const s = e.target.closest && e.target.closest('#nla-strength input');
+    if (!s) return;
+    clearTimeout(steerT);
+    steerT = setTimeout(() => {
+      const box = document.querySelector('#nla-steer-r textarea, #nla-steer-r input');
+      if (!box) return;
+      box.value = s.value;
+      box.dispatchEvent(new Event('input', { bubbles: true }));
+    }, 500);
   });
 }
 """
@@ -594,7 +612,8 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
                     # "none" selected would (correctly but confusingly) do nothing
                     strength_in = gr.Slider(0.0, 20.0, value=0.6, step=0.1,
                                             label="strength r", scale=3,
-                                            interactive=False)
+                                            interactive=False,
+                                            elem_id="nla-strength")
                 gr.Markdown(
                     "Pick a trait to enable the slider. Steering adds **r·‖v‖·d̂** to "
                     "the clicked activation before the actor verbalizes it — the "
@@ -607,8 +626,10 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
                     pos_in = gr.Number(label="token position", precision=0,
                                        value=None, scale=2)
                     pos_btn = gr.Button("Analyze", scale=1)
-    # hidden bridge: CLICK_JS writes the clicked token index here (display:none)
+    # hidden bridges (display:none): CLICK_JS writes the clicked token index /
+    # the debounced slider value here
     click_idx = gr.Textbox(value="", label="clicked token index", elem_id="nla-click-idx")
+    steer_r_settled = gr.Textbox(value="", label="settled strength", elem_id="nla-steer-r")
 
     tokenize_btn.click(tokenize_text, [text_in], [tokens_out, tok_state, viz],
                        api_name="tokenize")
@@ -619,7 +640,11 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
                   [tokens_out, tok_state, res_state, viz], api_name="analyze")
     steer_dd.input(lambda steer: gr.update(interactive=steer in STEER_DIRS),
                    [steer_dd], [strength_in], show_progress="hidden")
-    gr.on([steer_dd.input, strength_in.input], on_steer_change,
+    # The slider is deliberately NOT a trigger — its per-tick .input events
+    # would re-run at every intermediate drag position. The debounced JS
+    # bridge fires steer_r_settled.input once the slider settles; the
+    # handler then reads the slider's current (final) value.
+    gr.on([steer_dd.input, steer_r_settled.input], on_steer_change,
           [tok_state, res_state, mode, steer_dd, strength_in], [res_state, viz],
           trigger_mode="always_last", concurrency_limit=1)
     mode.change(on_mode_change, [res_state, mode], [viz])
