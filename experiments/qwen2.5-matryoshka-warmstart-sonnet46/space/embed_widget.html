@@ -103,20 +103,28 @@ footer a:hover{text-decoration:underline;}
 .tabs{margin-bottom:8px;}
 .tabs button{padding:4px 10px;font-size:11.5px;}
 .modebar button{padding:4px 10px;font-size:11px;}
-.nlaviz{padding:10px 12px;}
+.nlaviz{padding:10px 10px 10px 8px;}
 .nlaviz .sub{margin-bottom:8px;}
 .nlaviz .chips{gap:16px;margin-bottom:10px;}
 .nlaviz .chip .v{font-size:16px;}
-.nlaviz .row,.nlaviz .axisrow{grid-template-columns:14px minmax(0,1fr) 72px 42px;gap:8px;}
-.nlaviz .row{padding:3px 4px;}
-.nlaviz .line{font-size:11.5px;line-height:1.35;}
-.nlaviz .idx{font-size:10px;}
+.nlaviz .row,.nlaviz .axisrow{grid-template-columns:10px minmax(0,1fr) 68px 40px;gap:6px;}
+.nlaviz .row{padding:3px 2px;}
+.nlaviz .line{font-size:11px;line-height:1.35;}
+.nlaviz .idx{font-size:9.5px;}
 .nlaviz .val{font-size:10.5px;}
 .nlaviz .note{margin-top:6px;font-size:10.5px;}
 /* the 72px axis track can't fit lo + zero labels without collision */
 .nlaviz .axislab span:first-child:nth-last-child(3){display:none;}
 footer{margin-top:8px;}
 @media (min-width:560px){.cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}}
+/* desktop: toggle shares the tabs row (out of the right column's flow).
+   .side must drop its sticky positioning or IT becomes the toggle's
+   containing block (sticky is inert in an auto-height iframe anyway). */
+@media (min-width:640px){
+.wrap{position:relative;}
+.side{position:static;}
+.modebar{position:absolute;top:4px;right:2px;margin-bottom:0;}
+}
 </style>
 <div class="wrap">
   <div class="tabs" id="tabs"></div>
