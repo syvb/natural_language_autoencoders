@@ -58,15 +58,33 @@ def main() -> None:
     if args.widget:
         style = re.search(r"<style>.*?</style>", page, re.DOTALL).group(0)
         body = re.search(r"<body>(.*)</body>", page, re.DOTALL).group(1)
-        page = (style
-                + "<style>.wrap{padding:4px 2px 10px;}"
-                  ".tokscroll{max-height:320px;}"
-                  # side-by-side panels: the iframe viewport (340-700px) never
-                  # reaches the page's 880px two-column breakpoint
-                  "@media (min-width:560px){"
-                  ".cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}}"
-                  "</style>"
-                + body)
+        # widget-only overrides: fixed-px token panel (vh is circular inside
+        # auto-height iframes), side-by-side panels at LW desktop width (the
+        # page's 880px breakpoint never fires in a 340-700px iframe), and a
+        # denser results card — the right column sets the widget's height.
+        overrides = """<style>
+.wrap{padding:4px 2px 8px;}
+.tokscroll{max-height:320px;font-size:13px;line-height:1.85;}
+.tokhead{padding:6px 12px;}
+.tabs{margin-bottom:8px;}
+.tabs button{padding:4px 10px;font-size:11.5px;}
+.modebar button{padding:4px 10px;font-size:11px;}
+.nlaviz{padding:10px 12px;}
+.nlaviz .sub{margin-bottom:8px;}
+.nlaviz .chips{gap:16px;margin-bottom:10px;}
+.nlaviz .chip .v{font-size:16px;}
+.nlaviz .row,.nlaviz .axisrow{grid-template-columns:14px minmax(0,1fr) 72px 42px;gap:8px;}
+.nlaviz .row{padding:3px 4px;}
+.nlaviz .line{font-size:11.5px;line-height:1.35;}
+.nlaviz .idx{font-size:10px;}
+.nlaviz .val{font-size:10.5px;}
+.nlaviz .note{margin-top:6px;font-size:10.5px;}
+/* the 72px axis track can't fit lo + zero labels without collision */
+.nlaviz .axislab span:first-child:nth-last-child(3){display:none;}
+footer{margin-top:8px;}
+@media (min-width:560px){.cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}}
+</style>"""
+        page = style + overrides + body
         # LessWrong's publish pipeline entity-decodes widget source once; the
         # fragment must be a fixed point of that transform or publishing
         # breaks the JS (learned the hard way with "&quot;" in the escaper)
