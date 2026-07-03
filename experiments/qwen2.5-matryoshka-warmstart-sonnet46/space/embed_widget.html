@@ -283,11 +283,9 @@ function boot(data) {
   const p = pRaw === undefined ? null :
     Math.min(parseInt(pRaw, 10), DATA.entries[t].pieces.length - 1);
   selectText(t, p);
-  const d = new Date((DATA.meta.generated_unix || 0) * 1000);
   $("#foot").innerHTML = `Precomputed samples from
     <a href="https://huggingface.co/${esc(DATA.meta.rl_repo)}" target="_blank"
     rel="noopener">${esc(DATA.meta.rl_repo)}</a> (${esc(DATA.meta.rl_iter)})
-    · generated ${d.toISOString().slice(0, 10)}
     · <a href="https://huggingface.co/spaces/syvb/nla-v3-explorer" target="_blank"
     rel="noopener">analyze your own text on the live Space</a>`;
 }
