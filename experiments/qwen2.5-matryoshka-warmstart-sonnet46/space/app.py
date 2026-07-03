@@ -483,7 +483,7 @@ def analyze_at(tokstate: dict | None, idx, mode: str,
         yield None, _card(f"Position must be in [0, {len(ids) - 1}].")
         return
     # strength 0 (or unknown trait) ⇒ plain unsteered analysis, shared cache
-    strength = round(max(0.0, min(20.0, float(strength or 0.0))), 3)
+    strength = _clamp_strength(strength)
     steer_key = steer if steer in STEER_DIRS and strength > 0 else None
     meta = {"token": pieces[idx].strip() or repr(pieces[idx]), "pos": idx}
     if steer_key:
@@ -523,10 +523,27 @@ def analyze_text(text: str, idx, mode: str, steer: str = "none", strength: float
         yield tokens_html, tokstate, res, viz_html
 
 
+def _clamp_strength(x) -> float:
+    return round(max(0.0, min(20.0, float(x or 0.0))), 3)
+
+
 def on_steer_change(tokstate: dict | None, res: dict | None, mode: str,
                     steer: str, strength):
-    """Re-analyze the currently selected token under the new steering setting."""
+    """Re-analyze the currently selected token under the new steering setting.
+
+    Wired to the .input events of both controls (NOT slider.release — that
+    only fires on mouse-drag release, so keyboard arrows / typed values / some
+    track-clicks would silently do nothing) with trigger_mode="always_last"
+    (drag ticks collapse to the final value) and concurrency_limit=1 (runs
+    serialize, so the latest setting always wins the display)."""
     if not tokstate or not res:
+        yield gr.skip(), gr.skip()
+        return
+    s = _clamp_strength(strength)
+    want = (steer, s) if steer in STEER_DIRS and s > 0 else (None, 0.0)
+    have = ((res["steer"], res.get("strength", 0.0)) if res.get("steer")
+            else (None, 0.0))
+    if want == have:  # duplicate/no-op event — the shown result already matches
         yield gr.skip(), gr.skip()
         return
     yield from analyze_at(tokstate, res.get("pos"), mode, steer, strength)
@@ -596,10 +613,9 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
                     [res_state, viz])
     pos_btn.click(analyze_text, [text_in, pos_in, mode, steer_dd, strength_in],
                   [tokens_out, tok_state, res_state, viz], api_name="analyze")
-    steer_dd.change(on_steer_change, [tok_state, res_state, mode, steer_dd, strength_in],
-                    [res_state, viz])
-    strength_in.release(on_steer_change, [tok_state, res_state, mode, steer_dd, strength_in],
-                        [res_state, viz])
+    gr.on([steer_dd.input, strength_in.input], on_steer_change,
+          [tok_state, res_state, mode, steer_dd, strength_in], [res_state, viz],
+          trigger_mode="always_last", concurrency_limit=1)
     mode.change(on_mode_change, [res_state, mode], [viz])
     demo.load(tokenize_text, [text_in], [tokens_out, tok_state, viz])
 
