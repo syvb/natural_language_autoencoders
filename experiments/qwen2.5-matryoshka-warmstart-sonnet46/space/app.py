@@ -483,7 +483,7 @@ def analyze_at(tokstate: dict | None, idx, mode: str,
         yield None, _card(f"Position must be in [0, {len(ids) - 1}].")
         return
     # strength 0 (or unknown trait) ⇒ plain unsteered analysis, shared cache
-    strength = round(max(0.0, min(4.0, float(strength or 0.0))), 3)
+    strength = round(max(0.0, min(20.0, float(strength or 0.0))), 3)
     steer_key = steer if steer in STEER_DIRS and strength > 0 else None
     meta = {"token": pieces[idx].strip() or repr(pieces[idx]), "pos": idx}
     if steer_key:
@@ -567,20 +567,20 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
             tokens_out.render()
         with gr.Column(scale=5, elem_classes=["nla-side"]):
             mode = gr.Radio(["marginal", "cumulative"], value="marginal", label="FVE view")
+            viz.render()
             with gr.Accordion("Steer the activation", open=False,
                               visible=bool(STEER_DIRS)):
                 with gr.Row():
                     steer_dd = gr.Dropdown(["none"] + sorted(STEER_DIRS),
                                            value="none", label="trait direction", scale=2)
-                    strength_in = gr.Slider(0.0, 2.0, value=0.6, step=0.05,
+                    strength_in = gr.Slider(0.0, 20.0, value=0.6, step=0.1,
                                             label="strength r", scale=3)
                 gr.Markdown(
                     "Adds **r·‖v‖·d̂** to the clicked activation before the actor "
                     "verbalizes it — the CAA-style *genuine* trait directions from the "
                     "front-loading experiments. The trait typically enters the list "
-                    "around r≈0.3 and reaches line 1 by r≈1. Changing these re-runs "
-                    "the selected token.")
-            viz.render()
+                    "around r≈0.3 and reaches line 1 by r≈1; past r≈2 the direction "
+                    "dominates the activation. Changing these re-runs the selected token.")
             with gr.Accordion("Analyze a token position by number", open=False):
                 with gr.Row():
                     pos_in = gr.Number(label="token position", precision=0,
