@@ -590,14 +590,18 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
                 with gr.Row():
                     steer_dd = gr.Dropdown(["none"] + sorted(STEER_DIRS),
                                            value="none", label="trait direction", scale=2)
+                    # greyed out until a trait is picked — moving it with
+                    # "none" selected would (correctly but confusingly) do nothing
                     strength_in = gr.Slider(0.0, 20.0, value=0.6, step=0.1,
-                                            label="strength r", scale=3)
+                                            label="strength r", scale=3,
+                                            interactive=False)
                 gr.Markdown(
-                    "Adds **r·‖v‖·d̂** to the clicked activation before the actor "
-                    "verbalizes it — the CAA-style *genuine* trait directions from the "
-                    "front-loading experiments. The trait typically enters the list "
-                    "around r≈0.3 and reaches line 1 by r≈1; past r≈2 the direction "
-                    "dominates the activation. Changing these re-runs the selected token.")
+                    "Pick a trait to enable the slider. Steering adds **r·‖v‖·d̂** to "
+                    "the clicked activation before the actor verbalizes it — the "
+                    "CAA-style *genuine* trait directions from the front-loading "
+                    "experiments. The trait typically enters the list around r≈0.3 and "
+                    "reaches line 1 by r≈1; past r≈2 the direction dominates the "
+                    "activation. Changing these re-runs the selected token.")
             with gr.Accordion("Analyze a token position by number", open=False):
                 with gr.Row():
                     pos_in = gr.Number(label="token position", precision=0,
@@ -613,6 +617,8 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
                     [res_state, viz])
     pos_btn.click(analyze_text, [text_in, pos_in, mode, steer_dd, strength_in],
                   [tokens_out, tok_state, res_state, viz], api_name="analyze")
+    steer_dd.input(lambda steer: gr.update(interactive=steer in STEER_DIRS),
+                   [steer_dd], [strength_in], show_progress="hidden")
     gr.on([steer_dd.input, strength_in.input], on_steer_change,
           [tok_state, res_state, mode, steer_dd, strength_in], [res_state, viz],
           trigger_mode="always_last", concurrency_limit=1)
