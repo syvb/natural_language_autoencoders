@@ -70,6 +70,14 @@ Checkpoints: [syvb/nla-qwen2.5-7b-L20-v3-rl](https://huggingface.co/syvb/nla-qwe
 - `build_embed.py` — regenerates `embed.html` from `embed_template.html`.
   Only needed when the template changes; `--inline` bakes the data into a
   self-contained ~0.5MB file (no network needed at view time).
+- `embed_widget.html` (`build_embed.py --widget`) — the same page as a
+  document-shell-free fragment for sandboxed-iframe embeds, e.g. LessWrong
+  post widgets (fixed-px token panel: vh is circular inside auto-height
+  iframes). To update an already-inserted LessWrong widget after a template
+  change, rebuild then `POST /api/agent/replaceWidget` with the post's
+  `postId`, link-sharing `key`, the `widgetId`, and the new fragment as
+  `replacement` (see lesswrong.com/api/SKILL.md). Data-only changes need no
+  update — the fragment fetches `precache.json` from the Space repo.
 
 Deploy: `bash deploy.sh` (needs `~/.hf_token`). The `NLACritic` class and the
 injection/normalization helpers come from the repo-root `nla_inference.py`.

@@ -11,12 +11,19 @@ Usage:
     python3 build_embed.py --data-url URL      # fetch from elsewhere
     python3 build_embed.py --inline            # → embed.html with the data baked in
                                                #   (self-contained, ~0.5MB, no CORS/network)
+    python3 build_embed.py --widget            # → embed_widget.html: a document-shell-free
+                                               #   fragment for sandboxed-iframe embeds
+                                               #   (e.g. LessWrong post widgets)
+
+The --widget fragment swaps the token panel's vh-based max-height for a fixed
+one (an auto-height-measured iframe makes vh circular) and trims page padding.
 
 Rebuild only when embed_template.html changes (or to switch data source);
 data-only changes flow through precache.json + deploy.sh automatically.
 """
 import argparse
 import json
+import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -29,8 +36,11 @@ def main() -> None:
     ap.add_argument("--data-url", default=DEFAULT_DATA_URL)
     ap.add_argument("--inline", action="store_true",
                     help="bake precache.json into the page instead of fetching")
-    ap.add_argument("--out", default=str(HERE / "embed.html"))
+    ap.add_argument("--widget", action="store_true",
+                    help="emit a <style>+body fragment for sandboxed-iframe embeds")
+    ap.add_argument("--out", default=None)
     args = ap.parse_args()
+    out = Path(args.out or (HERE / ("embed_widget.html" if args.widget else "embed.html")))
 
     if args.inline:
         data = json.loads((HERE / "precache.json").read_text())
@@ -44,9 +54,17 @@ def main() -> None:
 
     template = (HERE / "embed_template.html").read_text()
     assert template.count("__DATA_SOURCE__") == 1
-    out = Path(args.out)
-    out.write_text(template.replace("__DATA_SOURCE__", source))
+    page = template.replace("__DATA_SOURCE__", source)
+    if args.widget:
+        style = re.search(r"<style>.*?</style>", page, re.DOTALL).group(0)
+        body = re.search(r"<body>(.*)</body>", page, re.DOTALL).group(1)
+        page = (style
+                + "<style>.wrap{padding:4px 2px 10px;}"
+                  ".tokscroll{max-height:320px;}</style>"
+                + body)
+    out.write_text(page)
     print(f"wrote {out} ({out.stat().st_size / 1e3:.0f} kB, "
+          f"{'widget fragment, ' if args.widget else ''}"
           f"{'inline data' if args.inline else 'fetches ' + args.data_url})")
 
 
