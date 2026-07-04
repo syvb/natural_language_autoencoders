@@ -69,28 +69,30 @@ out = os.path.join(RES, "fve_dist.png")
 fig.savefig(out, dpi=140, bbox_inches="tight")
 print("wrote", out)
 
-# --- zoomed single panel: full-length only, x truncated to the bulk ---
-ZLO = 0.0
-fig2, ax = plt.subplots(figsize=(7.2, 4.6))
-zbins = np.linspace(ZLO, 1.0, 51)
-for model, label, color in MODELS:
-    rows, denom = load(model)
-    f = np.array([1 - r["err2_full"] / denom for r in rows])
-    nclip = int((f < ZLO).sum())
-    ax.hist(np.clip(f, ZLO, 1.0), bins=zbins, density=True, histtype="stepfilled",
-            alpha=0.35, color=color, edgecolor=color, lw=1.5,
-            label=(f"{label}  (mean {f.mean():+.3f}, median {np.median(f):+.3f}; "
-                   f"{nclip}/{len(f)} rollouts < 0 pooled in first bin)"))
-    ax.axvline(f.mean(), color=color, ls="--", lw=1.4)
-ax.set_xlim(ZLO, 1.0)
-ax.set_title("full-length explanation (x truncated at 0)")
-ax.set_xlabel("per-rollout round-trip FVE")
-ax.set_ylabel("density")
-ax.grid(alpha=0.3)
-ax.legend(loc="upper left", fontsize=9)
-fig2.suptitle(f"Round-trip FVE per rollout — {nex} held-out docs × {nroll//nex} sampled rollouts each",
-              y=1.0)
-fig2.tight_layout()
-out2 = os.path.join(RES, "fve_dist_full_zoom.png")
-fig2.savefig(out2, dpi=140, bbox_inches="tight")
-print("wrote", out2)
+# --- zoomed single panels: full-length only, x truncated to the bulk ---
+for ZLO, suffix in [(0.0, ""), (-0.5, "_m0.5")]:
+    fig2, ax = plt.subplots(figsize=(7.2, 4.6))
+    zbins = np.linspace(ZLO, 1.0, 51)
+    for model, label, color in MODELS:
+        rows, denom = load(model)
+        f = np.array([1 - r["err2_full"] / denom for r in rows])
+        nclip = int((f < ZLO).sum())
+        ax.hist(np.clip(f, ZLO, 1.0), bins=zbins, density=True, histtype="stepfilled",
+                alpha=0.35, color=color, edgecolor=color, lw=1.5,
+                label=(f"{label}  (mean {f.mean():+.3f}, median {np.median(f):+.3f}; "
+                       f"{nclip}/{len(f)} rollouts < {ZLO:g} pooled in first bin)"))
+        ax.axvline(f.mean(), color=color, ls="--", lw=1.4)
+    if ZLO < 0:
+        ax.axvline(0, color="k", lw=0.8, alpha=0.5)
+    ax.set_xlim(ZLO, 1.0)
+    ax.set_title(f"full-length explanation (x truncated at {ZLO:g})")
+    ax.set_xlabel("per-rollout round-trip FVE")
+    ax.set_ylabel("density")
+    ax.grid(alpha=0.3)
+    ax.legend(loc="upper left", fontsize=9)
+    fig2.suptitle(f"Round-trip FVE per rollout — {nex} held-out docs × {nroll//nex} sampled rollouts each",
+                  y=1.0)
+    fig2.tight_layout()
+    out2 = os.path.join(RES, f"fve_dist_full_zoom{suffix}.png")
+    fig2.savefig(out2, dpi=140, bbox_inches="tight")
+    print("wrote", out2)
