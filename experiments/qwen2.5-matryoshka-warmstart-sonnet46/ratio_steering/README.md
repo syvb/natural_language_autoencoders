@@ -59,6 +59,17 @@ them by injected magnitude. (Its pooled slope actually drops on chunks, +0.78 �
 chunking surfaces more both-present rows, shrinking the mechanical presence
 component.)
 
+**Propensity permutation null (permutation_null.py):** order can inherit dose-response
+without any ordering mechanism (higher propensity → earlier first mention). Shuffling
+line order within rows: v3 observed +0.88 vs null +0.45 — **~half of v3's order slope
+is propensity, half is genuine position allocation** (excess +0.43). kitft is *below*
+its own null (chunks +0.17 vs +0.46; lines +0.10 vs +0.31): its layout is
+template-locked (register / quote / next-token slots), so random placement of its own
+mentions would track the ratio better than its actual positions do. Scope note: this
+experiment validates that the trained ordering property is real, causal, and
+quantitative — it is NOT by itself a usefulness claim; usefulness = accuracy under a
+reading budget, a separate (judge-only) eval.
+
 Caveats (multi-agent review, 2026-07-04): the "~1.5×" pooled contrast is partly
 kitft's coarser 3-line granularity (10% same-line ties vs 3%; ties-excluded ratio is
 ~1.3×) and its midpoint shift explains ~2/3 of the showcased λ=+2 point gap; kitft at
