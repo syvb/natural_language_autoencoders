@@ -23,9 +23,15 @@ Env knobs:
     NLA_KL_TAPER_FLOOR      lower bound on w(t), relative to the first-token
                             coefficient (default 0.0)
 
-Reported metrics: train/kl_loss is the WEIGHTED mean (the term actually in
-the loss — not comparable to flat-KL runs); train/kl_flat is the unweighted
-mean, i.e. what a flat-KL run at the same estimator would have reported.
+Reported metrics (all land in wandb as train/<name>):
+    kl_loss      WEIGHTED mean KL — the term actually in the loss (times
+                 kl_loss_coef); not comparable to flat-KL runs
+    kl_flat      unweighted mean KL — what a flat-KL run would have reported
+    kl_coef_eff  the KL coefficient effectively applied per token this step:
+                 kl_loss_coef x batch-mean taper weight. Varies per batch with
+                 the truncation-drawn response lengths; equals kl_loss_coef in
+                 the no-taper limit. THIS is "the current KL penalty" to watch.
+    kl_penalty   kl_loss_coef x kl_loss — the actual scalar added to the loss
 
 Cost note: the wrapped call runs with use_kl_loss off, and the KL term is
 rebuilt here from a second get_log_probs_and_entropy pass — one extra
@@ -118,4 +124,8 @@ def nla_policy_loss_tapered_kl(args, parallel_state, batch, logits, sum_of_sampl
 
     reported["kl_loss"] = kl_loss.clone().detach()
     reported["kl_flat"] = sum_of_sample_mean(kl).clone().detach()
+    reported["kl_coef_eff"] = (
+        args.kl_loss_coef * sum_of_sample_mean(weights).clone().detach()
+    )
+    reported["kl_penalty"] = args.kl_loss_coef * reported["kl_loss"]
     return loss, reported

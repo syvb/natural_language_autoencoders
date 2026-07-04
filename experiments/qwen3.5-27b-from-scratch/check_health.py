@@ -22,6 +22,7 @@ from collections import defaultdict
 
 WATCH = (
     "raw_reward", "fve_nrm", "loss_nonfinite", "kl_loss", "kl_flat",
+    "kl_coef_eff", "kl_penalty",
     "pred_norm_min", "values_absmax", "pg_loss", "entropy_loss", "grad_norm",
     "loss",
 )

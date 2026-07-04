@@ -118,6 +118,8 @@ def test_tapered_kl_math_and_layout(monkeypatch):
     expected_w = torch.cat([taper_weights(4, 10.0, 0.0), taper_weights(25, 10.0, 0.0)])
     assert reported["kl_loss"] == pytest.approx(expected_w.sum().item())
     assert reported["kl_flat"] == pytest.approx(29.0)
+    assert reported["kl_coef_eff"] == pytest.approx(0.02 * expected_w.sum().item())
+    assert reported["kl_penalty"] == pytest.approx(0.02 * expected_w.sum().item())
     assert loss.item() == pytest.approx(7.0 + 0.02 * expected_w.sum().item())
 
 
