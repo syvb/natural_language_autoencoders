@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 K = int(sys.argv[1]) if len(sys.argv) > 1 else 20
 HERE = os.path.dirname(os.path.abspath(__file__))
 RES = os.path.join(HERE, "results")
+TAG = os.environ.get("TAG", "")  # e.g. "2500" -> reads fvedist2500_budget_*, writes fve_dist2500_*
 CLIP = -1.5
 
 MODELS = [
@@ -25,12 +26,13 @@ MODELS = [
 
 fig, ax = plt.subplots(figsize=(7.2, 4.6))
 bins = np.linspace(CLIP, 1.0, 51)
-nex = nroll = None
+nex = nroll = None; sel = "doc"
 for model, label, color in MODELS:
-    d = json.load(open(os.path.join(RES, f"fvedist_budget_{model}.json")))
+    d = json.load(open(os.path.join(RES, f"fvedist{TAG}_budget_{model}.json")))
     assert K in d["prefixes"], (K, d["prefixes"])
     f = np.array([1 - r[f"err2_k{K}"] / d["denom"] for r in d["rows"]])
     nex = len({r["i"] for r in d["rows"]}); nroll = len(d["rows"])
+    sel = d.get("select", "doc")
     nclip = int((f < CLIP).sum())
     ax.hist(np.clip(f, CLIP, 1.0), bins=bins, density=True, histtype="stepfilled",
             alpha=0.35, color=color, edgecolor=color, lw=1.5,
@@ -47,9 +49,10 @@ ax.set_xlabel("per-rollout round-trip FVE")
 ax.set_ylabel("density")
 ax.grid(alpha=0.3)
 ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.18), fontsize=8.5, frameon=False)
-fig.suptitle(f"Round-trip FVE per rollout — {nex} held-out docs × {nroll//nex} sampled rollouts each",
-             y=1.0)
+unit = "docs" if sel == "doc" else "examples"
+tail = f"{nroll//nex} sampled rollouts each" if nroll // nex > 1 else "1 sampled rollout each"
+fig.suptitle(f"Round-trip FVE per rollout — {nex} held-out {unit} × {tail}", y=1.0)
 fig.tight_layout()
-out = os.path.join(RES, f"fve_dist_k{K}_zoom.png")
+out = os.path.join(RES, f"fve_dist{TAG}_k{K}_zoom.png")
 fig.savefig(out, dpi=140, bbox_inches="tight")
 print("wrote", out)

@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RES = os.path.join(HERE, "results")
+TAG = os.environ.get("TAG", "")  # e.g. "2500" -> reads fvedist2500_*, writes fve_dist2500_*
 CLIP = -1.5
 
 MODELS = [
@@ -27,13 +28,21 @@ MODELS = [
 
 
 def load(model):
-    rows, denoms = [], []
-    for p in sorted(glob.glob(os.path.join(RES, f"fvedist_{model}_s*.json"))):
+    rows, denoms, sel = [], [], "doc"
+    for p in sorted(glob.glob(os.path.join(RES, f"fvedist{TAG}_{model}_s*.json"))):
         d = json.load(open(p))
         denoms.append(d["denom"])
         rows += d["rows"]
+        sel = d.get("select", "doc")
     assert denoms and max(denoms) - min(denoms) < 1e-9, (model, denoms)
-    return rows, denoms[0]
+    return rows, denoms[0], sel
+
+
+def subtitle(rows, sel):
+    nex = len({r["i"] for r in rows}); per = len(rows) // nex
+    unit = "docs" if sel == "doc" else "examples"
+    tail = f"{per} sampled rollouts each" if per > 1 else "1 sampled rollout each"
+    return f"Round-trip FVE per rollout — {nex} held-out {unit} × {tail}"
 
 
 fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.6), sharey=True)
@@ -41,7 +50,7 @@ bins = np.linspace(CLIP, 1.0, 61)
 for ax, key, title in [(axes[0], "err2_full", "full-length explanation"),
                        (axes[1], "err2_p10", "first 10 content tokens")]:
     for model, label, color in MODELS:
-        rows, denom = load(model)
+        rows, denom, sel = load(model)
         f = np.array([1 - r[key] / denom for r in rows])
         nclip = int((f < CLIP).sum())
         ax.hist(np.clip(f, CLIP, 1.0), bins=bins, density=True, histtype="stepfilled",
@@ -60,12 +69,10 @@ for ax, key, title in [(axes[0], "err2_full", "full-length explanation"),
     ax.grid(alpha=0.3)
 axes[0].set_ylabel("density")
 axes[0].legend(loc="upper left", fontsize=9)
-rows, _ = load("v3")
-nex = len({r["i"] for r in rows}); nroll = len(rows)
-fig.suptitle(f"Round-trip FVE per rollout — {nex} held-out docs × {nroll//nex} sampled rollouts each",
-             y=1.02)
+rows, _, sel = load("v3")
+fig.suptitle(subtitle(rows, sel), y=1.02)
 fig.tight_layout()
-out = os.path.join(RES, "fve_dist.png")
+out = os.path.join(RES, f"fve_dist{TAG}.png")
 fig.savefig(out, dpi=140, bbox_inches="tight")
 print("wrote", out)
 
@@ -74,7 +81,7 @@ for ZLO, suffix in [(0.0, ""), (-0.5, "_m0.5")]:
     fig2, ax = plt.subplots(figsize=(7.2, 4.6))
     zbins = np.linspace(ZLO, 1.0, 51)
     for model, label, color in MODELS:
-        rows, denom = load(model)
+        rows, denom, sel = load(model)
         f = np.array([1 - r["err2_full"] / denom for r in rows])
         nclip = int((f < ZLO).sum())
         ax.hist(np.clip(f, ZLO, 1.0), bins=zbins, density=True, histtype="stepfilled",
@@ -90,9 +97,8 @@ for ZLO, suffix in [(0.0, ""), (-0.5, "_m0.5")]:
     ax.set_ylabel("density")
     ax.grid(alpha=0.3)
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.18), fontsize=8.5, frameon=False)
-    fig2.suptitle(f"Round-trip FVE per rollout — {nex} held-out docs × {nroll//nex} sampled rollouts each",
-                  y=1.0)
+    fig2.suptitle(subtitle(rows, sel), y=1.0)
     fig2.tight_layout()
-    out2 = os.path.join(RES, f"fve_dist_full_zoom{suffix}.png")
+    out2 = os.path.join(RES, f"fve_dist{TAG}_full_zoom{suffix}.png")
     fig2.savefig(out2, dpi=140, bbox_inches="tight")
     print("wrote", out2)

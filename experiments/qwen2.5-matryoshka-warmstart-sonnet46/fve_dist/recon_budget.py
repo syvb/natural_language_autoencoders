@@ -7,9 +7,10 @@ matching sweep_fve.py), and writes per-rollout err2/cos per budget. No AV /
 generation involved, so this reruns cheaply for any budget question.
 
 Gold activations are re-read from the eval parquet with the same selection logic
-as gen_fve_dist.py (first occurrence per doc, stride over N docs); rows carry the
-selection index `i`. The denominator is recomputed over all N golds and asserted
-to match the one stored in the input JSONs.
+as gen_fve_dist.py (SELECT mode taken from the input JSONs: first occurrence per
+doc, or all rows, then stride over N); rows carry the selection index `i`. The
+denominator is recomputed over all N golds and asserted to match the one stored
+in the input JSONs.
 
 Env: AR_DIR, EVAL, IN_GLOB, OUT, PREFIXES (default "1,2,3,5,7,10,15,20,25,30,40,50,60,80,100,120,160,200").
 """
@@ -35,14 +36,18 @@ rows, denom0 = [], None
 for p in sorted(glob.glob(IN_GLOB)):
     d = json.load(open(p))
     rows += d["rows"]; denom0 = d["denom"]; N = d["n"]
-print(f"{len(rows)} rollouts from {IN_GLOB}, N={N}", flush=True)
+    SELECT = d.get("select", "doc")
+print(f"{len(rows)} rollouts from {IN_GLOB}, N={N}, select={SELECT}", flush=True)
 
 t = pq.read_table(EVAL)
 docs = t.column("doc_id").to_pylist()
-seen = {}
-for idx, dd in enumerate(docs):
-    if dd not in seen: seen[dd] = idx
-first = list(seen.values())
+if SELECT == "doc":
+    seen = {}
+    for idx, dd in enumerate(docs):
+        if dd not in seen: seen[dd] = idx
+    first = list(seen.values())
+else:
+    first = list(range(len(docs)))
 step = max(1, len(first) // N)
 sel = [first[min(i * step, len(first) - 1)] for i in range(N)]
 all_vecs = [np.asarray(t.column("activation_vector")[i].as_py(), dtype=np.float32) for i in sel]
@@ -92,7 +97,7 @@ for k in PREFIXES:
         r[f"err2_k{k}"] = e2[j].item(); r[f"cos_k{k}"] = cs[j].item()
     print(f"  k={k:>3}  aggregate FVE={1 - e2.mean().item() / denom:+.4f}", flush=True)
 
-json.dump(dict(denom=denom, mse_scale=ms, n=N, prefixes=PREFIXES,
+json.dump(dict(denom=denom, mse_scale=ms, n=N, prefixes=PREFIXES, select=SELECT,
                ar_dir=AR_DIR, eval_parquet=os.path.basename(EVAL), rows=out_rows),
           open(OUT, "w"))
 print("RECON_BUDGET_DONE", flush=True)

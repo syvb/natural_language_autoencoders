@@ -61,12 +61,36 @@ Aggregates reproduce the known headline numbers (ours full ≈0.57–0.59, p10
    and account for a minority of the negative tail (11.7% vs 4.7% frac<0), so
    the tail is not just the CJK leak.
 
+## 2500 × 1 replication (`fvedist2500_*`)
+
+Same pipeline at 5× the sample count: **2500 held-out examples × 1 rollout**
+per model (`SELECT=row TAG=2500`). The eval split has only 562 distinct docs,
+so selection strides over all 5007 eval rows instead of first-per-doc —
+2500 distinct (doc, position) activations covering all 562 docs (~4.4
+positions/doc). Denominator = population variance of the 2500 normalized golds
+(0.7273), again identical for both models.
+
+Everything replicates within noise of the 250×2 run:
+
+| full length | ours | kitft | | 10-token prefix | ours | kitft |
+|---|---|---|---|---|---|---|
+| mean | **+0.563** | **+0.746** | | mean | **+0.434** | **−0.534** |
+| median | +0.661 | +0.773 | | FVE > 0 | 94.4% | 2.5% |
+| FVE < 0 | 6.2% | 0.0% | | k=20 mean | +0.575 | −0.418 |
+
+CJK flag rate ours 32%, kitft 6.8%. The recon stage was run at k∈{10,20} only
+(k=10 reproduces the generator's p10 to 4 decimals for both models); the saved
+texts in `fvedist2500_{v3,kitft}_s*.json` support re-running the full budget
+grid any time. Figures: `fve_dist2500.png`, `fve_dist2500_full_zoom.png`,
+`fve_dist2500_full_zoom_m0.5.png`, `fve_dist2500_k20_zoom.png`.
+
 ## Files
 
 - `gen_fve_dist.py` — box script: AV rollouts (T=1) + critic reconstruction,
   per-rollout err²/cos at full/p10, JSON out. Sample selection identical to
-  `sweep_fve.py`; shards partition one fixed 250-doc set and the denominator
-  is computed over all 250 golds in every shard.
+  `sweep_fve.py` (`SELECT=doc`; `SELECT=row` strides over all eval rows);
+  shards partition one fixed selection and the denominator is computed over
+  all N golds in every shard.
 - `driver_fve_dist.sh` — quad-GPU box driver (one model:shard per GPU).
 - `plot_fve_dist.py` — renders `results/fve_dist.png` (+ zoomed full-length
   panel) from the shard JSONs.

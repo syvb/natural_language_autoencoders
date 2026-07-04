@@ -8,12 +8,15 @@ to mse_scale and denom = mean((gn_j - mu)^2) over the N unique golds (population
 variance, raw-mean baseline). This makes mean_i(FVE_i) equal the aggregate FVE of
 eval_round_trip_fve.py / sweep_fve.py, so the histogram decomposes the headline number.
 
-Sample selection is identical to sweep_fve.py (first occurrence per doc, stride),
-computed over the FULL N before sharding, so shards partition one fixed sample set
-and the denominator is shard-independent.
+Sample selection (SELECT=doc, default) is identical to sweep_fve.py (first
+occurrence per doc, stride), computed over the FULL N before sharding, so shards
+partition one fixed sample set and the denominator is shard-independent.
+SELECT=row strides over ALL eval rows instead (doc_ids repeat; use when N exceeds
+the distinct-doc count).
 
 Env: AV_DIR, AR_DIR, EVAL, OUT (json path), N (default 250), NROLL (default 2),
-     SHARD/NSHARDS (default 0/1), NLA_GEN_TEMP (default 1), NLA_GEN_SEED (default 0).
+     SELECT (doc|row, default doc), SHARD/NSHARDS (default 0/1),
+     NLA_GEN_TEMP (default 1), NLA_GEN_SEED (default 0).
 """
 import json
 import os
@@ -35,6 +38,7 @@ EVAL = os.environ["EVAL"]
 OUT = os.environ["OUT"]
 N = int(os.environ.get("N", "250"))
 NROLL = int(os.environ.get("NROLL", "2"))
+SELECT = os.environ.get("SELECT", "doc")
 SHARD = int(os.environ.get("SHARD", "0"))
 NSHARDS = int(os.environ.get("NSHARDS", "1"))
 _T = float(os.environ.get("NLA_GEN_TEMP", "1"))
@@ -55,13 +59,17 @@ if tok.pad_token_id is None: tok.pad_token = tok.eos_token
 av = AutoModelForCausalLM.from_pretrained(AV_DIR, dtype=torch.bfloat16).to(dev).eval()
 emb = av.get_input_embeddings()
 
-# --- same N distinct-doc samples as sweep_fve.py; shard AFTER selection ---
+# --- sample selection (stride over candidates); shard AFTER selection ---
 t = pq.read_table(EVAL)
 docs = t.column("doc_id").to_pylist()
-seen = {}
-for idx, d in enumerate(docs):
-    if d not in seen: seen[d] = idx
-first = list(seen.values())
+if SELECT == "doc":  # same N distinct-doc samples as sweep_fve.py
+    seen = {}
+    for idx, d in enumerate(docs):
+        if d not in seen: seen[d] = idx
+    first = list(seen.values())
+else:  # "row": every eval row is a candidate
+    first = list(range(len(docs)))
+assert N <= len(first), (N, len(first))
 step = max(1, len(first) // N)
 sel = [first[min(i * step, len(first) - 1)] for i in range(N)]
 col = t.column
@@ -70,7 +78,7 @@ my_idx = list(range(N))[SHARD::NSHARDS]
 prompts = [col("prompt")[sel[i]].as_py() for i in my_idx]
 my_docs = [docs[sel[i]] for i in my_idx]
 vecs = [all_vecs[i] for i in my_idx]
-print(f"N={N} shard {SHARD}/{NSHARDS}: {len(my_idx)} samples x {NROLL} rollouts, T={_T}", flush=True)
+print(f"N={N} select={SELECT} shard {SHARD}/{NSHARDS}: {len(my_idx)} samples x {NROLL} rollouts, T={_T}", flush=True)
 
 
 @torch.no_grad()
@@ -150,6 +158,6 @@ print(f"shard aggregate: full FVE={np.mean(fves):.4f}  "
       f"p10 FVE={np.mean([1 - r['err2_p10'] / denom for r in rows]):.4f}  "
       f"cjk={sum(r['cjk'] for r in rows)}/{len(rows)}", flush=True)
 json.dump(dict(denom=denom, mse_scale=ms, n=N, nroll=NROLL, temp=_T, prefix=PREFIX,
-               av_dir=AV_DIR, eval_parquet=os.path.basename(EVAL), rows=rows),
+               select=SELECT, av_dir=AV_DIR, eval_parquet=os.path.basename(EVAL), rows=rows),
           open(OUT, "w"))
 print("FVEDIST_DONE", flush=True)

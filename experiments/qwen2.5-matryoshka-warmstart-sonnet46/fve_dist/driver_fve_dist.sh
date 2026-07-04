@@ -5,7 +5,10 @@
 # Usage:   MODEL_SHARDS="v3:0 v3:1 kitft:0 kitft:1" NSHARDS=2 bash driver_fve_dist.sh
 #   v3    = syvb v3-RL iter_0000200 AV/AR, scored on v3/av_eval_v3.parquet
 #   kitft = published kitft AV/AR,          scored on av_eval.parquet
-# Writes /workspace/fvedist_<model>_s<shard>.json per job; sentinel FVEDIST_DONE.
+# Optional env: N, NROLL, SELECT (doc|row), TAG (output-name suffix),
+#   RECON=1 (chain recon_budget.py per model on GPUs 0/1 after generation).
+# Writes /workspace/fvedist${TAG}_<model>_s<shard>.json per job (+ budget JSONs
+# when RECON=1); sentinel FVEDIST_DRIVER_DONE.
 set -e
 export HF_HUB_ENABLE_HF_TRANSFER=1
 export HF_TOKEN="$(cat /root/.hf_token)"
@@ -35,6 +38,7 @@ print("DOWNLOADS_DONE", flush=True)
 PY
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TAG="${TAG:-}"
 i=0
 for js in $MODEL_SHARDS; do
   m="${js%%:*}"; s="${js##*:}"
@@ -44,7 +48,8 @@ for js in $MODEL_SHARDS; do
     AV=/workspace/kitft/av; AR=/workspace/kitft/ar; EV=/workspace/av_eval.parquet
   fi
   CUDA_VISIBLE_DEVICES=$i AV_DIR=$AV AR_DIR=$AR EVAL=$EV SHARD=$s NSHARDS=${NSHARDS:-1} \
-    N=${N:-250} NROLL=${NROLL:-2} OUT=/workspace/fvedist_${m}_s${s}.json \
+    N=${N:-250} NROLL=${NROLL:-2} SELECT=${SELECT:-doc} \
+    OUT=/workspace/fvedist${TAG}_${m}_s${s}.json \
     PYTHONPATH=/workspace/nla nohup python "$HERE/gen_fve_dist.py" \
     > /workspace/gen_${m}_s${s}.log 2>&1 &
   i=$((i+1))
@@ -53,10 +58,31 @@ wait
 # wait(1) ignores child failures; gate the sentinel on the actual artifacts
 for js in $MODEL_SHARDS; do
   m="${js%%:*}"; s="${js##*:}"
-  if [ ! -s "/workspace/fvedist_${m}_s${s}.json" ]; then
-    echo "MISSING fvedist_${m}_s${s}.json" | tee /workspace/FVEDIST_DRIVER_FAIL
+  if [ ! -s "/workspace/fvedist${TAG}_${m}_s${s}.json" ]; then
+    echo "MISSING fvedist${TAG}_${m}_s${s}.json" | tee /workspace/FVEDIST_DRIVER_FAIL
     exit 1
   fi
 done
+
+if [ "${RECON:-0}" = "1" ]; then
+  i=0
+  for m in v3 kitft; do
+    if [ "$m" = "v3" ]; then AR=/workspace/v3ckpt/ar; EV=/workspace/v3/av_eval_v3.parquet
+    else AR=/workspace/kitft/ar; EV=/workspace/av_eval.parquet; fi
+    CUDA_VISIBLE_DEVICES=$i AR_DIR=$AR EVAL=$EV \
+      IN_GLOB="/workspace/fvedist${TAG}_${m}_s*.json" \
+      OUT=/workspace/fvedist${TAG}_budget_${m}.json \
+      PYTHONPATH=/workspace/nla nohup python "$HERE/recon_budget.py" \
+      > /workspace/recon_${m}.log 2>&1 &
+    i=$((i+1))
+  done
+  wait
+  for m in v3 kitft; do
+    if [ ! -s "/workspace/fvedist${TAG}_budget_${m}.json" ]; then
+      echo "MISSING fvedist${TAG}_budget_${m}.json" | tee /workspace/FVEDIST_DRIVER_FAIL
+      exit 1
+    fi
+  done
+fi
 touch /workspace/FVEDIST_DRIVER_DONE
 echo "FVEDIST_DRIVER_DONE"
