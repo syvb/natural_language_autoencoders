@@ -115,7 +115,8 @@ footer a:hover{text-decoration:underline;}
 .nlaviz .note{margin-top:6px;font-size:10.5px;}
 /* the 72px axis track can't fit lo + zero labels without collision */
 .nlaviz .axislab span:first-child:nth-last-child(3){display:none;}
-footer{margin-top:8px;}
+/* sandbox can't open links; attribution lives in the post body instead */
+footer{display:none;}
 @media (min-width:560px){.cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}}
 /* desktop: toggle shares the tabs row (out of the right column's flow).
    .side must drop its sticky positioning or IT becomes the toggle's
@@ -146,6 +147,12 @@ footer{margin-top:8px;}
 "use strict";
 // Injected by build_embed.py: {"url": "..."} to fetch, or {"inline": {...}}.
 const DATA_SOURCE = {"url": "https://huggingface.co/spaces/syvb/nla-v3-explorer/resolve/main/precache.json"};
+// true in the LessWrong-widget build: its sandbox (allow-scripts only, extra
+// permissions stripped server-side) can never open links — the footer is
+// hidden by widget CSS and the error card shows a plain URL instead of a
+// dead anchor.
+const IS_WIDGET = true;
+const SPACE_URL_TEXT = "huggingface.co/spaces/syvb/nla-v3-explorer";
 const GOOD_MIN_POS = 10;
 const CJK_RE = /[　-ヿ㐀-䶿一-鿿＀-￯]/;
 
@@ -326,7 +333,8 @@ if (DATA_SOURCE.inline) {
   }).then(boot).catch((err) => {
     $("#tok-slot").innerHTML = card(
       `couldn't load precomputed data (${esc(String(err))}) — ` +
-      `<a href="https://huggingface.co/spaces/syvb/nla-v3-explorer">use the live Space</a>`);
+      (IS_WIDGET ? `try the live demo: ${SPACE_URL_TEXT}`
+                 : `<a href="https://huggingface.co/spaces/syvb/nla-v3-explorer">use the live Space</a>`));
   });
 }
 </script>

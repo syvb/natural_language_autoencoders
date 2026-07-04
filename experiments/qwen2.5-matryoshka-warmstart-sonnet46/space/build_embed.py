@@ -54,7 +54,9 @@ def main() -> None:
 
     template = (HERE / "embed_template.html").read_text()
     assert template.count("__DATA_SOURCE__") == 1
-    page = template.replace("__DATA_SOURCE__", source)
+    assert template.count("__IS_WIDGET__") == 1
+    page = (template.replace("__DATA_SOURCE__", source)
+            .replace("__IS_WIDGET__", "true" if args.widget else "false"))
     if args.widget:
         style = re.search(r"<style>.*?</style>", page, re.DOTALL).group(0)
         body = re.search(r"<body>(.*)</body>", page, re.DOTALL).group(1)
@@ -81,7 +83,8 @@ def main() -> None:
 .nlaviz .note{margin-top:6px;font-size:10.5px;}
 /* the 72px axis track can't fit lo + zero labels without collision */
 .nlaviz .axislab span:first-child:nth-last-child(3){display:none;}
-footer{margin-top:8px;}
+/* sandbox can't open links; attribution lives in the post body instead */
+footer{display:none;}
 @media (min-width:560px){.cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}}
 /* desktop: toggle shares the tabs row (out of the right column's flow).
    .side must drop its sticky positioning or IT becomes the toggle's
