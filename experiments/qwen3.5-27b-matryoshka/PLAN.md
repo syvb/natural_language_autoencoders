@@ -101,9 +101,40 @@ Plan below assumes Option A.
 
 Memory sizing behind Phase 4/5 topology: actor 27B ≈ 360 GB FSDP state → fits
 actor4 on H200-141GB; critic 43-layer ≈ 17B ≈ 210–270 GB → critic2 is
-borderline, **expect actor4/critic3/rollout1** (rollout1 costs ~+30% step
-time) or optimizer CPU-offload; 8×B200-192GB (~$39.5/hr) restores the
-canonical actor4/critic2/rollout2 if H200 is too tight. Decide at smoke.
+borderline on H200, **expect actor4/critic3/rollout1** (rollout1 costs ~+30%
+step time) or optimizer CPU-offload. On B200-192GB the canonical
+actor4/critic2/rollout2 fits comfortably. Decide at smoke.
+
+## GPU choice: Blackwell first, H200 fallback
+
+B200 is both faster and cheaper per unit of work for this job, market
+permitting (Vast, 2026-07-04: 8×B200 $44/hr ×1 offer, 8×B300 $50/hr ×1 offer,
+4×B200 ~$20/hr ×5 offers, vs 8×H200 ~$35/hr, several offers; zero 8×H100).
+
+- **Speed**: B200 ≈ 2.2× H200 bf16 compute, 1.67× bandwidth → realized
+  ~1.7–2× on training steps, ~1.6–1.7× on decode-bound rollouts. RL est.
+  ~75–85 s/step vs ~140 on H200 → 300 steps ≈ 6.5 h ($~285) vs ~12 h ($~405).
+  SFT (2 epochs, AV ∥ AR on 2× 4×B200): ~3.5–4.5 h wall, ~$140–180.
+- **Memory**: 192 GB removes the critic2-fit question entirely (no
+  rollout1/CPU-offload fallback penalty) — an extra effective speedup vs the
+  H200 plan's likely degraded topology.
+- **B300 (288 GB)**: ~same bf16 as B200 (Ultra's gains are FP4 + memory);
+  at $50/hr it's the *memory* fallback (bigger micro-batches, roomier
+  topologies), not a speed upgrade. Use only if the B200 offer is gone or
+  27B memory surprises us.
+- **Risks/costs of Blackwell**: sm_100 needs the cu129+ stack we're already
+  forced onto by Qwen3.5 (sglang ≥0.5.10 images run Blackwell); new
+  flash-attn sm100 wheel to build once and cache in `nla-rl-build-cache`;
+  fla/Triton GDN kernels are Triton (Blackwell-ok, perf maybe untuned).
+  **Cap Blackwell-specific debugging at half a day, then fall back to H200.**
+  Supply is the real risk: exactly one 8×B200 offer today — re-check at
+  provisioning time; the H200 phase costs in the table are the conservative
+  ceiling.
+
+If the B200 offers hold, GPU wall-clock drops ~22–32 h → **~13–19 h** and GPU
+spend **~$600–1,000 → ~$450–750**. Calendar barely moves (~1 day at best) —
+the week is integration/human time, and phases 1/4-integration can overlap
+the GPU phases regardless.
 
 ## Scale of training: SFT epochs and RL steps
 
