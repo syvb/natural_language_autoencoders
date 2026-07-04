@@ -26,6 +26,24 @@ Every line of every generation is judged 3-way for BOTH traits in one call
 psychometric curve per model. Prediction: the matryoshka model's first-mention order
 tracks the injected component ratio (steep logistic), the baseline is flatter.
 
+## Results (2026-07-04, T=1, 2160 gens/model, zero judge failures)
+
+Pooled logistic fit of P(yellow first) on λ:
+
+| model | slope | midpoint λ | P(y first) @ λ=+2 | yellow presence @ λ=+3 |
+|---|---|---|---|---|
+| matryoshka (v3 iter200) | **+1.59** | **+0.90** | **0.88** | **0.78** |
+| kitft baseline | +1.03 | +1.95 | 0.53 | 0.45 |
+
+The matryoshka model's mention order tracks the injected component ratio ~1.5× more
+sharply and is calibrated ~2× closer to the true balance point; it saturates by λ=+2
+(4:1) while the baseline still hasn't converged at 8:1. Presence rates (order-free)
+corroborate: at 8:1 yellow dominance the baseline reports yellow in under half of
+generations vs 78%. Both models agree at the extremes (λ=−3), so this is not a
+detection-sensitivity difference — it is the ordering property, causally probed.
+Caveat: kitft emits ~3 long lines vs v3's ~9 short ones, so its order readout is
+coarser (more ties, scored 0.5); the presence gap is immune to this.
+
 ## Files
 
 - `gen_ratio.py` — box-side generation (env: `AV`, `OUT_NAME`, `SHARD/NSHARDS`, `NLA_GEN_TEMP`)
