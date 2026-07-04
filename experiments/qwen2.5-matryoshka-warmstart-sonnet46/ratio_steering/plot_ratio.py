@@ -128,9 +128,13 @@ for m, rows in data.items():
         if x["fy"] is None or x["fs"] is None:
             continue
         byl[x["lam"]].append(yellow_first(x))
-    ls = sorted(l for l in byl if len(byl[l]) >= 8)
+    ls = sorted(byl)
     mu = [np.mean(byl[l]) for l in ls]
-    se = [np.sqrt(max(np.mean(byl[l]) * (1 - np.mean(byl[l])), 1e-9) / len(byl[l])) for l in ls]
+    se = []
+    for l in ls:
+        n = len(byl[l])
+        pj = (np.sum(byl[l]) + 0.5) / (n + 1)
+        se.append(np.sqrt(pj * (1 - pj) / n))
     ax.errorbar(ls, mu, yerr=se, fmt=STYLE[m], color=C[m], lw=2.0, ms=4.5, capsize=2.5, label=LBL[m])
 ax.axhline(0.5, color="k", lw=.6, alpha=.4); ax.axvline(0, color="k", lw=.6, alpha=.4)
 ax.set_xlabel(r"$\lambda = \log_2(r_{yellow}/r_{syco})$")

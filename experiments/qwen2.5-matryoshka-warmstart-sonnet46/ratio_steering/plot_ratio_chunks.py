@@ -88,9 +88,16 @@ for figname, title, cond in (
             v = yellow_first(x)
             if v is not None:
                 byl[x["lam"]].append(v)
-        ls = sorted(l for l in byl if len(byl[l]) >= 8)
+        # every lam is plotted; sparse points (both-present is rare at extreme lam)
+        # carry their uncertainty in the error bar (Jeffreys-smoothed SE, so n=6 at
+        # p=0 or 1 doesn't show a zero-width bar)
+        ls = sorted(byl)
         mu = [np.mean(byl[l]) for l in ls]
-        se = [np.sqrt(max(np.mean(byl[l]) * (1 - np.mean(byl[l])), 1e-9) / len(byl[l])) for l in ls]
+        se = []
+        for l in ls:
+            n = len(byl[l])
+            pj = (np.sum(byl[l]) + 0.5) / (n + 1)
+            se.append(np.sqrt(pj * (1 - pj) / n))
         ax.errorbar(ls, mu, yerr=se, fmt=style, color=c, lw=lw, ms=4.5, capsize=2.5, alpha=alpha, label=lbl)
     ax.axhline(0.5, color="k", lw=.6, alpha=.4); ax.axvline(0, color="k", lw=.6, alpha=.4)
     ax.set_xlabel(r"$\lambda = \log_2(r_{yellow}/r_{syco})$")
