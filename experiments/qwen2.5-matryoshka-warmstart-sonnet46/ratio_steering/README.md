@@ -28,21 +28,36 @@ tracks the injected component ratio (steep logistic), the baseline is flatter.
 
 ## Results (2026-07-04, T=1, 2160 gens/model, zero judge failures)
 
-Pooled logistic fit of P(yellow first) on λ:
+Logistic fits of P(yellow first) on λ, pooled over R. The pooled psychometric mixes
+two effects — *which* concepts get verbalized (presence) and *in what order* — so the
+decomposition is the primary result:
 
-| model | slope | midpoint λ | P(y first) @ λ=+2 | yellow presence @ λ=+3 |
-|---|---|---|---|---|
-| matryoshka (v3 iter200) | **+1.59** | **+0.90** | **0.88** | **0.78** |
-| kitft baseline | +1.03 | +1.95 | 0.53 | 0.45 |
+| metric | matryoshka (v3 iter200) | kitft baseline |
+|---|---|---|
+| pooled slope (presence + order) | **+1.59** | +1.03 |
+| pooled midpoint λ | **+0.90** | +1.95 |
+| **order-only slope** (both traits present, figR4) | **+0.88** | +0.10 ≈ 0 (CI [−0.02,+0.26]) |
+| ties-excluded pooled slope | +1.68 | +1.31 |
+| yellow presence @ λ=+3 (order-free) | **0.78** | 0.45 |
 
-The matryoshka model's mention order tracks the injected component ratio ~1.5× more
-sharply and is calibrated ~2× closer to the true balance point; it saturates by λ=+2
-(4:1) while the baseline still hasn't converged at 8:1. Presence rates (order-free)
-corroborate: at 8:1 yellow dominance the baseline reports yellow in under half of
-generations vs 78%. Both models agree at the extremes (λ=−3), so this is not a
-detection-sensitivity difference — it is the ordering property, causally probed.
-Caveat: kitft emits ~3 long lines vs v3's ~9 short ones, so its order readout is
-coarser (more ties, scored 0.5); the presence gap is immune to this.
+**The clean causal separation is the order-only row:** when both concepts appear, the
+matryoshka model ranks them by their injected ratio (slope +0.88); the baseline's
+order is statistically flat — it verbalizes both but does not rank. The presence gap
+(0.78 vs 0.45 at 8:1 dominance) is independent and survives raw full-text keyword
+matching (0.77 vs 0.41), so it lives in the generations, not the judge. Pooled-slope
+gap: cluster bootstrap over bases +0.57 [+0.35, +0.78], p<0.0005; survives every
+stress variant (no-exclusion, tie-exclusion, kitft-favorable tiebreaks, interior-λ
+only — where it grows).
+
+Caveats (multi-agent review, 2026-07-04): the "~1.5×" pooled contrast is partly
+kitft's coarser 3-line granularity (10% same-line ties vs 3%; ties-excluded ratio is
+~1.3×) and its midpoint shift explains ~2/3 of the showcased λ=+2 point gap; kitft at
+8:1 reaches 0.71, i.e. converging late rather than failing. `max_new_tokens=256`
+censors ~69% of v3 generations mid-list (kitft 0%) — biases presence *against* v3.
+The two steering dirs share a neutral-mean anchor so cos(v̂_y,v̂_s) ≠ 0 (identical for
+both models; compresses the effective ratio toward 1 — λ is in nominal units; the
+cosine was printed to box logs but not archived). Judge line-clip at 200 chars is
+immaterial (worst-case flips move slopes by <0.11 and shrink no gap).
 
 ## Files
 

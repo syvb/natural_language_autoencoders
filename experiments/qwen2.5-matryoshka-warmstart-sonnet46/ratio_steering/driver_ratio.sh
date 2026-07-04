@@ -21,11 +21,13 @@ model = os.environ["MODEL"]
 snapshot_download("Qwen/Qwen2.5-7B-Instruct", local_dir="/workspace/models/qwen2.5-7b-instruct",
                   token=tok, max_workers=16,
                   allow_patterns=["*.safetensors","*.json","*.txt","tokenizer*","vocab.json","merges.txt","*.jinja"])
+# /workspace/av_ckpt is wiped first: a box reused across MODEL values must never
+# run stale weights under the wrong label.
+shutil.rmtree("/workspace/av_ckpt", ignore_errors=True)
 if model == "v3":
     snapshot_download("syvb/nla-qwen2.5-7b-L20-v3-rl", local_dir="/workspace/av_ckpt_dl",
                       token=tok, max_workers=16, allow_patterns=["iter_0000200/av/*"])
-    if not os.path.exists("/workspace/av_ckpt"):
-        shutil.copytree("/workspace/av_ckpt_dl/iter_0000200/av", "/workspace/av_ckpt")
+    shutil.copytree("/workspace/av_ckpt_dl/iter_0000200/av", "/workspace/av_ckpt")
 else:
     snapshot_download("kitft/nla-qwen2.5-7b-L20-av", local_dir="/workspace/av_ckpt",
                       token=tok, max_workers=16)

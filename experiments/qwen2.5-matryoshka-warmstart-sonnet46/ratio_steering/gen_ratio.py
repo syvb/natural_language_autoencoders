@@ -136,8 +136,12 @@ def av_batch(vecs):
     e = emb(ids)
     Vt = normalize_activation(torch.from_numpy(np.stack(vecs)).to(dev), scale)
     e2 = inject_at_marked_positions(ids, e, Vt, inj_id, left, right)
+    # 256 censors ~69% of v3 generations mid-list (kitft: 0%) — biases presence
+    # counts against v3. Kept for comparability with the 2026-07-04 run; use ≥512
+    # for any rerun where absolute presence rates matter.
     out = av.generate(inputs_embeds=e2, attention_mask=torch.ones(n, S, device=dev),
-                      max_new_tokens=256, pad_token_id=atok.eos_token_id, **GEN_KW)
+                      max_new_tokens=int(os.environ.get("NLA_MAX_NEW_TOKENS", "256")),
+                      pad_token_id=atok.eos_token_id, **GEN_KW)
     return [atok.decode(o, skip_special_tokens=True) for o in out]
 
 
