@@ -84,6 +84,31 @@ class NLACriticModel(PreTrainedModel):
         # Instance attr (not class attr) — two NLACriticModels with different
         # backbones in one process would clobber each other on class attr.
         self._no_split_modules = backbone._no_split_modules
+        # Opt-in escalation for the from-scratch bf16 backbone-backward
+        # pathology: non-finite grads can arise INSIDE the truncated raw
+        # backbone, out of reach of the loss-boundary guard in nla/loss.py.
+        # Attaches a grad sanitizer to every decoder layer's residual output;
+        # normal gradients pass through bit-exact, only non-finite entries
+        # (-> 0) and |g| > NLA_CRITIC_GRAD_CLAMP (-> clamp) are rewritten.
+        if os.environ.get("NLA_CRITIC_BWD_SANITIZE", "0") == "1":
+            self._install_layer_grad_sanitizers()
+
+    def _install_layer_grad_sanitizers(self):
+        from nla.loss import _sanitize_values_grad
+
+        def _hook(_mod, _inp, out):
+            t = out[0] if isinstance(out, tuple) else out
+            if torch.is_tensor(t) and t.requires_grad:
+                t.register_hook(_sanitize_values_grad)
+            return out
+
+        layers = _inner_transformer(self.backbone).layers
+        for layer in layers:
+            layer.register_forward_hook(_hook)
+        print(
+            f"[NLACriticModel] layer-grad sanitizers installed on {len(layers)} layers",
+            flush=True,
+        )
 
     @classmethod
     def from_pretrained(cls, pretrained_model_name_or_path, *, nla_num_layers: int | None = None, **kwargs):

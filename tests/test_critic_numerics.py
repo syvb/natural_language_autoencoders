@@ -129,3 +129,68 @@ def test_backstop_finite_under_many_nonfinite_and_bf16():
         assert float(log["loss_nonfinite"]) == B, dtype
         assert torch.isfinite(values.grad).all(), dtype
         assert float(values.grad.abs().max()) == 0.0, dtype
+
+
+# --------------------------------------------------------------------------- #
+# upstream-grad sanitize/clamp at the loss->backbone boundary
+# --------------------------------------------------------------------------- #
+
+def test_values_grad_hook_reports_next_step():
+    """The hook fires in backward (after the metrics dict returns), so counts
+    surface on the NEXT call. A finite batch reports zeros."""
+    d = 8
+    args, batch, T, B = _batch(d)
+    values = torch.randn(1, T, d, requires_grad=True)
+    loss, log = nla_critic_loss(args, None, batch, values, None)
+    loss.backward()
+    assert torch.isfinite(values.grad).all()
+    _, log2 = nla_critic_loss(args, None, batch, values.detach().clone().requires_grad_(True), None)
+    assert float(log2["grad_sanitized_nonfinite"]) == 0.0
+    assert float(log2["grad_sanitized_clamped"]) == 0.0
+
+
+def test_values_grad_hook_sanitizes_injected_nan(monkeypatch):
+    """A NaN injected into the backward stream above the loss is zeroed before
+    it reaches `values` (i.e. before the value head / backbone), and counted."""
+    d = 8
+    args, batch, T, B = _batch(d)
+    values = torch.randn(1, T, d, requires_grad=True)
+
+    def poison(g):
+        g = g.clone()
+        g.view(-1)[0] = float("nan")
+        g.view(-1)[1] = float("inf")
+        return g
+
+    # Tensor hooks run in REGISTRATION order: registering the poison BEFORE
+    # the loss call (which registers the sanitizer) makes the poisoned grad
+    # flow into the sanitizer — modeling a NaN arriving from the loss-side
+    # backward. In production the sanitizer is the only hook on `values`.
+    values.register_hook(poison)
+    loss, log = nla_critic_loss(args, None, batch, values, None)
+    loss.backward()
+    assert torch.isfinite(values.grad).all(), "sanitizer must clean the poisoned grad"
+    _, log2 = nla_critic_loss(args, None, batch, values.detach().clone().requires_grad_(True), None)
+    assert float(log2["grad_sanitized_nonfinite"]) / B == 2.0
+
+
+def test_values_grad_hook_clamps_large_grads(monkeypatch):
+    monkeypatch.setenv("NLA_CRITIC_GRAD_CLAMP", "0.001")
+    d = 8
+    args, batch, T, B = _batch(d)
+    values = torch.randn(1, T, d, requires_grad=True)
+    loss, _ = nla_critic_loss(args, None, batch, values, None)
+    loss.backward()
+    assert values.grad.abs().max() <= 0.001 + 1e-9
+
+
+def test_loss_computed_in_fp32_from_bf16_values():
+    d = 8
+    args, batch, T, B = _batch(d)
+    values = torch.randn(1, T, d, dtype=torch.bfloat16, requires_grad=True)
+    batch[MM_ACTIVATION_KEY] = batch[MM_ACTIVATION_KEY].bfloat16()
+    loss, log = nla_critic_loss(args, None, batch, values, None)
+    assert loss.dtype == torch.float32
+    loss.backward()
+    assert values.grad.dtype == torch.bfloat16
+    assert torch.isfinite(values.grad).all()

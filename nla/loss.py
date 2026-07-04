@@ -14,10 +14,29 @@ The suffix verification is a one-time check at dataset load
 (nla.config.verify_critic_suffix), not here.
 """
 
+import os
+
 import torch
 import torch.nn.functional as F
 
 from nla.schema import MM_ACTIVATION_KEY, MM_MSE_SCALE_KEY, normalize_activation
+
+# Upstream-gradient guard at the loss→backbone boundary (see nla_critic_loss).
+# Counts are accumulated in the backward pass (which runs AFTER the metrics
+# dict is returned), so they are reported one step late — fine for monitoring.
+_GRAD_SANITIZE_STATS = {"nonfinite": 0.0, "clamped": 0.0}
+
+
+def _grad_clamp_limit() -> float:
+    return float(os.environ.get("NLA_CRITIC_GRAD_CLAMP", "1e4"))
+
+
+def _sanitize_values_grad(grad: torch.Tensor) -> torch.Tensor:
+    limit = _grad_clamp_limit()
+    finite = torch.isfinite(grad)
+    _GRAD_SANITIZE_STATS["nonfinite"] += float((~finite).sum())
+    _GRAD_SANITIZE_STATS["clamped"] += float((finite & (grad.abs() > limit)).sum())
+    return torch.nan_to_num(grad, nan=0.0, posinf=0.0, neginf=0.0).clamp(-limit, limit)
 
 
 def _get_gold_activation(batch: dict) -> torch.Tensor:
@@ -73,7 +92,22 @@ def nla_critic_loss(args, parallel_state, batch, values, sum_of_sample_mean):
         offset += tokens.shape[0]
     pred = values_flat[last_idx]
 
+    # Upstream-grad guard: sanitize (nan/inf -> 0) and clamp the gradient
+    # flowing from this loss into the value head / backbone. A from-scratch
+    # (untrained) truncated backbone produces non-finite grads on its very
+    # first backward over short prefixes (bf16 backbone-backward pathology on
+    # Qwen massive activations); without this every such microbatch costs a
+    # grad-guard skip. Normal gradients pass through bit-exact (torch.where
+    # semantics of nan_to_num+clamp only rewrite pathological entries).
+    if values.requires_grad and _grad_clamp_limit() > 0:
+        values.register_hook(_sanitize_values_grad)
+
     gold = gold.to(pred.device)
+    # fp32 loss path: normalize + MSE + their backward in fp32; autograd casts
+    # the gradient back to the values dtype at the .float() node. bf16 forward
+    # was fine; the local backward benefits from the extra range/precision.
+    pred = pred.float()
+    gold = gold.float()
     # With mse_scale = sqrt(d): (s²/d)|p̂-ĝ|² = |p̂-ĝ|² (s cancels via mean).
     # ∂loss/∂pred is tangent-sphere (⊥ pred) — norm-neutral to first order.
     # But ∂loss/∂W isn't: weight-space steps incidentally grow |pred| at
@@ -132,7 +166,17 @@ def nla_critic_loss(args, parallel_state, batch, values, sum_of_sample_mean):
         "pred_norm_max": (pred_norm.max() * B).detach().float(),
         "values_absmax": (values.detach().abs().max() * B).float(),
         "loss_nonfinite": (nonfinite * B).to(dev).float(),
+        # From the PREVIOUS step's backward (hooks fire after this dict is
+        # returned). x B to survive the /num_samples aggregation.
+        "grad_sanitized_nonfinite": torch.tensor(
+            _GRAD_SANITIZE_STATS["nonfinite"] * B, device=dev
+        ),
+        "grad_sanitized_clamped": torch.tensor(
+            _GRAD_SANITIZE_STATS["clamped"] * B, device=dev
+        ),
     }
+    _GRAD_SANITIZE_STATS["nonfinite"] = 0.0
+    _GRAD_SANITIZE_STATS["clamped"] = 0.0
     if backbone_h is not None:
         log["backbone_norm_raw"] = backbone_h[last_idx].norm(dim=-1).sum().detach()
     mean_loss = loss_per_sample.mean().detach()
