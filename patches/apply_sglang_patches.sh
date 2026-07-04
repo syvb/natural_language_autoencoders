@@ -42,19 +42,21 @@ insert = '''
 _GEN_REQ_FIELDS = {f.name for f in _dataclasses.fields(GenerateReqInput)}
 '''
 if "_GEN_REQ_FIELDS" not in s:
-    s = re.sub(r'(\n@app\.api_route\("/generate")', insert + r"\1", s, count=1)
+    # <=0.5.7: @app.api_route("/generate", ...) on one line;
+    # >=0.5.12: multi-line call with response_class=... — anchor tolerantly.
+    s = re.sub(r'(\n@app\.api_route\(\s*\n?\s*"/generate")', insert + r"\1", s, count=1)
 
+# Anchor on the (unique) handler signature + docstring, NOT the decorator —
+# the decorator formatting churns across sglang releases; the signature hasn't.
 handler_pat = re.compile(
-    r'(@app\.api_route\("/generate", methods=\["POST", "PUT"\]\)\s*\n'
-    r'(?:@\w.*\n)*'
-    r')async def generate_request\(obj: GenerateReqInput, request: Request\):\s*\n'
+    r'async def generate_request\(obj: GenerateReqInput, request: Request\):\s*\n'
     r'(\s*)"""Handle a generate request\."""\s*\n'
 )
-handler_sub = r'''\1async def generate_request(request: Request):
-\2"""Handle a generate request."""
-\2# === NLA: skip FastAPI auto-parse (155ms/req for 448K floats) ===
-\2data = orjson.loads(await request.body())
-\2obj = GenerateReqInput(**{k: v for k, v in data.items() if k in _GEN_REQ_FIELDS})
+handler_sub = r'''async def generate_request(request: Request):
+\1"""Handle a generate request."""
+\1# === NLA: skip FastAPI auto-parse (155ms/req for 448K floats) ===
+\1data = orjson.loads(await request.body())
+\1obj = GenerateReqInput(**{k: v for k, v in data.items() if k in _GEN_REQ_FIELDS})
 '''
 s, n = handler_pat.subn(handler_sub, s)
 assert n == 1, f"generate handler pattern matched {n} times (expected 1) — sglang source changed, patch manually"
@@ -305,22 +307,34 @@ else
     _patch_tokenizer "$TOK"
 fi
 
-if grep -q "np\.concatenate.*for e in input_embeds" "$SCHED"; then
-    echo "  schedule_batch.py already patched, skipping"
+# sglang >=0.5.12 upstreamed the functional schedule_batch fixes (the
+# chunked-prefill slice "Slice to match extend_input_len", the decode-time
+# input_embeds clear, and the retract restart). On those versions upstream's
+# list-based tensor build is functionally correct (our ndarray-concat variant
+# was a perf optimization) — skip all three patches.
+if grep -q "Slice to match extend_input_len" "$SCHED" \
+   && grep -q "input_embeds = None" "$SCHED"; then
+    echo "  schedule_batch.py: upstream (>=0.5.12) already carries the NLA fixes — skipping all three"
+    SCHED_UPSTREAMED=1
 else
-    _patch_schedule "$SCHED"
-fi
+    SCHED_UPSTREAMED=0
+    if grep -q "np\.concatenate.*for e in input_embeds" "$SCHED"; then
+        echo "  schedule_batch.py already patched, skipping"
+    else
+        _patch_schedule "$SCHED"
+    fi
 
-if grep -q "Upstream PR #14110" "$SCHED"; then
-    echo "  schedule_batch.py retract fix already patched, skipping"
-else
-    _patch_retract "$SCHED"
-fi
+    if grep -q "Upstream PR #14110" "$SCHED"; then
+        echo "  schedule_batch.py retract fix already patched, skipping"
+    else
+        _patch_retract "$SCHED"
+    fi
 
-if grep -q "Slice to match chunked-prefill" "$SCHED"; then
-    echo "  schedule_batch.py chunked-prefill fix already patched, skipping"
-else
-    _patch_chunked_prefill "$SCHED"
+    if grep -q "Slice to match chunked-prefill" "$SCHED"; then
+        echo "  schedule_batch.py chunked-prefill fix already patched, skipping"
+    else
+        _patch_chunked_prefill "$SCHED"
+    fi
 fi
 
 if [ -f "$GEMMA3" ]; then
@@ -337,8 +351,12 @@ echo "=== verifying ==="
 grep -q "_GEN_REQ_FIELDS" "$HTTP"                          && echo "  ok http_server.py"
 grep -q "input_embeds_b64_bf16" "$HTTP"                    && echo "  ok http_server.py (b64)"
 grep -q "numpy conversion before pickle" "$TOK"            && echo "  ok tokenizer_manager.py"
-grep -q "np\.concatenate.*for e in input_embeds" "$SCHED"  && echo "  ok schedule_batch.py (perf)"
-grep -q "Upstream PR #14110" "$SCHED"                      && echo "  ok schedule_batch.py (retract)"
-grep -q "Slice to match chunked-prefill" "$SCHED"          && echo "  ok schedule_batch.py (chunked-prefill)"
+if [ "$SCHED_UPSTREAMED" = "1" ]; then
+    echo "  ok schedule_batch.py (upstream >=0.5.12 carries the fixes)"
+else
+    grep -q "np\.concatenate.*for e in input_embeds" "$SCHED"  && echo "  ok schedule_batch.py (perf)"
+    grep -q "Upstream PR #14110" "$SCHED"                      && echo "  ok schedule_batch.py (retract)"
+    grep -q "Slice to match chunked-prefill" "$SCHED"          && echo "  ok schedule_batch.py (chunked-prefill)"
+fi
 [ ! -f "$GEMMA3" ] || grep -q "NLA: input_embeds bypass" "$GEMMA3" && echo "  ok gemma3_mm.py"
 echo "=== done ==="
