@@ -34,6 +34,8 @@ from miles.backends.training_utils.data import get_batch
 from miles.backends.training_utils.log_utils import aggregate_forward_results
 from miles.backends.training_utils.loss import get_log_probs_and_entropy
 from miles.utils.timer import timer
+
+from nla import kl_taper
 from tqdm import tqdm
 from miles.backends.training_utils.loss import loss_function
 
@@ -290,6 +292,24 @@ class NLAFSDPActor(FSDPTrainRayActor):
             # is torch_dist with no sidecar; FSDP's fall-through to critic_load
             # HF dir is why None works here.)
             args.nla_sidecar_source = args.nla_critic_sidecar_source
+
+        # Tapered KL applies to the RL policy loss only — the loss_type gate
+        # keeps SFT runs (sft_loss, no KL/ref) unaffected even when the taper
+        # env is exported run-wide from a shared config.
+        if (
+            role == "actor"
+            and args.loss_type == "policy_loss"
+            and kl_taper.taper_half_life() > 0
+        ):
+            # Same mechanism as the critic's loss swap above: point the stock
+            # dispatch at our custom loss. It reuses miles' policy_loss_function
+            # and only replaces the KL term with a position-tapered one.
+            assert args.use_kl_loss, (
+                "NLA_KL_TAPER_HALF_LIFE is set but --use-kl-loss is off; the "
+                "taper replaces the KL-loss term, it cannot create one"
+            )
+            args.loss_type = "custom_loss"
+            args.custom_loss_function_path = "nla.kl_taper.nla_policy_loss_tapered_kl"
 
         self._is_critic_model = getattr(args, "nla_model_is_critic", False)
 
