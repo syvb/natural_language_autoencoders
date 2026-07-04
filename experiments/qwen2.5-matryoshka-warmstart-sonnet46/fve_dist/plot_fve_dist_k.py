@@ -46,7 +46,7 @@ ax.set_title(f"first {K} content tokens")
 ax.set_xlabel("per-rollout round-trip FVE")
 ax.set_ylabel("density")
 ax.grid(alpha=0.3)
-ax.legend(loc="upper left", fontsize=9)
+ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.18), fontsize=8.5, frameon=False)
 fig.suptitle(f"Round-trip FVE per rollout — {nex} held-out docs × {nroll//nex} sampled rollouts each",
              y=1.0)
 fig.tight_layout()
