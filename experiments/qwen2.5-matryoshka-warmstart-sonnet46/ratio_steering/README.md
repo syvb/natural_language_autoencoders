@@ -49,6 +49,16 @@ gap: cluster bootstrap over bases +0.57 [+0.35, +0.78], p<0.0005; survives every
 stress variant (no-exclusion, tie-exclusion, kitft-favorable tiebreaks, interior-λ
 only — where it grows).
 
+**Word-chunk control (figR5/figR6):** re-judging kitft on 10 equal-word chunks of its
+full text (instead of its ~3 long lines) equalizes order resolution with v3 — tie
+rate falls 10.1% → 4.4% (v3: 3.0%) and the 200-char judge clip never bites — yet its
+order-only slope barely moves: **+0.165 (chunks) vs +0.105 (lines) vs v3's +0.877**
+(cluster-bootstrap diff +0.72 [+0.46, +0.99], p<0.001). The baseline's flat ordering
+is not a granularity artifact: it verbalizes the steered concepts without ranking
+them by injected magnitude. (Its pooled slope actually drops on chunks, +0.78 —
+chunking surfaces more both-present rows, shrinking the mechanical presence
+component.)
+
 Caveats (multi-agent review, 2026-07-04): the "~1.5×" pooled contrast is partly
 kitft's coarser 3-line granularity (10% same-line ties vs 3%; ties-excluded ratio is
 ~1.3×) and its midpoint shift explains ~2/3 of the showcased λ=+2 point gap; kitft at
