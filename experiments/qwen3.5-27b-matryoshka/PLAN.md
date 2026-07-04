@@ -10,10 +10,10 @@ design (see Phase 0 decision); regenerating it is priced as an option.
 
 | | recommended path | with stage-2 regen |
 |---|---|---|
-| GPU spend | **~$500–800** | same |
+| GPU spend | **~$600–1,000** | same |
 | Anthropic API | $0 (reuse gold text) | +$1.3–1.8k (Batch API, Sonnet 4.6) |
-| GPU wall-clock | ~20–28 h | +0 (API runs offline) |
-| Calendar | **~1 week** (integration slack dominates) | +1–2 days |
+| GPU wall-clock | ~22–32 h | +0 (API runs offline) |
+| Calendar | **~1–1.5 weeks** (integration slack dominates) | +1–2 days |
 
 Cost anchor: the entire v3 run at 7B was ~$16 warm-start + ~$50–70 RL. The 27B
 multiplier is ~4× FLOPs, plus H200-class boxes (8×H200 ≈ $35/hr on Vast today;
@@ -93,11 +93,11 @@ Plan below assumes Option A.
 |---|---|---|---|---|
 | 1 | Porting prep: preset entry, injection-token search, adapt `01`/`02`/`02c`/`05` scripts, sidecar plumbing (L42, d5120, critic 43) | none (CPU) | 0.5–1 day human | $0 |
 | 2 | Bring-up + stage-0: load 27B on new transformers, measure `injection_scale`, injection smoke (CJK test), extract ~450k layer-42 activations (43-layer truncated fwd) | 1×H200 (~$3/hr) | 4–6 h | **~$15–20** |
-| 3 | Stage-3 build (bullets, AR token-trunc U[1,120], 2% full) + **AV & AR warm-start, 1 epoch** (lr 1e-5, halved from 7B's 2e-5 for 27B full-FT) + convert/upload + round-trip FVE baseline vs the 27B critic-gold ceiling. 27B full-FT ≈ 360 GB optim state (scaling the measured 7B ≈ 106 GB) → FSDP over 4×H200; 30-min SFT smoke first (GDN-backward gate). **Epoch-2 gate**: only if warm-start FVE < ~95% of the critic-only gold ceiling | 4×H200 (~$16.5/hr) | 6–8 h (+2.5 h cond.) | **~$110–150** (+$85 cond.) |
+| 3 | Stage-3 build (bullets, AR token-trunc U[1,120], 2% full) + **AV & AR SFT from scratch, default 2 epochs each** (lr 1e-5, halved from 7B's 2e-5 for 27B full-FT), eval-gated both ways (stop at 1 epoch if ≥95% of critic-gold ceiling; extend to 3 if still climbing) + convert/upload + round-trip FVE baseline. 27B full-FT ≈ 360 GB optim state (scaling the measured 7B ≈ 106 GB) → FSDP over 4×H200 per role, AV ∥ AR on two boxes; 30-min SFT smoke first (GDN-backward gate) | 2× 4×H200 (~$16.5/hr ea) | ~6–8 h wall (10–14 box-h) | **~$180–260** (+$90 if epoch 3) |
 | 4 | RL stack integration: new sglang image + miles bump, patch re-anchor, 20-step smoke on the full topology | 8×H200 (~$35/hr) | 2–3 h GPU (+ ~1 day human) | **~$70–100** |
-| 5 | **RL, budget 300 steps, plateau stop-rule** (expect to stop ~150–250): v3 recipe otherwise verbatim — GRPO n=8, batch 64×8=512, token-trunc U[1,120], KL 0.03 vs warm-start ref, lr 1e-5, save@50, per-iter HF push. Stop when reward slope ≈ 0 over ~30 steps AND 10-tok FVE flat across two saved ckpts. Est. ~140 s/step (v3: 41 s at 7B; ×3.4 for 27B on H200) → ~8 h at 200, ~12 h at 300 | 8×H200 | 8–12 h | **~$280–480** |
+| 5 | **RL, budget 300 steps, plateau stop-rule** — HARD GATE: launch only from an SFT at/near its ceiling. v3 recipe otherwise verbatim — GRPO n=8, batch 64×8=512, token-trunc U[1,120], KL 0.03 vs warm-start ref, lr 1e-5, save@50, per-iter HF push. Stop when reward slope ≈ 0 over ~30 steps AND 10-tok FVE flat across two saved ckpts; if still climbing at 300, extend by resume in +100-step increments (~$195 ea). Est. ~140 s/step (v3: 41 s at 7B; ×3.4 for 27B on H200) → ~8 h at 200, ~12 h at 300 | 8×H200 | 8–12 h | **~$280–480** (+$195/100 steps cond.) |
 | 6 | Eval: round-trip FVE + truncation sweep + fve_dist-style distribution + samples (4090s can't hold 27B → 1×H200) | 1×H200 | 2–3 h | **~$10** |
-| | **total** | | ~20–28 h GPU, ~1 week calendar | **~$500–800** |
+| | **total** | | ~22–32 h GPU, ~1–1.5 weeks calendar | **~$600–1,000** |
 
 Memory sizing behind Phase 4/5 topology: actor 27B ≈ 360 GB FSDP state → fits
 actor4 on H200-141GB; critic 43-layer ≈ 17B ≈ 210–270 GB → critic2 is
@@ -107,26 +107,40 @@ canonical actor4/critic2/rollout2 if H200 is too tight. Decide at smoke.
 
 ## Scale of training: SFT epochs and RL steps
 
-**SFT: 1 epoch is the default, with an evidence gate, not a scale-up.** At 7B
-the identical recipe (1 epoch, ~220k rows, batch 256) reached **97% of the
-critic-only gold ceiling** (round-trip FVE 0.485 vs 0.498) — SFT was not the
-bottleneck; the gold data + critic set the ceiling. Larger models are more
-sample-efficient per example, not less, so 27B should reach its (higher)
-ceiling at least as fast. Measure warm-start FVE vs the 27B critic-gold
-ceiling at the end of Phase 3; run epoch 2 (+$85) only if < ~95% of ceiling.
-Genuinely raising the ceiling means *more/richer gold data* (stage-2 regen,
-Option B) — not more epochs over the same 220k rows.
+**Caveat that reframes both: all our 7B scale evidence is RE-warm-start
+evidence, not from-scratch evidence.** v2/v3 SFT initialized from
+`kitft/nla-qwen2.5-7b-L20-{av,ar}` — an already-trained NLA (trained AV,
+trained AR value head). The celebrated "97% of the critic-gold ceiling in 1
+epoch" (FVE 0.485 vs 0.498) was a format/objective *conversion* on top of
+that. kitft's original from-scratch training regime (epochs/data) is not
+recorded in this repo. From scratch at 27B, SFT must teach a vanilla
+post-trained model to read injected vectors at all — an input mode with zero
+pretraining prior — and the AR's value head is randomly initialized
+(`prepare_critic_checkpoint.py` adds a fresh head).
 
-**RL: steps were never the binding constraint — the plateau is, and the
-plateau is largely KL-imposed.** v3 at 7B plateaued at ~step 110 of 200
-(reward −0.507→−0.261) with the KL leash taut (kl_loss grew to ~2.5–2.9 in
-the 7B runs); v2 likewise plateaued well before 200. 200 steps × 64 prompts
-touches only ~6% of the RL parquet, so we are nowhere near data-limited, and
-past the KL-constrained optimum extra steps buy noise. Policy: **budget 300
-steps** (the config default) with the stop-rule in the table; expect to stop
-at 150–250. If the 27B plateaus at a disappointing level, the lever for run 2
-is a lower KL coefficient (or more samples/prompt for better group baselines)
-— not more steps at the same KL.
+**SFT: default 2 epochs per role, eval-gated in both directions.** One epoch
+over ~220k rows may or may not be enough from scratch — nobody has measured
+it. Save@500, track AR `fve_nrm` and end-of-epoch round-trip FVE vs the
+critic-only gold ceiling: stop after epoch 1 if ≥~95% of ceiling; extend to
+epoch 3 (+~$90) if still climbing at epoch 2. If FVE is still climbing at
+epoch 3, that's the signal the 220k rows are the constraint → revisit Option
+B (stage-2 regen for *scale*, not just richness). AV and AR are independent
+in SFT — run them on two parallel 4×H200 boxes to keep wall-clock flat.
+
+**RL: 300-step budget stands, but only because SFT convergence is a hard
+gate.** The 7B plateau at ~step 110 (reward −0.507→−0.261, KL leash taut at
+kl_loss ~2.5–2.9) is evidence about RL-on-a-converged-NLA — which is exactly
+the state the SFT gate is required to produce. RL's job in this recipe is
+front-loading/reshaping, not skill acquisition: the reward IS the co-trained
+AR critic, so launching RL from an undercooked SFT means optimizing against a
+noisy reward model while KL-anchored to a weak reference — more steps cannot
+fix that; better SFT can. Policy: **do not launch Phase 5 until warm-start
+FVE is at/near its ceiling**; budget 300 steps with the plateau stop-rule;
+if reward is still climbing at 300, extend by checkpoint resume
+(`--rollout-global-dataset` ON makes resume clean) in +100-step increments
+(~$195 each) rather than pre-committing. If the plateau *level* disappoints,
+the run-2 lever is a lower KL coefficient or more samples/prompt — not more
+steps at the same KL.
 
 ## Base vs instruct init
 
@@ -171,6 +185,10 @@ exists — don't confound scale with recipe.
    risk, not cost risk)
 2. **GDN bf16 backward instability** — grad_guard catches non-finite grads,
    but a high skip-rate would starve learning; gate at the Phase-3 SFT smoke.
+2b. **From-scratch SFT undershoots and RL can't rescue it** — the reward is
+   the co-trained AR critic and the KL anchors to the warm-start ref, so a
+   weak SFT poisons both; mitigation is the hard Phase-5 gate + the epoch
+   budget, never "more RL steps".
 3. **Critic memory fit** — fallback topologies cost throughput, not
    feasibility.
 4. **Instruct/thinking init** — same class of init as v3 (instruct model);
