@@ -81,8 +81,11 @@ _LIST_PREFIX_RE = re.compile(
 _BOLD_WRAP_RE = re.compile(r"^\*\*(.+?)\*\*\s*")
 
 
-def _extract_and_clean(raw: str, pattern: str) -> str | None:
-    """Extract content inside response tags, strip list formatting, emit \\n\\n-separated paragraphs.
+def _extract_and_clean(raw: str, pattern: str, separator: str = "\n\n") -> str | None:
+    """Extract content inside response tags, strip list formatting, join features.
+
+    separator: "\\n\\n" (tagged/v1 — paragraphs) or "\\n" (list/v2 — one item per
+    line, so RL item-truncation splits cleanly on single newlines).
 
     Returns None if the pattern doesn't match (truncated, no tags) — caller drops the row.
     """
@@ -98,7 +101,7 @@ def _extract_and_clean(raw: str, pattern: str) -> str | None:
         line = line.strip().strip("*_")  # trailing emphasis markers
         if line:
             cleaned.append(line)
-    return "\n\n".join(cleaned)
+    return separator.join(cleaned)
 
 
 def main() -> None:
@@ -113,6 +116,10 @@ def main() -> None:
                    help="regex with one capture group — extracts content from API response. "
                         "Default requires both <analysis> and </analysis> (truncated "
                         "responses are dropped). MUST match the tag your instruction asks for.")
+    p.add_argument("--explanation-format", choices=["tagged", "list"], default="tagged",
+                   help="tagged (v1): features joined by blank lines (paragraphs). "
+                        "list (v2): features joined by single newlines (one item per line), so "
+                        "downstream RL item-truncation splits cleanly. Must match stage3's flag.")
     p.add_argument("--chunk-size", type=int, default=512, help="rows per provider.complete() call")
     p.add_argument("--cache-from", action="append", default=[],
                    help="path(s) to existing *_explained.parquet to reuse explanations from "
@@ -128,6 +135,8 @@ def main() -> None:
     assert "{text}" in args.instruction_template, "instruction-template must contain {text} placeholder"
 
     storage = make_storage(args)
+    # Feature separator: single newline (list/v2) or blank line (paragraphs/v1).
+    separator = "\n" if args.explanation_format == "list" else "\n\n"
     in_meta = read_sidecar(storage, args.input)
     provider: CompletionProvider = load_class(args.provider_cls)(**parse_kwargs(args.provider_kwargs))
     cache = load_explanation_cache(args.cache_from, args.cache_storage_cls) if args.cache_from else {}
@@ -163,14 +172,14 @@ def main() -> None:
                 f"provider returned bad completion at miss index {j}: {raw!r}. "
                 f"CompletionProvider.complete() must return str or None."
             )
-            miss_cleaned[j] = _extract_and_clean(raw, args.response_extract_pattern)
+            miss_cleaned[j] = _extract_and_clean(raw, args.response_extract_pattern, separator)
 
         dropped = 0
         keep_mask: list[bool] = []
         explanations: list[str] = []
         for i, hit in enumerate(cached_expls):
             cleaned = hit if hit is not None else miss_cleaned[i]
-            if cleaned is None or cleaned.count("\n\n") + 1 < _MIN_FEATURES:
+            if cleaned is None or cleaned.count(separator) + 1 < _MIN_FEATURES:
                 dropped += 1
                 keep_mask.append(False)
                 continue

@@ -196,6 +196,19 @@ class NLACriticModel(PreTrainedModel):
         backbone_sd = {k.removeprefix("backbone."): v for k, v in state_dict.items() if k.startswith("backbone.")}
         head_sd = {k.removeprefix("value_head."): v for k, v in state_dict.items() if k.startswith("value_head.")}
 
+        # Defense-in-depth against the FSDP value-head gather bug (see
+        # train_actor.save_model): never write a non-finite head. Skip DTensor /
+        # meta tensors — .all() on a DTensor is collective and save_pretrained
+        # runs rank-0-only here, so checking them would deadlock; the caller is
+        # expected to pass a materialized (full) head.
+        w = head_sd.get("weight")
+        if isinstance(w, torch.Tensor) and not w.is_meta and type(w).__name__ != "DTensor":
+            if not torch.isfinite(w).all():
+                raise RuntimeError(
+                    "value_head.weight is non-finite at save_pretrained — refusing "
+                    "to write a corrupt critic checkpoint (FSDP gather likely failed)."
+                )
+
         self.backbone.save_pretrained(save_directory, state_dict=backbone_sd, **kwargs)
         save_file(head_sd, str(Path(save_directory) / "value_head.safetensors"))
         # config.json written by backbone.save_pretrained includes the truncated num_hidden_layers
