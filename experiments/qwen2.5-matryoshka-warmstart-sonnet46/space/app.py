@@ -526,8 +526,26 @@ def analyze_at(tokstate: dict | None, idx, mode: str,
     yield res, render_viz(res, mode)
 
 
-def on_token_click(tokstate: dict | None, mode: str, steer: str, strength, idx: str):
-    yield from analyze_at(tokstate, idx, mode, steer, strength)
+def on_token_click(text: str, tokstate: dict | None, mode: str, steer: str,
+                   strength, idx: str):
+    """Outputs (tokens_out, tok_state, res_state, viz). tok_state is
+    per-session server state — a Space restart under an open tab wipes it
+    while the page still shows clickable tokens. Instead of dead-ending
+    ("tokenize first"), silently re-tokenize the textbox content and carry
+    on with the click."""
+    if not tokstate:
+        tokens_html, tokstate, _ = tokenize_text(text)
+        if tokstate is None:
+            yield gr.skip(), None, None, _card("Enter some text first.")
+            return
+        first = True
+        for res, viz_html in analyze_at(tokstate, idx, mode, steer, strength):
+            yield (tokens_html if first else gr.skip()), \
+                  (tokstate if first else gr.skip()), res, viz_html
+            first = False
+        return
+    for res, viz_html in analyze_at(tokstate, idx, mode, steer, strength):
+        yield gr.skip(), gr.skip(), res, viz_html
 
 
 def analyze_text(text: str, idx, mode: str, steer: str = "none", strength: float = 0.0):
@@ -634,8 +652,9 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA v3 explorer") as demo:
     tokenize_btn.click(tokenize_text, [text_in], [tokens_out, tok_state, viz],
                        api_name="tokenize")
     text_in.submit(tokenize_text, [text_in], [tokens_out, tok_state, viz])
-    click_idx.input(on_token_click, [tok_state, mode, steer_dd, strength_in, click_idx],
-                    [res_state, viz])
+    click_idx.input(on_token_click,
+                    [text_in, tok_state, mode, steer_dd, strength_in, click_idx],
+                    [tokens_out, tok_state, res_state, viz])
     pos_btn.click(analyze_text, [text_in, pos_in, mode, steer_dd, strength_in],
                   [tokens_out, tok_state, res_state, viz], api_name="analyze")
     steer_dd.input(lambda steer: gr.update(interactive=steer in STEER_DIRS),
