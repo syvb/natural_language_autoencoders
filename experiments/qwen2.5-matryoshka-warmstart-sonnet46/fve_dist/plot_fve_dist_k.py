@@ -23,6 +23,11 @@ MODELS = [
     ("v3", "matryoshka NLA (ours)", "#9467bd"),
     ("kitft", "kitft baseline", "#444444"),
 ]
+LOGY = os.environ.get("LOGY", "0") == "1"   # log-scale density axis
+ONLY = os.environ.get("ONLY", "")           # "v3" -> ours-only variant
+if ONLY:
+    MODELS = [m for m in MODELS if m[0] == ONLY]
+SUF = ("_ours" if ONLY == "v3" else f"_{ONLY}" if ONLY else "") + ("_log" if LOGY else "")
 
 fig, ax = plt.subplots(figsize=(7.2, 4.6))
 bins = np.linspace(CLIP, 1.0, 51)
@@ -43,6 +48,8 @@ for model, label, color in MODELS:
           f"p10={np.percentile(f,10):+.3f}  p90={np.percentile(f,90):+.3f}  "
           f"frac>0={np.mean(f>0):.3f}  clipped={nclip}")
 ax.axvline(0, color="k", lw=0.8, alpha=0.5)
+if LOGY:
+    ax.set_yscale("log")
 ax.set_xlim(CLIP, 1.0)
 ax.set_title(f"first {K} content tokens")
 ax.set_xlabel("per-rollout round-trip FVE")
@@ -53,6 +60,6 @@ unit = "docs" if sel == "doc" else "examples"
 tail = f"{nroll//nex} sampled rollouts each" if nroll // nex > 1 else "1 sampled rollout each"
 fig.suptitle(f"Round-trip FVE per rollout — {nex} held-out {unit} × {tail}", y=1.0)
 fig.tight_layout()
-out = os.path.join(RES, f"fve_dist{TAG}_k{K}_zoom.png")
+out = os.path.join(RES, f"fve_dist{TAG}_k{K}_zoom{SUF}.png")
 fig.savefig(out, dpi=140, bbox_inches="tight")
 print("wrote", out)

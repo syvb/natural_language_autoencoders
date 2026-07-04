@@ -25,6 +25,11 @@ MODELS = [
     ("v3", "matryoshka NLA (ours)", "#9467bd"),
     ("kitft", "kitft baseline", "#444444"),
 ]
+LOGY = os.environ.get("LOGY", "0") == "1"   # log-scale density axis
+ONLY = os.environ.get("ONLY", "")           # "v3" -> ours-only variant
+if ONLY:
+    MODELS = [m for m in MODELS if m[0] == ONLY]
+SUF = ("_ours" if ONLY == "v3" else f"_{ONLY}" if ONLY else "") + ("_log" if LOGY else "")
 
 
 def load(model):
@@ -67,12 +72,14 @@ for ax, key, title in [(axes[0], "err2_full", "full-length explanation"),
     ax.set_title(title)
     ax.set_xlabel("per-rollout round-trip FVE")
     ax.grid(alpha=0.3)
+    if LOGY:
+        ax.set_yscale("log")
 axes[0].set_ylabel("density")
 axes[0].legend(loc="upper left", fontsize=9)
 rows, _, sel = load("v3")
 fig.suptitle(subtitle(rows, sel), y=1.02)
 fig.tight_layout()
-out = os.path.join(RES, f"fve_dist{TAG}.png")
+out = os.path.join(RES, f"fve_dist{TAG}{SUF}.png")
 fig.savefig(out, dpi=140, bbox_inches="tight")
 print("wrote", out)
 
@@ -91,6 +98,8 @@ for ZLO, suffix in [(0.0, ""), (-0.5, "_m0.5")]:
         ax.axvline(f.mean(), color=color, ls="--", lw=1.4)
     if ZLO < 0:
         ax.axvline(0, color="k", lw=0.8, alpha=0.5)
+    if LOGY:
+        ax.set_yscale("log")
     ax.set_xlim(ZLO, 1.0)
     ax.set_title(f"full-length explanation (x truncated at {ZLO:g})")
     ax.set_xlabel("per-rollout round-trip FVE")
@@ -99,6 +108,6 @@ for ZLO, suffix in [(0.0, ""), (-0.5, "_m0.5")]:
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.18), fontsize=8.5, frameon=False)
     fig2.suptitle(subtitle(rows, sel), y=1.0)
     fig2.tight_layout()
-    out2 = os.path.join(RES, f"fve_dist{TAG}_full_zoom{suffix}.png")
+    out2 = os.path.join(RES, f"fve_dist{TAG}_full_zoom{suffix}{SUF}.png")
     fig2.savefig(out2, dpi=140, bbox_inches="tight")
     print("wrote", out2)
