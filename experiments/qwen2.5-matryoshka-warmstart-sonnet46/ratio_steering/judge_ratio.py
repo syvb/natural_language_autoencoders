@@ -75,7 +75,7 @@ for model in ("v3", "kitft"):
         continue
     rows = json.load(open(fn))
     todo = [x["items"][:MAXL] for x in rows]
-    with ThreadPoolExecutor(max_workers=10) as ex:
+    with ThreadPoolExecutor(max_workers=32) as ex:
         results = list(ex.map(ask, todo))
     fails = 0
     out = []

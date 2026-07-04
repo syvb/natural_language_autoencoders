@@ -3,6 +3,8 @@
 # Expects: repo rsynced to /workspace/nla, HF token at /root/.hf_token.
 set -uo pipefail
 MODEL="${MODEL:?set MODEL=v3 or MODEL=kitft}"
+# SHARD_LIST = space-separated global shard ids, one per local GPU (e.g. "1 2 3 4" on a 4x box)
+SHARD_LIST="${SHARD_LIST:-${SHARD:-0}}"; NSHARDS="${NSHARDS:-1}"
 P=/opt/conda/bin/python; PIP=/opt/conda/bin/pip
 export HF_HUB_ENABLE_HF_TRANSFER=1
 cd /workspace
@@ -34,8 +36,18 @@ ls /workspace/av_ckpt
 echo "[3] build genuine directions $(date -u +%T)"
 $P /workspace/nla/experiments/qwen2.5-matryoshka-warmstart-sonnet46/caa_steering_v2/build_dirs_min.py
 
-echo "[4] ratio sweep through $MODEL AV $(date -u +%T)"
-PYTHONPATH=/workspace/nla AV=/workspace/av_ckpt NLA_GEN_TEMP=1 \
-  OUT=/workspace/ratio_out OUT_NAME="ratio_raw_${MODEL}.json" \
-  $P /workspace/nla/experiments/qwen2.5-matryoshka-warmstart-sonnet46/ratio_steering/gen_ratio.py
+echo "[4] ratio sweep through $MODEL AV (shards $SHARD_LIST of $NSHARDS) $(date -u +%T)"
+read -ra SL <<< "$SHARD_LIST"
+pids=()
+for i in "${!SL[@]}"; do
+  s=${SL[$i]}
+  sfx=""; [ "$NSHARDS" -gt 1 ] && sfx="_s${s}"
+  CUDA_VISIBLE_DEVICES=$i PYTHONPATH=/workspace/nla AV=/workspace/av_ckpt NLA_GEN_TEMP=1 \
+    SHARD=$s NSHARDS=$NSHARDS OUT=/workspace/ratio_out OUT_NAME="ratio_raw_${MODEL}${sfx}.json" \
+    $P /workspace/nla/experiments/qwen2.5-matryoshka-warmstart-sonnet46/ratio_steering/gen_ratio.py \
+    > /workspace/gen_s${s}.log 2>&1 &
+  pids+=($!)
+done
+wait "${pids[@]}"
+echo "gen done markers: $(grep -l RATIO_GEN_DONE /workspace/gen_s*.log | wc -l)/${#SL[@]}"
 echo "RATIO_DRIVER_DONE $(date -u +%T)"
