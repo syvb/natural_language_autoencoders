@@ -68,7 +68,15 @@ Aggregates reproduce the known headline numbers (ours full ≈0.57–0.59, p10
   `sweep_fve.py`; shards partition one fixed 250-doc set and the denominator
   is computed over all 250 golds in every shard.
 - `driver_fve_dist.sh` — quad-GPU box driver (one model:shard per GPU).
-- `plot_fve_dist.py` — renders `results/fve_dist.png` from the shard JSONs.
+- `plot_fve_dist.py` — renders `results/fve_dist.png` (+ zoomed full-length
+  panel) from the shard JSONs.
+- `recon_budget.py` / `driver_recon.sh` — critic-only re-reconstruction of the
+  saved rollouts at a grid of prefix budgets (1..200 tokens); validated by
+  reproducing the k=10 aggregates to 4 decimals. Outputs
+  `results/fvedist_budget_{v3,kitft}.json`. At k=20: ours +0.581 (98.8% of
+  rollouts >0), kitft −0.420 (5.2% >0) — still fully separated.
+- `plot_fve_dist_k.py K` — zoomed histogram at any stored budget
+  (`results/fve_dist_k20_zoom.png`).
 - `results/fvedist_{v3,kitft}_s{0,1}.json` — per-rollout rows incl. the
   generated texts (reusable for budget-limited readout evals without a GPU).
 
