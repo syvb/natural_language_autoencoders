@@ -50,7 +50,6 @@ warm-start baseline.
 | Full pipeline mechanics (SFT from scratch, RL w/ taper, save@N, export) | ✅ validated end-to-end at Qwen2.5-7B scale on the pinned stack |
 | Qwen3.5-27B bring-up (loads on tf 5.x, L42 extraction, injection alters generation, 0% CJK) | ✅ validated, 1 GPU |
 | Stack pin `lmsysorg/sglang:v0.5.10.post1` (torch 2.9.1 / sglang 0.5.10 / tf 5.3.0) | ✅ validated; **do not take newer images** — sglang ≥0.5.11 ships torch 2.11 which breaks miles multi-rank FSDP |
-| Code review | ✅ 4-agent review, all findings fixed (see git log 030e4e3/77a1740) |
 | **The 27B SFT/RL path itself** | ❌ **NEVER EXECUTED. Your first action is the real-model smoke below.** |
 | B200 (sm_100) kernels for this stack | ❌ untested; first contact happens in your smoke |
 
