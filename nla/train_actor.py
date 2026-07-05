@@ -259,6 +259,14 @@ class _SGLangKeyRemap:
         return {self._prefix + k: v for k, v in self._model.state_dict().items()}
 
 
+
+def _effective_loss_type(args) -> str:
+    """The run's semantic loss type. The KL-taper (and any future custom-loss
+    swap) rewrites args.loss_type to "custom_loss" for miles' dispatch; gates
+    that ask "is this an sft/policy run" must use this instead."""
+    return getattr(args, "nla_effective_loss_type", args.loss_type)
+
+
 class NLAFSDPActor(FSDPTrainRayActor):
 
     def init(self, args, role, with_ref=False):
@@ -308,6 +316,14 @@ class NLAFSDPActor(FSDPTrainRayActor):
                 "NLA_KL_TAPER_HALF_LIFE is set but --use-kl-loss is off; the "
                 "taper replaces the KL-loss term, it cannot create one"
             )
+            # Record the pre-swap type: every init/save gate below that asks
+            # "is this an sft/policy run" must see the EFFECTIVE type, not
+            # "custom_loss" — otherwise the swap silently disables the
+            # injection hook, the injection_scale assert, the batch guard,
+            # and flips the sidecar stage (trainer-side forwards would then
+            # see the literal marker token while rollouts inject: corrupted
+            # PPO math with no crash).
+            args.nla_effective_loss_type = args.loss_type
             args.loss_type = "custom_loss"
             args.custom_loss_function_path = "nla.kl_taper.nla_policy_loss_tapered_kl"
 
@@ -363,7 +379,7 @@ class NLAFSDPActor(FSDPTrainRayActor):
         # dynamic_global_batch_size override), but Miles' loss wrapper still
         # normalizes by global_batch_size, so a mismatch silently rescales
         # gradients instead. Refuse to start rather than do either silently.
-        if role == "actor" and args.loss_type == "policy_loss":
+        if role == "actor" and _effective_loss_type(args) == "policy_loss":
             rollout_samples = args.rollout_batch_size * args.n_samples_per_prompt
             if rollout_samples != args.global_batch_size:
                 assert os.environ.get("NLA_I_KNOW_WHAT_IM_DOING") == "1", (
@@ -428,7 +444,7 @@ class NLAFSDPActor(FSDPTrainRayActor):
         #
         # INFERENCE MUST MATCH: nla_generate.py also calls load_nla_config_from_args
         # (same helper, same resolution), so train/infer scale cannot diverge.
-        injects = not self._is_critic_model and args.loss_type in ("sft_loss", "policy_loss")
+        injects = not self._is_critic_model and _effective_loss_type(args) in ("sft_loss", "policy_loss")
         if injects:
             assert cfg.injection_scale is not None, (
                 "Actor training requires injection_scale. Set --nla-injection-scale "
@@ -490,7 +506,7 @@ class NLAFSDPActor(FSDPTrainRayActor):
         # submodules (it removes checkpoint wrappers by clearing hooks), so
         # registering before the disable/re-enable cycle risks losing them.
         # Earlier 12b configs had no grad-ckpt re-enable so ordering was moot.
-        if not self._is_critic_model and args.loss_type in ("sft_loss", "policy_loss"):
+        if not self._is_critic_model and _effective_loss_type(args) in ("sft_loss", "policy_loss"):
             self._register_injection_hook(self.model)
             if self.ref_model is not None:
                 self._register_injection_hook(self.ref_model)
@@ -649,7 +665,7 @@ class NLAFSDPActor(FSDPTrainRayActor):
         # absent keys (data.py:300). Stock _train_core handles the rest.
         # sft_loss (loss.py:785-835) recomputes from logits — this pass is wasted
         # (full model forward, injection hook, clone — ~2× step time).
-        if self._is_critic_model or self.args.loss_type == "sft_loss":
+        if self._is_critic_model or _effective_loss_type(self.args) == "sft_loss":
             return {}
         if (model_tag == "ref" and self.ref_model is not None
                 and getattr(self.args, "nla_ref_on_gpu", False)):
@@ -849,6 +865,15 @@ class NLAFSDPActor(FSDPTrainRayActor):
         except Exception:
             pg = mesh.get_group(0)
         world = dist.get_world_size(pg)
+        pl0 = w.placements[0]
+        if isinstance(pl0, Shard):
+            # all_gather with empty_like(local) requires EQUAL shard shapes;
+            # to_local() returns the unpadded shard, so an indivisible dim
+            # would size-mismatch the collective and hang at save time.
+            assert w.shape[pl0.dim] % world == 0, (
+                f"value_head dim {pl0.dim} ({w.shape[pl0.dim]}) not divisible by "
+                f"shard world {world} — unequal local shards would deadlock all_gather"
+            )
         gathered = [torch.empty_like(local) for _ in range(world)]
         dist.all_gather(gathered, local, group=pg)
         pl = w.placements[0]
@@ -1002,7 +1027,7 @@ class NLAFSDPActor(FSDPTrainRayActor):
         write_model_sidecar(
             checkpoint_dir, cfg,
             role="critic" if self._is_critic_model else "actor",
-            stage="rl" if self.args.loss_type == "policy_loss" else "sl",
+            stage="rl" if _effective_loss_type(self.args) == "policy_loss" else "sl",
             base_checkpoint=self.args.hf_checkpoint,
             trained_on=[self.args.prompt_data] if self.args.prompt_data else [],
             parent_checkpoints=[self.args.hf_checkpoint],

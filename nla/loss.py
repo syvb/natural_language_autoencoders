@@ -42,6 +42,11 @@ def _pop_sanitize_stat(key: str) -> float:
 
 def _sanitize_values_grad(grad: torch.Tensor) -> torch.Tensor:
     limit = _grad_clamp_limit()
+    if limit <= 0:
+        # NLA_CRITIC_GRAD_CLAMP=0 means OFF everywhere. Without this, the
+        # opt-in layer hooks (models.py) would clamp(-0, 0) — silently
+        # zeroing every backbone gradient.
+        return grad
     finite = torch.isfinite(grad)
     nf = (~finite).sum()
     cl = (finite & (grad.abs() > limit)).sum()
@@ -87,8 +92,23 @@ def nla_critic_loss(args, parallel_state, batch, values, sum_of_sample_mean):
     B = len(unconcat_tokens)
 
     if B == 0:
+        # Unreachable under miles' padding (_truncate_to_cross_rank_min pads
+        # microbatches to micro_batch_size), but if it ever fires it MUST
+        # return the same metric keys as the normal path: miles packs the
+        # dict into one tensor and all-reduces it — a key-count mismatch
+        # across ranks is an NCCL numel mismatch (hang), within a rank a
+        # shape-mismatch crash.
         loss = 0.0 * values.sum()
-        return loss, {"loss": loss.detach()}
+        z = torch.zeros((), device=values.device)
+        keys = ("pred_norm_raw", "gold_norm_raw", "mse_scale", "pred_norm_min",
+                "pred_norm_max", "values_absmax", "loss_nonfinite",
+                "grad_sanitized_nonfinite", "grad_sanitized_clamped")
+        log = {"loss": loss.detach(), **{k: z.clone() for k in keys}}
+        if batch.get("_nla_backbone_last_hidden") is not None:
+            log["backbone_norm_raw"] = z.clone()
+        if getattr(args, "nla_baseline_rawvar", None):
+            log["fve_nrm"] = z.clone()
+        return loss, log
 
     # FSDP: [1, T_packed, d]. Megatron: [T_packed, 1, d] (seq-first).
     # Either way the batch dim is 1 in thd packing — squeeze is safe.

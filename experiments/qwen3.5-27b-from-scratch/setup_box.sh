@@ -13,7 +13,9 @@
 # (prebuilt wheel path; falls back to a source build, ~15 min).
 set -e
 NLA="${NLA:-/workspace/nla}"
-TRANSFORMERS_PIN="${TRANSFORMERS_PIN:-4.57.1}"
+# "keep" = trust the image's transformers/hf_hub pair (0.5.7 ships 4.57.1;
+# Qwen3.5-era images ship 5.x). Set an explicit version only to override.
+TRANSFORMERS_PIN="${TRANSFORMERS_PIN:-keep}"
 RAY_PIN="${RAY_PIN:-2.47.1}"
 
 echo "=== [0] baseline ==="
@@ -29,6 +31,15 @@ MILES_DIR="$(pwd)"
 
 echo "=== [2] NLA sglang patches in place (image sglang is editable) ==="
 SGLANG_SRC="${SGLANG_SRC:-/sgl-workspace/sglang}"
+python - "$SGLANG_SRC" <<'PYEOF'
+import sys, sglang, os
+src, mod = os.path.realpath(sys.argv[1]), os.path.realpath(sglang.__file__)
+assert mod.startswith(src), (
+    f"imported sglang ({mod}) is NOT under SGLANG_SRC ({src}) — patches would "
+    f"apply to a dead tree; point SGLANG_SRC at the imported checkout"
+)
+print("sglang import path matches SGLANG_SRC")
+PYEOF
 bash "$NLA/patches/apply_sglang_patches.sh" "$SGLANG_SRC"
 
 echo "=== [3] rollout.py fix (drop NOSET + LD_LIBRARY_PATH; needed on lmsysorg images) ==="
@@ -41,7 +52,8 @@ if anchor in s:
 elif "NLA: NOSET dropped" in s:
     print("NOSET already dropped")
 else:
-    print("WARN NOSET anchor not found — check miles/ray/rollout.py by hand")
+    raise SystemExit("NOSET anchor not found in miles/ray/rollout.py — miles moved; "
+                     "port the fix by hand (engines otherwise die with no-accelerator errors)")
 s2 = re.sub(r'\n\s*"LD_LIBRARY_PATH": f"/usr/local/cuda/compat:[^\n]*\n', "\n", s)
 print("LD_LIBRARY_PATH removed" if s2 != s else "LD_LIBRARY_PATH (none/already)")
 open(f, "w").write(s2)

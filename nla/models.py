@@ -95,7 +95,11 @@ class NLACriticModel(PreTrainedModel):
             self._install_layer_grad_sanitizers()
 
     def _install_layer_grad_sanitizers(self):
-        from nla.loss import _sanitize_values_grad
+        from nla.loss import _grad_clamp_limit, _sanitize_values_grad
+
+        if _grad_clamp_limit() <= 0:
+            print("[NLACriticModel] NLA_CRITIC_GRAD_CLAMP<=0 — layer sanitizers disabled", flush=True)
+            return
 
         def _hook(_mod, _inp, out):
             t = out[0] if isinstance(out, tuple) else out

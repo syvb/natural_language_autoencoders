@@ -34,7 +34,16 @@ f = sys.argv[1]
 s = open(f).read()
 
 if "import dataclasses as _dataclasses" not in s:
-    s = re.sub(r"(^import asyncio\n)", r"\1import dataclasses as _dataclasses\n", s, count=1, flags=re.M)
+    s2 = re.sub(r"(^import asyncio\n)", r"\1import dataclasses as _dataclasses\n", s, count=1, flags=re.M)
+    assert s2 != s, "import-asyncio anchor missing — cannot insert _dataclasses import"
+    s = s2
+
+# sglang >=0.5.10 dropped the module-level `import orjson` (only utils-level
+# helpers remain); the patched handler calls orjson.loads directly.
+if not re.search(r"^import orjson$", s, flags=re.M):
+    s2 = re.sub(r"(^import asyncio\n)", r"\1import orjson\n", s, count=1, flags=re.M)
+    assert s2 != s, "import-asyncio anchor missing — cannot insert orjson import"
+    s = s2
 
 insert = '''
 # === NLA: fields whitelist for manual GenerateReqInput construction ===
@@ -43,8 +52,10 @@ _GEN_REQ_FIELDS = {f.name for f in _dataclasses.fields(GenerateReqInput)}
 '''
 if "_GEN_REQ_FIELDS" not in s:
     # <=0.5.7: @app.api_route("/generate", ...) on one line;
-    # >=0.5.12: multi-line call with response_class=... — anchor tolerantly.
-    s = re.sub(r'(\n@app\.api_route\(\s*\n?\s*"/generate")', insert + r"\1", s, count=1)
+    # >=0.5.10: multi-line call with response_class=... — anchor tolerantly.
+    s2 = re.sub(r'(\n@app\.api_route\(\s*\n?\s*"/generate")', insert + r"\1", s, count=1)
+    assert s2 != s, "/generate decorator anchor missing — cannot insert _GEN_REQ_FIELDS"
+    s = s2
 
 # Anchor on the (unique) handler signature + docstring, NOT the decorator —
 # the decorator formatting churns across sglang releases; the signature hasn't.
@@ -289,7 +300,7 @@ PY
 
 echo "=== applying NLA SGLang patches to $SGLANG_SRC ==="
 
-if grep -q "_GEN_REQ_FIELDS" "$HTTP"; then
+if grep -q "_GEN_REQ_FIELDS = {" "$HTTP"; then
     echo "  http_server.py already patched, skipping"
 else
     _patch_http_server "$HTTP"
@@ -307,14 +318,14 @@ else
     _patch_tokenizer "$TOK"
 fi
 
-# sglang >=0.5.12 upstreamed the functional schedule_batch fixes (the
+# sglang >=0.5.10 upstreamed the functional schedule_batch fixes (the
 # chunked-prefill slice "Slice to match extend_input_len", the decode-time
 # input_embeds clear, and the retract restart). On those versions upstream's
 # list-based tensor build is functionally correct (our ndarray-concat variant
 # was a perf optimization) — skip all three patches.
 if grep -q "Slice to match extend_input_len" "$SCHED" \
    && grep -q "input_embeds = None" "$SCHED"; then
-    echo "  schedule_batch.py: upstream (>=0.5.12) already carries the NLA fixes — skipping all three"
+    echo "  schedule_batch.py: upstream (>=0.5.10) already carries the NLA fixes — skipping all three"
     SCHED_UPSTREAMED=1
 else
     SCHED_UPSTREAMED=0
@@ -352,11 +363,11 @@ grep -q "_GEN_REQ_FIELDS" "$HTTP"                          && echo "  ok http_se
 grep -q "input_embeds_b64_bf16" "$HTTP"                    && echo "  ok http_server.py (b64)"
 grep -q "numpy conversion before pickle" "$TOK"            && echo "  ok tokenizer_manager.py"
 if [ "$SCHED_UPSTREAMED" = "1" ]; then
-    echo "  ok schedule_batch.py (upstream >=0.5.12 carries the fixes)"
+    echo "  ok schedule_batch.py (upstream >=0.5.10 carries the fixes)"
 else
     grep -q "np\.concatenate.*for e in input_embeds" "$SCHED"  && echo "  ok schedule_batch.py (perf)"
     grep -q "Upstream PR #14110" "$SCHED"                      && echo "  ok schedule_batch.py (retract)"
     grep -q "Slice to match chunked-prefill" "$SCHED"          && echo "  ok schedule_batch.py (chunked-prefill)"
 fi
-[ ! -f "$GEMMA3" ] || grep -q "NLA: input_embeds bypass" "$GEMMA3" && echo "  ok gemma3_mm.py"
+if [ ! -f "$GEMMA3" ] || grep -q "NLA: input_embeds bypass" "$GEMMA3"; then echo "  ok gemma3_mm.py"; fi
 echo "=== done ==="

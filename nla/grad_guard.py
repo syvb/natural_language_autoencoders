@@ -45,14 +45,18 @@ def grads_all_finite(params) -> bool:
     (`to_local()`), which is correct here — a NaN anywhere makes the clipped
     grads NaN on every shard, so the per-rank local check agrees globally.
     """
+    bad = None
     for p in params:
         g = getattr(p, "grad", None)
         if g is None:
             continue
         g = g.to_local() if hasattr(g, "to_local") else g
-        if not torch.isfinite(g).all():
-            return False
-    return True
+        b = ~torch.isfinite(g).all()
+        bad = b if bad is None else (bad | b)
+    # Single host sync at the end — a per-param `if not ...all()` costs one
+    # GPU->CPU sync per parameter (hundreds per step at 27B) right at the
+    # optimizer-step serialization point.
+    return True if bad is None else not bool(bad)
 
 
 def install_grad_finiteness_guard(optimizer, params_fn, on_skip=None):

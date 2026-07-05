@@ -126,3 +126,36 @@ def test_install_is_idempotent():
     s2 = install_grad_finiteness_guard(opt, lambda: params)
     assert s1 is s2                     # same state object
     assert opt.step is guarded          # not double-wrapped
+
+
+def test_skip_decision_runs_the_collective_path():
+    """With a (world-size-1) gloo group initialized, the guard must take the
+    all-reduce branch and still skip on a non-finite grad — pinning the
+    globally-symmetric skip (the un-reduced variant deadlocked NCCL on FSDP2
+    when a NaN lived in one rank's shard only)."""
+    import torch.distributed as dist
+
+    from nla.grad_guard import install_grad_finiteness_guard
+
+    created = False
+    if dist.is_available() and not dist.is_initialized():
+        dist.init_process_group(
+            "gloo", init_method="tcp://127.0.0.1:29517", world_size=1, rank=0
+        )
+        created = True
+    try:
+        p = torch.nn.Parameter(torch.ones(4))
+        opt = torch.optim.SGD([p], lr=1.0)
+        state = install_grad_finiteness_guard(opt, lambda: [p])
+        p.grad = torch.tensor([1.0, float("nan"), 0.0, 0.0])
+        opt.step()
+        assert state["skipped"] == 1
+        assert p.grad is None          # zeroed (set_to_none)
+        assert torch.equal(p.data, torch.ones(4))  # step really skipped
+        p.grad = torch.ones(4)
+        opt.step()
+        assert state["skipped"] == 1   # finite grad steps normally
+        assert not torch.equal(p.data, torch.ones(4))
+    finally:
+        if created:
+            dist.destroy_process_group()

@@ -52,17 +52,22 @@ def _install() -> None:
     _srt.constants = _constants
 
     # ─── sglang_router.launch_router.RouterArgs ───
-    # add_cli_args is called unconditionally in miles.utils.arguments.add_router_arguments
-    _router = _stub_module("sglang_router")
-    _launch = _stub_module("sglang_router.launch_router")
-    _router.launch_router = _launch
+    # add_cli_args is called unconditionally in miles.utils.arguments.add_router_arguments.
+    # Only stub when the real sglang-router isn't installed — setup_box installs
+    # it via pip even on sglang-less boxes, and shadowing it turns valid
+    # --router-* flags into argparse errors.
+    if importlib.util.find_spec("sglang_router") is None:
+        _router = _stub_module("sglang_router")
+        _router.__version__ = "0.0.0-nla-stub"
+        _launch = _stub_module("sglang_router.launch_router")
+        _router.launch_router = _launch
 
-    class _RouterArgs:
-        @staticmethod
-        def add_cli_args(parser, use_router_prefix=True, exclude_host_port=True):  # noqa: ARG004
-            return parser
+        class _RouterArgs:
+            @staticmethod
+            def add_cli_args(parser, use_router_prefix=True, exclude_host_port=True):  # noqa: ARG004
+                return parser
 
-    _launch.RouterArgs = _RouterArgs
+        _launch.RouterArgs = _RouterArgs
 
     # ─── miles.backends.sglang_utils.* — these import sglang engine internals ───
     # We replace the whole submodules with stubs. SGLangEngine is wrapped in
@@ -92,5 +97,19 @@ def _install() -> None:
     _sglang_utils.arguments = _args_mod
 
 
-if importlib.util.find_spec("sglang") is None:
+def _sglang_importable() -> bool:
+    """Probe actual importability, not just installability: the scenario this
+    module exists for is sglang INSTALLED but raising on import (e.g. its
+    transformers pin unmet) — find_spec succeeds there and would wrongly skip
+    the stubs. A partially-imported sglang left in sys.modules by the failed
+    probe is fine: _stub_module overwrites those entries."""
+    try:
+        import sglang  # noqa: F401
+
+        return True
+    except Exception:
+        return False
+
+
+if not _sglang_importable():
     _install()
