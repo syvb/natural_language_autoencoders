@@ -24,18 +24,30 @@ from nla.schema import MM_ACTIVATION_KEY, MM_MSE_SCALE_KEY, normalize_activation
 # Upstream-gradient guard at the loss→backbone boundary (see nla_critic_loss).
 # Counts are accumulated in the backward pass (which runs AFTER the metrics
 # dict is returned), so they are reported one step late — fine for monitoring.
-_GRAD_SANITIZE_STATS = {"nonfinite": 0.0, "clamped": 0.0}
+# Kept as LAZY GPU TENSORS: a float()/item() inside an autograd hook forces a
+# device sync mid-backward, which stalls the stream at an awkward point; the
+# sync happens at report time (next forward) instead.
+_GRAD_SANITIZE_STATS = {"nonfinite": None, "clamped": None}
 
 
 def _grad_clamp_limit() -> float:
     return float(os.environ.get("NLA_CRITIC_GRAD_CLAMP", "1e4"))
 
 
+def _pop_sanitize_stat(key: str) -> float:
+    t = _GRAD_SANITIZE_STATS[key]
+    _GRAD_SANITIZE_STATS[key] = None
+    return float(t) if t is not None else 0.0
+
+
 def _sanitize_values_grad(grad: torch.Tensor) -> torch.Tensor:
     limit = _grad_clamp_limit()
     finite = torch.isfinite(grad)
-    _GRAD_SANITIZE_STATS["nonfinite"] += float((~finite).sum())
-    _GRAD_SANITIZE_STATS["clamped"] += float((finite & (grad.abs() > limit)).sum())
+    nf = (~finite).sum()
+    cl = (finite & (grad.abs() > limit)).sum()
+    s = _GRAD_SANITIZE_STATS
+    s["nonfinite"] = nf if s["nonfinite"] is None else s["nonfinite"] + nf
+    s["clamped"] = cl if s["clamped"] is None else s["clamped"] + cl
     return torch.nan_to_num(grad, nan=0.0, posinf=0.0, neginf=0.0).clamp(-limit, limit)
 
 
@@ -169,14 +181,12 @@ def nla_critic_loss(args, parallel_state, batch, values, sum_of_sample_mean):
         # From the PREVIOUS step's backward (hooks fire after this dict is
         # returned). x B to survive the /num_samples aggregation.
         "grad_sanitized_nonfinite": torch.tensor(
-            _GRAD_SANITIZE_STATS["nonfinite"] * B, device=dev
+            _pop_sanitize_stat("nonfinite") * B, device=dev
         ),
         "grad_sanitized_clamped": torch.tensor(
-            _GRAD_SANITIZE_STATS["clamped"] * B, device=dev
+            _pop_sanitize_stat("clamped") * B, device=dev
         ),
     }
-    _GRAD_SANITIZE_STATS["nonfinite"] = 0.0
-    _GRAD_SANITIZE_STATS["clamped"] = 0.0
     if backbone_h is not None:
         log["backbone_norm_raw"] = backbone_h[last_idx].norm(dim=-1).sum().detach()
     mean_loss = loss_per_sample.mean().detach()

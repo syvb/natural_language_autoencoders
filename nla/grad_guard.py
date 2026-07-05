@@ -25,13 +25,17 @@ This guard sits at the optimizer-step boundary instead and skips the step
 microbatch costs one skipped update rather than a dead model — and the critic
 keeps training on the clean steps (no freeze required).
 
-Global consistency across ranks is automatic: because `clip_grad_norm_` has
-already propagated the NaN coefficient to every shard, a non-finite step looks
-non-finite on ALL ranks, so every rank skips together (no extra collective, no
-risk of one rank stepping while another doesn't).
+Global consistency across ranks is EXPLICIT: the skip decision is all-reduced
+(MAX over a 1-element flag) so every rank skips or steps together. The earlier
+version relied on `clip_grad_norm_` propagating a NaN clip coefficient to all
+shards — true on some stacks, but with FSDP2 sharded grads a NaN can live in
+one rank's shard only, and on torch 2.11 a rank-divergent step path deadlocks
+NCCL (observed: rank0 skipped, rank1 hung, watchdog killed the run). One tiny
+collective per step buys soundness by construction.
 """
 
 import torch
+import torch.distributed as dist
 
 
 def grads_all_finite(params) -> bool:
@@ -72,7 +76,19 @@ def install_grad_finiteness_guard(optimizer, params_fn, on_skip=None):
     real_step = optimizer.step
 
     def guarded_step(*args, **kwargs):
-        if grads_all_finite(params_fn()):
+        bad = not grads_all_finite(params_fn())
+        # Symmetric decision: if ANY rank has a non-finite shard, ALL ranks
+        # skip. Every rank reaches this collective every step, so it cannot
+        # desync; without it a rank-local NaN shard (FSDP2) makes one rank
+        # skip while others step — a NCCL deadlock on torch >= 2.11.
+        if dist.is_available() and dist.is_initialized():
+            flag = torch.tensor(
+                [1.0 if bad else 0.0],
+                device="cuda" if torch.cuda.is_available() else "cpu",
+            )
+            dist.all_reduce(flag, op=dist.ReduceOp.MAX)
+            bad = bool(flag.item())
+        if not bad:
             return real_step(*args, **kwargs)
         # Non-finite grad: drop this update entirely. zero_grad so the poison
         # doesn't linger into the next accumulation window.
