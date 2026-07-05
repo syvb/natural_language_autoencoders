@@ -63,7 +63,6 @@ def main():
     print(f"gold explanation for this vector (for eyeballing):\n  "
           f"{t.column('api_explanation')[0].as_py()[:300]}...")
 
-    sys.path.pop(0)  # drop the experiment dir before heavy imports
     from transformers import AutoModelForCausalLM
 
     try:

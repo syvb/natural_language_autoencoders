@@ -40,7 +40,12 @@ export KL_LOSS_COEF NLA_KL_TAPER_HALF_LIFE NLA_KL_TAPER_FLOOR
 : "${RUN_DIR:=$WORK/rl_run}"
 export HF_CKPT="${HF_CKPT:-$ACTOR_SFT_CKPT}"
 
-if grep -q "<explanation>" "$ACTOR_SFT_CKPT/nla_meta.yaml" 2>/dev/null; then
+[ -f "$ACTOR_SFT_CKPT/nla_meta.yaml" ] || {
+    echo "FATAL: $ACTOR_SFT_CKPT/nla_meta.yaml missing — not a converted warm-start" >&2
+    echo "(run 04_convert_upload.py first; also check \$WORK is exported in your shell)" >&2
+    exit 1
+}
+if grep -q "<explanation>" "$ACTOR_SFT_CKPT/nla_meta.yaml"; then
     echo "FATAL: $ACTOR_SFT_CKPT/nla_meta.yaml has the TAGGED actor template." >&2
     echo "Re-export the warm-start with --nla-sidecar-source = av_sft.parquet." >&2
     exit 1
@@ -50,7 +55,7 @@ fi
 export RL_PARQUET="${RL_PARQUET:-$WORK/out/rl.parquet}"
 if [ ! -f "$RL_PARQUET" ]; then
     echo "=== building RL parquet -> $RL_PARQUET ==="
-    "${PYTHON:-python}" "$HERE/05_build_rl_parquet.py"
+    (cd "$HERE" && "${PYTHON:-python}" "$HERE/05_build_rl_parquet.py")
 fi
 
 # ───────────────────────── GPU / optimizer profile ───────────────────────────
@@ -59,23 +64,27 @@ export ACTOR_GPUS CRITIC_GPUS ROLLOUT_GPUS ACTOR_LR CRITIC_LR SAVE_INTERVAL
 export NLA_EMBED_DUMP_DIR="${NLA_EMBED_DUMP_DIR:-/dev/shm/nla}"; mkdir -p "$NLA_EMBED_DUMP_DIR"
 
 # ───────────────────────── resume detection ──────────────────────────────────
-LATEST_ACTOR=""; LATEST_CRITIC=""
-if compgen -G "$RUN_DIR/actor/iter_*" > /dev/null 2>&1; then
-    LATEST_ACTOR="$(ls -d "$RUN_DIR"/actor/iter_* | sort | tail -1)"
-    CRITIC_ITER="$(basename "$LATEST_ACTOR")"
-    [ -d "$RUN_DIR/critic/$CRITIC_ITER/hf" ] && LATEST_CRITIC="$RUN_DIR/critic/$CRITIC_ITER/hf"
-fi
-if [ -n "$LATEST_ACTOR" ]; then
-    export LOAD="$LATEST_ACTOR"
-    [ -n "$LATEST_CRITIC" ] && export CRITIC_LOAD="$LATEST_CRITIC"
-    echo "=== RESUMING from $LATEST_ACTOR (critic: ${LATEST_CRITIC:-<SFT>}) ==="
+# miles resolves --load as the save ROOT (reads latest_checkpointed_iteration.txt
+# then iter_%07d/). Passing an iter_* dir makes miles_validate_args silently
+# fall back to --ref-load at rollout 0 — a "resume" that restarts from scratch.
+TRACKER="$RUN_DIR/actor/latest_checkpointed_iteration.txt"
+if [ -f "$TRACKER" ]; then
+    export LOAD="$RUN_DIR/actor"
+    LATEST_IT="$(cat "$TRACKER")"
+    CRITIC_HF="$RUN_DIR/critic/iter_$(printf %07d "$LATEST_IT")/hf"
+    [ -d "$CRITIC_HF" ] && export CRITIC_LOAD="$CRITIC_HF"
+    echo "=== RESUMING from $LOAD @ iter $LATEST_IT (critic: ${CRITIC_LOAD:-<SFT>}) ==="
 else
     export LOAD="${LOAD:-none}"
     echo "=== FRESH RL start from warm-start HF checkpoints ==="
 fi
 
 # ───────────────────────── wandb (always on) ─────────────────────────────────
-export WANDB_API_KEY="${WANDB_API_KEY:-$(cat "$WANDB_KEY_FILE")}"
+if [ -z "${WANDB_API_KEY:-}" ]; then
+    [ -f "$WANDB_KEY_FILE" ] || { echo "FATAL: $WANDB_KEY_FILE missing (wandb is mandatory)" >&2; exit 1; }
+    WANDB_API_KEY="$(cat "$WANDB_KEY_FILE")"
+fi
+export WANDB_API_KEY
 WANDB_ARGS=(--use-wandb --wandb-project "$WANDB_PROJECT"
             --wandb-team "$WANDB_TEAM"
             --wandb-group "${WANDB_GROUP:-${MODEL_TAG}-rl}" --wandb-mode online)
@@ -111,7 +120,17 @@ cd "${MILES_DIR:-$WORK/miles}"
 # sglang >=0.5.10 enables piecewise CUDA graphs by default and its warmup
 # compile crashed with an illegal memory access on Hopper (0.5.10 smoke) —
 # set SGLANG_EXTRA_ARGS="--sglang-disable-piecewise-cuda-graph" there.
-SGLANG_EXTRA_ARGS="${SGLANG_EXTRA_ARGS:-}"
+if [ -z "${SGLANG_EXTRA_ARGS+x}" ]; then
+    SGLANG_EXTRA_ARGS="$(python - <<'PYEOF'
+import sglang
+maj, mid, *_ = sglang.__version__.split(".")
+mid = int("".join(c for c in mid if c.isdigit()) or 0)
+patch = sglang.__version__.split(".")[2] if sglang.__version__.count(".") >= 2 else "0"
+patch = int("".join(c for c in patch if c.isdigit()) or 0)
+print("--sglang-disable-piecewise-cuda-graph" if (int(maj), mid, patch) >= (0, 5, 10) else "")
+PYEOF
+)"
+fi
 # rl.sh defaults 128x8=1024; trailing flags override (argparse last-wins).
 # shellcheck disable=SC2086
 bash "$REPO_ROOT/configs/rl.sh" \

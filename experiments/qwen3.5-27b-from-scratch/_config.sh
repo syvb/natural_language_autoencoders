@@ -4,8 +4,9 @@
 _CFG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NLA_RUN_CONFIG="${NLA_RUN_CONFIG:-$_CFG_DIR/config.env}"
 [ -f "$NLA_RUN_CONFIG" ] || { echo "config file not found: $NLA_RUN_CONFIG" >&2; exit 1; }
-while IFS='=' read -r _k _v; do
+while IFS='=' read -r _k _v || [ -n "$_k" ]; do
     case "$_k" in ''|\#*) continue ;; esac
+    _v=${_v%$'\r'}
     if [ -z "${!_k+x}" ]; then export "$_k=$_v"; fi
 done < "$NLA_RUN_CONFIG"
 export NLA_RUN_CONFIG

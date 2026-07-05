@@ -29,7 +29,9 @@ WORK = _config.env("WORK")
 OUT = f"{WORK}/out"
 PREFIX = _config.env("HF_REPO_PREFIX")
 UPLOAD = os.environ.get("UPLOAD", "1") == "1"
-NLA_REPO = os.environ.get("NLA_REPO", f"{WORK}/nla")
+NLA_REPO = os.environ.get(
+    "NLA_REPO", os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 BASE_DIR = os.environ.get("BASE_MODEL_DIR", f"{WORK}/models/base")
 
 api = None

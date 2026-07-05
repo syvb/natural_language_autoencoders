@@ -43,35 +43,41 @@ ROLLOUT_GPUS=1` (~+30% step time), or B200s. Disk: ≥1 TB — each RL save is
 large (27B actor DCP + 17B critic DCP + optimizer, several hundred GB); push
 each save with `push_ckpt_to_hf.sh` and prune if disk is tight.
 
-## Software stack — the one genuinely new risk
+## Software stack — VALIDATED PIN (do not "just take the newest image")
 
-Qwen3.5 (hybrid Gated-DeltaNet) needs **sglang ≥ 0.5.9** and a
-correspondingly recent transformers — newer than the validated pins
-(`lmsysorg/sglang:v0.5.7-cu129`, `transformers==4.57.1`, which the 7B smoke
-used). Plan:
+Use **`lmsysorg/sglang:v0.5.10.post1`** (torch 2.9.1+cu129, sglang
+0.5.10.post1, transformers 5.3.0). This was chosen empirically:
 
-1. Start from the newest `lmsysorg/sglang` stable image whose sglang supports
-   Qwen3.5 (check `docs.sglang.io/basic_usage/qwen3_5.html` for the minimum).
-2. `setup_box.sh` (env knobs: `TRANSFORMERS_PIN`, `FLASH_ATTN_WHEEL`,
-   `SGLANG_SRC`). Expect two friction points, both loud not silent:
-   - `patches/apply_sglang_patches.sh` is regex-anchored; on a much newer
-     sglang an anchor may miss — the assert names the file; port the hunk by
-     hand (the sibling `.patch` files document intent). The patches are
-     API-level (input-embeds through `/generate`), not model-file patches, so
-     GDN does not change what they touch.
-   - miles is pinned at `nla/miles_patches/UPSTREAM_PIN`; a newer sglang may
-     drift from its API. If imports break, check radixark/miles for a newer
-     commit and re-anchor `miles_patches/0001,0002`.
-3. HF-side training additionally needs the Gated-DeltaNet kernels
+- Qwen3.5 (hybrid Gated-DeltaNet) needs **sglang ≥ 0.5.9** and transformers
+  ≥ 5.x — the old validated pins (v0.5.7 image, tf 4.57.1) cannot load it.
+- **sglang ≥ 0.5.11 images ship torch 2.11, which BREAKS miles@051cd15
+  multi-rank FSDP training** (rank desync in the first training forward,
+  NCCL watchdog kill after 600 s; single-GPU works — verified on the
+  v0.5.13.post1 image). v0.5.10 is the newest image on torch 2.9.1.
+- On sglang ≥ 0.5.10, RL needs `--sglang-disable-piecewise-cuda-graph`
+  (piecewise warmup compile crashed with an illegal memory access on
+  Hopper). `run_rl.sh` now auto-adds it when the installed sglang is
+  ≥ 0.5.10 — nothing to do unless you override `SGLANG_EXTRA_ARGS`.
+
+`setup_box.sh` defaults to keeping the image's transformers
+(`TRANSFORMERS_PIN=keep`) and applies all known-needed shims: the sglang
+transport patches (re-verified against v0.5.7/v0.5.10/v0.5.13 sources; on
+≥0.5.10 the schedule_batch fixes are already upstream and are skipped), the
+miles `rollout.py` NOSET fix, the tf≥5 `_no_split_modules` set→list patch,
+and the ring_flash_attn import shim. Every patcher hard-fails on an anchor
+miss.
+
+Residual bring-up items for the 27B specifically:
+1. HF-side training may need the Gated-DeltaNet kernels
    (`flash-linear-attention`, `causal-conv1d`) — install if transformers asks.
-4. Multimodal wrapper: Qwen3.5-27B ships a vision tower. `nla/arch_adapters`
+2. Multimodal wrapper: Qwen3.5-27B ships a vision tower. `nla/arch_adapters`
    already unwraps `language_model`/`text_config` (Gemma-3 precedent) and
    `NLAFSDPActor` remaps weight-sync keys for wrapped actors. 01 falls back
    to `AutoModelForImageTextToText` if `AutoModelForCausalLM` refuses the
    checkpoint. Verify at phase 1; extend `arch_adapters` if the layout is new.
 
-Budget half a day for this integration; do it with the cheap 1-GPU phase, not
-on the 8-GPU box.
+Budget half a day for the 27B bring-up; do it on the cheap 1-GPU phase, not
+the 8-GPU box.
 
 ## Execution
 
@@ -81,22 +87,26 @@ All scripts read `config.env` (setdefault: your exported env wins; point
 
 ```bash
 cd <repo>/experiments/qwen3.5-27b-from-scratch
+export WORK=/workspace          # scripts default this internally; export it so
+mkdir -p $WORK/logs             # the inline $WORK references below expand too
 
 # ── phase 1: inputs + extraction (1 GPU) ─────────────────────────────────────
-python 00_fetch_inputs.py                       # base model + matryoshka dataset
-python 01_extract_activations.py                # ~450k fwd passes, 43-layer stack
+python 00_fetch_inputs.py 2>&1 | tee $WORK/logs/fetch.log
+python 01_extract_activations.py 2>&1 | tee $WORK/logs/extract.log
 #   GATE: read norm_stats.json → set INJECTION_SCALE in config.env.
 #   GATE: "len==source_pos match" ~0% is EXPECTED (different tokenizer).
-#   GATE: injection smoke — see §Injection smoke below, before any SFT.
+python 10_bringup_check.py 2>&1 | tee $WORK/logs/bringup.log
+#   GATE: BRINGUP_PASS — real-activation injection alters generation, no CJK
+#   free-association (see §Injection smoke). Do NOT start SFT before this.
 
 # ── phase 2: datasets + critic init (CPU/1 GPU) ──────────────────────────────
-python 02_build_datasets.py                     # doc-level split + bullets build
-bash 03_prepare_critic.sh                       # 43-layer trunc + identity value head
+python 02_build_datasets.py 2>&1 | tee $WORK/logs/build.log
+bash 03_prepare_critic.sh 2>&1 | tee $WORK/logs/critic_init.log
 
 # ── phase 3: SFT warm-start (4 GPUs per role; AV ∥ AR if you have 8) ────────
-bash run_av_sft.sh                              # from the PLAIN base model
-bash run_ar_sft.sh                              # from critic_init
-#   GATE: python check_health.py <av log> --sft   → PASS
+bash run_av_sft.sh 2>&1 | tee $WORK/logs/av_sft.log     # from the PLAIN base model
+bash run_ar_sft.sh 2>&1 | tee $WORK/logs/ar_sft.log     # from critic_init
+python check_health.py $WORK/logs/ar_sft.log --sft      # GATE: PASS
 #   GATE: AR fve_nrm should climb well above 0 by end of epoch 1
 #         (identity-init value head starts near pred=backbone-hidden).
 #   SFT_EPOCHS=2 default (from scratch). Stop at 1 if round-trip FVE is
@@ -105,29 +115,32 @@ bash run_ar_sft.sh                              # from critic_init
 python 04_convert_upload.py                     # AV DCP→HF + verify (UPLOAD=0 to skip HF)
 
 # ── phase 4: RL (8 GPUs) ─────────────────────────────────────────────────────
-ACTOR_SFT_CKPT=$WORK/hf_out/av_ws \
-CRITIC_SL_CKPT=$(ls -d $WORK/ckpt/ar_ws/iter_*/hf | tail -1) \
+export ACTOR_SFT_CKPT=$WORK/hf_out/av_ws
+export CRITIC_SL_CKPT=$(ls -d $WORK/ckpt/ar_ws/iter_*/hf | tail -1)
 NUM_ROLLOUT=20 SAVE_INTERVAL=1000 WANDB_GROUP=27b-rl-smoke \
-  bash run_rl.sh                                # 20-step smoke FIRST
-python check_health.py <rl log> --rl --taper    # → PASS, kl_flat present
+  bash run_rl.sh 2>&1 | tee $WORK/logs/rl_smoke.log     # 20-step smoke FIRST
+python check_health.py $WORK/logs/rl_smoke.log --rl --taper  # GATE: PASS, kl_flat present
 
-ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl.sh   # full run (NUM_ROLLOUT=300)
+bash run_rl.sh 2>&1 | tee -a $WORK/logs/rl.log          # full run (NUM_ROLLOUT=300)
 #   Save every 50; push each: bash push_ckpt_to_hf.sh 0000050
 #   Stop rule: reward slope ≈ 0 over ~30 steps AND 10-tok FVE flat across two
 #   consecutive saves. Expect to stop at 150–250. run_rl.sh auto-resumes from
-#   $RUN_DIR if interrupted (rollout data offset is NOT saved — resume re-draws
-#   prompts from the dataset start; acceptable for GRPO).
+#   $RUN_DIR if interrupted (miles restores optimizer state, rollout_id, AND
+#   the dataset offset from the save root — verify the "RESUMING from ... @
+#   iter N" line appears; a "FRESH RL start" line after a crash means the
+#   tracker file is missing and you should stop and look).
 ```
 
-### Injection smoke (before SFT — cheap, catches a silent-failure class)
+### Injection smoke (phase-1 gate — cheap, catches a silent-failure class)
 
-With the base model + measured INJECTION_SCALE, generate from a prompt
-containing the marker token with a real activation injected (see
-`docs/inference.md` § injection). **A broken injection path makes the model
-see the literal CJK marker char and free-associate Chinese** — grep any
-generated text for CJK; that is the loudest smoke test for the whole path.
-Base-model outputs will be unfocused (it hasn't been SFT'd) — you are testing
-plumbing, not quality.
+`10_bringup_check.py` is the gate: it injects a REAL extracted activation
+into the bullets prompt and requires (a) same-seed injected-vs-ablated
+generations to DIFFER (the vector demonstrably influences computation) and
+(b) no CJK free-association. **A broken injection path makes the model see
+the literal CJK marker char and free-associate Chinese** — that is the
+loudest smoke test for the whole path (`docs/inference.md` § injection has
+the background). Base-model outputs will be unfocused (it hasn't been
+SFT'd) — this gates plumbing, not quality.
 
 ### Expected metric shapes (from the 7B v3 run, directional only)
 
@@ -157,18 +170,24 @@ automation on its exit code.
 
 `smoke_7b.env` runs this exact pipeline end-to-end at Qwen2.5-7B/L20 scale on
 one 4-GPU box (extract 6k rows → build → critic init → short AV+AR SFT → 12
-RL steps with the taper active). It was run green before this branch shipped;
-use it to re-validate after any stack change:
+RL steps with the taper active + a save@10 + the export path). It was run
+green on the recommended v0.5.10.post1 image before this branch shipped; use
+it to re-validate after any stack change. Its `WORK=/workspace/smoke` is
+deliberately separate from prod — safe to run on a prod box.
 
 ```bash
 export NLA_RUN_CONFIG=$PWD/smoke_7b.env
+export SWORK=/workspace/smoke && mkdir -p $SWORK/logs
 python 00_fetch_inputs.py && python 01_extract_activations.py
 python 02_build_datasets.py && bash 03_prepare_critic.sh
-bash run_av_sft.sh --num-rollout 30      # --num-rollout caps SFT steps (overrides --num-epoch)
-bash run_ar_sft.sh --num-rollout 30
+bash run_av_sft.sh --num-rollout 30 2>&1 | tee $SWORK/logs/av_sft.log   # --num-rollout caps SFT steps
+bash run_ar_sft.sh --num-rollout 30 2>&1 | tee $SWORK/logs/ar_sft.log
 UPLOAD=0 python 04_convert_upload.py
-ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl.sh      # NUM_ROLLOUT=12 in the profile
-python check_health.py <logs> --taper
+export ACTOR_SFT_CKPT=$SWORK/hf_out/av_ws
+export CRITIC_SL_CKPT=$(ls -d $SWORK/ckpt/ar_ws/iter_*/hf | tail -1)
+SAVE_INTERVAL=10 bash run_rl.sh 2>&1 | tee $SWORK/logs/rl.log           # NUM_ROLLOUT=12 in the profile
+UPLOAD=0 ACTOR_ORIGIN=$SWORK/hf_out/av_ws bash push_ckpt_to_hf.sh 0000010 $SWORK/rl_run
+python check_health.py $SWORK/logs/rl.log --rl --taper
 ```
 
 ## Failure modes seen before (fixes are already on this branch)

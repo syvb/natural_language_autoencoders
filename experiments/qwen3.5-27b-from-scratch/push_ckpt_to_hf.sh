@@ -12,7 +12,11 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/_config.sh"
 IT="${1:?usage: push_ckpt_to_hf.sh <iter_padded> [run_dir]}"
 RUN_DIR="${2:-$WORK/rl_run}"
-export HF_TOKEN="${HF_TOKEN:-$(cat "$HF_TOKEN_FILE")}"
+if [ -z "${HF_TOKEN:-}" ]; then
+    [ -f "$HF_TOKEN_FILE" ] || { echo "FATAL: $HF_TOKEN_FILE missing" >&2; exit 1; }
+    HF_TOKEN="$(cat "$HF_TOKEN_FILE")"
+fi
+export HF_TOKEN
 export HUGGING_FACE_HUB_TOKEN="$HF_TOKEN"
 REPO="${HF_REPO_PREFIX}-rl"
 A_IN="$RUN_DIR/actor/iter_$IT"

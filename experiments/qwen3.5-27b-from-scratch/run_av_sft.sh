@@ -14,7 +14,11 @@ source "$HERE/_config.sh"
 export MILES_DIR="${MILES_DIR:-$WORK/miles}"
 cd "$MILES_DIR"
 export PYTHONUNBUFFERED=1 TOKENIZERS_PARALLELISM=false
-export WANDB_API_KEY="${WANDB_API_KEY:-$(cat "$WANDB_KEY_FILE")}"
+if [ -z "${WANDB_API_KEY:-}" ]; then
+    [ -f "$WANDB_KEY_FILE" ] || { echo "FATAL: $WANDB_KEY_FILE missing (wandb is mandatory)" >&2; exit 1; }
+    WANDB_API_KEY="$(cat "$WANDB_KEY_FILE")"
+fi
+export WANDB_API_KEY
 export NLA_NO_TRAIN_EOS=1
 AV_PARQUET="${AV_PARQUET:-$WORK/out/av_sft.parquet}"
 

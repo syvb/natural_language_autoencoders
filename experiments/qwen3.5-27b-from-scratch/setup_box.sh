@@ -25,8 +25,14 @@ python -c "import sglang;print('sglang',sglang.__version__,sglang.__file__)"
 echo "=== [1] miles @ pin + nla patches ==="
 cd "$(dirname "$NLA")" && [ -d miles ] || git clone -q https://github.com/radixark/miles.git
 cd miles && git checkout -q "$(cut -d@ -f2 "$NLA/nla/miles_patches/UPSTREAM_PIN")"
-git apply "$NLA/nla/miles_patches/0001_miles_nla_integration.patch" 2>/dev/null && echo "0001 applied" || echo "0001 already?"
-git apply "$NLA/nla/miles_patches/0002_train_py_nla_hooks.patch" 2>/dev/null && echo "0002 applied" || echo "0002 already?"
+git apply "$NLA/nla/miles_patches/0001_miles_nla_integration.patch" 2>/dev/null && echo "0001 applied" || {
+    git apply --reverse --check "$NLA/nla/miles_patches/0001_miles_nla_integration.patch" 2>/dev/null && echo "0001 already applied" || {
+        echo "FATAL: 0001 patch neither applies nor is applied — miles drifted" >&2; exit 1; }
+}
+git apply "$NLA/nla/miles_patches/0002_train_py_nla_hooks.patch" 2>/dev/null && echo "0002 applied" || {
+    git apply --reverse --check "$NLA/nla/miles_patches/0002_train_py_nla_hooks.patch" 2>/dev/null && echo "0002 already applied" || {
+        echo "FATAL: 0002 patch neither applies nor is applied — miles drifted" >&2; exit 1; }
+}
 MILES_DIR="$(pwd)"
 
 echo "=== [2] NLA sglang patches in place (image sglang is editable) ==="

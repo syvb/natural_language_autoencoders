@@ -112,6 +112,15 @@ def main():
         all_ids.extend(enc)
         log(f"  tokenized {min(i + CH, len(texts))}/{len(texts)}  {time.time() - t0:.0f}s")
     lens = np.array([len(x) for x in all_ids])
+    # A prefix that retokenizes to > MAX_LEN got tail-truncated: the vector
+    # would be extracted mid-text while the explanation describes the full
+    # prefix — silently mislabeled. Drop those rows.
+    full = lens < MAX_LEN
+    if not full.all():
+        log(f"  dropping {(~full).sum()} rows truncated at MAX_LEN={MAX_LEN}")
+        rows = [r for r, keep in zip(rows, full) if keep]
+        all_ids = [a for a, keep in zip(all_ids, full) if keep]
+        lens = lens[full]
     pos = np.array([r[2] for r in rows])
     # Same tokenizer as the source (Qwen2.5) -> ~100%. Different tokenizer ->
     # ~0%, expected: the prefix TEXT is what matters, not the token count.
