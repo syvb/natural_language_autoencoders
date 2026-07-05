@@ -194,3 +194,26 @@ def test_loss_computed_in_fp32_from_bf16_values():
     loss.backward()
     assert values.grad.dtype == torch.bfloat16
     assert torch.isfinite(values.grad).all()
+
+
+# --------------------------------------------------------------------------- #
+# compute_canonical_neighbors: transformers 4.x vs 5.x return forms
+# --------------------------------------------------------------------------- #
+
+def test_canonical_neighbors_handles_batchencoding_return():
+    from nla.schema import compute_canonical_neighbors
+
+    class _Enc(dict):
+        """Minimal BatchEncoding stand-in: a mapping whose iteration yields keys."""
+
+    class _Tok5:  # transformers >=5 shape
+        def apply_chat_template(self, msgs, tokenize=True, add_generation_prompt=True):
+            return _Enc(input_ids=[10, 20, 99, 30, 40], attention_mask=[1] * 5)
+
+    class _Tok4:  # transformers <=4.57 shape
+        def apply_chat_template(self, msgs, tokenize=True, add_generation_prompt=True):
+            return [10, 20, 99, 30, 40]
+
+    for tok in (_Tok4(), _Tok5()):
+        left, right = compute_canonical_neighbors(tok, "x{injection_char}y", "㊗", 99)
+        assert (left, right) == (20, 30), type(tok).__name__

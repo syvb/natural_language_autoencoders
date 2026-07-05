@@ -264,6 +264,13 @@ def compute_canonical_neighbors(
         tokenize=True,
         add_generation_prompt=True,
     )
+    # transformers >=5 returns a BatchEncoding here (<=4.57: list[int]).
+    # Iterating a BatchEncoding yields its KEYS — the id scan below would
+    # silently find 0 matches. Normalize both forms to a flat id list.
+    if hasattr(ids, "keys"):
+        ids = ids["input_ids"]
+    if ids and isinstance(ids[0], list):
+        ids = ids[0]
     matches = [i for i, tid in enumerate(ids) if tid == injection_token_id]
     assert len(matches) == 1, (
         f"injection token id {injection_token_id} ({injection_char!r}) appears "

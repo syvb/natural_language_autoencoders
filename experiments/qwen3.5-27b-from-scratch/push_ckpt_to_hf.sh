@@ -44,6 +44,11 @@ rm -rf "$A_OUT"
     --origin-hf-dir "$ACTOR_ORIGIN" -f
 cp "$A_IN/nla_meta.yaml" "$A_OUT/nla_meta.yaml"
 
+if [ "${UPLOAD:-1}" != "1" ]; then
+    echo "[UPLOAD=0] export verified + converted: $A_OUT and $C_HF (skipping HF upload)"
+    echo "PUSH_DONE iter_$IT (local only)"
+    exit 0
+fi
 echo "=== upload iter_$IT to $REPO ==="
 "${PYTHON:-python}" - "$A_OUT" "$C_HF" "$REPO" "$IT" << "PY"
 import sys

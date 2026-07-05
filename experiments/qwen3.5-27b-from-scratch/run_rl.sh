@@ -105,8 +105,17 @@ echo "    truncation ~U[$NLA_TRUNC_MIN_TOKENS,$NLA_TRUNC_MAX_TOKENS] tokens; KL 
 # rl.sh runs `python train.py` from cwd — it must be the miles checkout (also
 # keeps cwd clear of the parent-of-repo namespace-shadow trap, see 03).
 cd "${MILES_DIR:-$WORK/miles}"
+# Extra sglang server flags, space-separated (word-split on purpose). miles
+# mirrors the INSTALLED sglang's ServerArgs with a --sglang- prefix, so
+# version-specific flags go here rather than hardcoded. Known need:
+# sglang >=0.5.10 enables piecewise CUDA graphs by default and its warmup
+# compile crashed with an illegal memory access on Hopper (0.5.10 smoke) —
+# set SGLANG_EXTRA_ARGS="--sglang-disable-piecewise-cuda-graph" there.
+SGLANG_EXTRA_ARGS="${SGLANG_EXTRA_ARGS:-}"
 # rl.sh defaults 128x8=1024; trailing flags override (argparse last-wins).
+# shellcheck disable=SC2086
 bash "$REPO_ROOT/configs/rl.sh" \
+    $SGLANG_EXTRA_ARGS \
     "${WANDB_ARGS[@]}" \
     --rollout-batch-size "$RL_ROLLOUT_BS" --global-batch-size "$RL_GLOBAL_BS" \
     --num-rollout "$NUM_ROLLOUT" \

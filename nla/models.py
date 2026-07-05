@@ -83,7 +83,8 @@ class NLACriticModel(PreTrainedModel):
         # FSDP's apply_fsdp2 reads this to decide which modules to wrap.
         # Instance attr (not class attr) — two NLACriticModels with different
         # backbones in one process would clobber each other on class attr.
-        self._no_split_modules = backbone._no_split_modules
+        # list(): transformers >=5 stores a set; apply_fsdp2 indexes [0].
+        self._no_split_modules = list(backbone._no_split_modules)
         # Opt-in escalation for the from-scratch bf16 backbone-backward
         # pathology: non-finite grads can arise INSIDE the truncated raw
         # backbone, out of reach of the loss-boundary guard in nla/loss.py.
