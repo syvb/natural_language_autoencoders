@@ -72,6 +72,7 @@ def _install_miles_stubs():
     # only need to EXIST for `from X import name` to succeed at import time —
     # tests monkeypatch the bound names on nla_generate directly.
     extra = {
+        "miles.utils.mask_utils": ["MultiTurnLossMaskGenerator"],
         "miles.rollout": [],
         "miles.rollout.generate_utils": [],
         "miles.rollout.generate_utils.generate_endpoint_utils": [

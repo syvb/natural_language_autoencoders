@@ -188,3 +188,44 @@ def test_requires_cp1(monkeypatch):
             logits=torch.zeros(1, 8, 8),
             sum_of_sample_mean=lambda x: x.sum(),
         )
+
+
+def test_chat_template_list_compat_proxy():
+    """transformers >=5 returns BatchEncoding from apply_chat_template; the
+    proxy must normalize to list[int] for miles' mask arithmetic (4.x passes
+    through untouched)."""
+    from nla.rollout.sft_actor import _ChatTemplateListCompat
+
+    class _Enc(dict):
+        pass
+
+    class _Tok:
+        name_or_path = "fake"
+
+        def apply_chat_template(self, msgs, tokenize=True, **k):
+            if tokenize:
+                return _Enc(input_ids=[1, 2, 3], attention_mask=[1, 1, 1])
+            return "rendered"
+
+        def other_method(self):
+            return 42
+
+        def __call__(self, text, **k):
+            return {"input_ids": [9]}
+
+        def __len__(self):
+            return 151936
+
+    p = _ChatTemplateListCompat(_Tok())
+    assert p.apply_chat_template([], tokenize=True) == [1, 2, 3]
+    assert p.apply_chat_template([], tokenize=False) == "rendered"
+    assert p.other_method() == 42          # passthrough
+    assert p.name_or_path == "fake"
+    assert p("hi")["input_ids"] == [9]     # direct-call passthrough (dunder)
+    assert len(p) == 151936
+
+    class _Tok4:
+        def apply_chat_template(self, msgs, tokenize=True, **k):
+            return [4, 5, 6]
+
+    assert _ChatTemplateListCompat(_Tok4()).apply_chat_template([]) == [4, 5, 6]

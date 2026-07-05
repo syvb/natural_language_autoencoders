@@ -15,6 +15,38 @@ from miles.utils.processing_utils import load_tokenizer
 from nla.schema import MM_ACTIVATION_KEY
 
 
+class _ChatTemplateListCompat:
+    """Tokenizer proxy: normalize apply_chat_template(tokenize=True) to list[int].
+
+    transformers >=5 returns a BatchEncoding there; miles' mask_utils does list
+    arithmetic on the result (len/slice/concat), and len(BatchEncoding) is its
+    KEY count (2) — loss masks come out 2 tokens long and training aborts with
+    "loss mask length 2 != response length N". Transparent on transformers 4.x.
+    """
+
+    def __init__(self, tok):
+        self._tok = tok
+
+    def __getattr__(self, name):
+        return getattr(self._tok, name)
+
+    def __call__(self, *a, **k):
+        # dunders bypass __getattr__; tokenizers are callable and miles calls
+        # them directly.
+        return self._tok(*a, **k)
+
+    def __len__(self):
+        return len(self._tok)
+
+    def apply_chat_template(self, *a, **k):
+        out = self._tok.apply_chat_template(*a, **k)
+        if hasattr(out, "keys"):
+            out = out["input_ids"]
+            if out and isinstance(out[0], list):
+                out = out[0]
+        return out
+
+
 _TOKENIZER = None
 _MASK_GEN = None
 # v2 (item 5): when set, never put loss on the turn-terminating EOS / <|im_end|>
@@ -43,7 +75,9 @@ def generate_rollout(args, rollout_id, data_buffer, evaluation=False):
     if _TOKENIZER is None:
         _TOKENIZER = load_tokenizer(args.hf_checkpoint, trust_remote_code=True)
     if _MASK_GEN is None:
-        _MASK_GEN = MultiTurnLossMaskGenerator(_TOKENIZER, tokenizer_type=args.loss_mask_type)
+        _MASK_GEN = MultiTurnLossMaskGenerator(
+            _ChatTemplateListCompat(_TOKENIZER), tokenizer_type=args.loss_mask_type
+        )
     if _EOS_IDS is None:
         _EOS_IDS = _resolve_eos_ids(_TOKENIZER)
         if _NO_TRAIN_EOS:
