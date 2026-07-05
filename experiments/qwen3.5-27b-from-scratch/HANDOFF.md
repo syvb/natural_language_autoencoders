@@ -33,11 +33,10 @@ warm-start baseline.
   you need. `config.env` = production profile (single source of truth;
   scripts load it with setdefault semantics — your exported env wins).
   `RUNBOOK.md` = step-by-step. `driver_realsmoke.sh` + `smoke_27b.env` = the
-  mandatory pre-run smoke. `check_health.py` = log-parsing gate (exit 1 on
+  pre-run smoke. `check_health.py` = log-parsing gate (exit 1 on
   FAIL). `10_bringup_check.py` = injection gate.
-- **Credentials expected on the training box**: HF write token at
-  `/root/.hf_token`, wandb key at `/root/.wandb_key` (paths configurable via
-  `HF_TOKEN_FILE`/`WANDB_KEY_FILE`). Never echo token contents into logs.
+- **Credentials expected on the training box**: HuggingFace write token and
+  WandB token
 - **Upstream framework**: `miles` (cloned at
   `nla/miles_patches/UPSTREAM_PIN`, patched by `setup_box.sh`). **Never edit
   `miles/` in this repo** — extend via `nla.train_actor.NLAFSDPActor` and the
@@ -55,7 +54,7 @@ warm-start baseline.
 | **The 27B SFT/RL path itself** | ❌ **NEVER EXECUTED. Your first action is the real-model smoke below.** |
 | B200 (sm_100) kernels for this stack | ❌ untested; first contact happens in your smoke |
 
-**Step 0 — mandatory, before the full run:** rent one **8×B200** (the
+**Step 0, before the full run:** rent one **8×B200** (the
 production GPU — do NOT silently substitute another GPU type; if B200 is
 unavailable, stop and tell the human the options), image
 `lmsysorg/sglang:v0.5.10.post1`, disk ≥1 TB. Ship this repo + tokens, then:
