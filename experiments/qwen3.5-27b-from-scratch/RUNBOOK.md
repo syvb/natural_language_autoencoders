@@ -91,6 +91,13 @@ All scripts read `config.env` (setdefault: your exported env wins; point
 `NLA_RUN_CONFIG` elsewhere to swap profiles). Credentials: `HF_TOKEN` (or
 `HF_TOKEN_FILE`), wandb key at `WANDB_KEY_FILE`. wandb is always on.
 
+You do not have access to the `syvb` HuggingFace account, so the checked-in
+`HF_REPO_PREFIX=syvb/...` default is not writable by you. Before any step
+that uploads (`04_convert_upload.py`, `push_ckpt_to_hf.sh`), set
+`HF_REPO_PREFIX` to a namespace your `HF_TOKEN` can write to (edit
+`config.env` or export it). Read access is unaffected — the input dataset
+and base model are public.
+
 ```bash
 cd <repo>/experiments/qwen3.5-27b-from-scratch
 export WORK=/workspace          # scripts default this internally; export it so

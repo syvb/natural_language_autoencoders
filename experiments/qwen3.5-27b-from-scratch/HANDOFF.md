@@ -36,7 +36,10 @@ warm-start baseline.
   pre-run smoke. `check_health.py` = log-parsing gate (exit 1 on
   FAIL). `10_bringup_check.py` = injection gate.
 - **Credentials expected on the training box**: HuggingFace write token and
-  WandB token
+  WandB token. You do NOT have access to the `syvb` HuggingFace account —
+  use your own HF account, and **set `HF_REPO_PREFIX` in `config.env` to a
+  namespace you can write to** (the checked-in `syvb/...` default will fail
+  every upload).
 - **Upstream framework**: `miles` (cloned at
   `nla/miles_patches/UPSTREAM_PIN`, patched by `setup_box.sh`). **Never edit
   `miles/` in this repo** — extend via `nla.train_actor.NLAFSDPActor` and the
@@ -124,8 +127,8 @@ names each gate). Summary of the shape and the decision rules:
    round-trip FVE ≥ ~95% of the critic-gold ceiling, extend to 3 if still
    climbing at 2. `check_health.py <log> --sft` must PASS.
 4. **Convert + upload** warm-start checkpoints (`04_convert_upload.py`,
-   repos under `HF_REPO_PREFIX` in `config.env` — adjust the namespace to
-   one you can write to).
+   repos under `HF_REPO_PREFIX` in `config.env` — this MUST be changed to
+   your own HF namespace first; the `syvb` account is not yours).
 5. **RL**: 20-step smoke first (gate: `check_health.py --rl --taper` PASS,
    `kl_flat` metric present = taper dispatched), then the full run:
    **budget `NUM_ROLLOUT=300`, save@50, push every save**
