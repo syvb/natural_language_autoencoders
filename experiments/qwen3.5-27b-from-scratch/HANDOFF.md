@@ -25,9 +25,10 @@ warm-start baseline.
 
 ## Where everything is
 
-- **Repo/branch**: `github.com/syvb/natural_language_autoencoders`, branch
-  **`qwen3.5-27b-from-scratch`**. Push results to THIS fork/branch (`syvb`
-  remote); `kitft/...` is upstream with no write access.
+- **Repo/branch**: clone `github.com/syvb/natural_language_autoencoders`,
+  branch **`qwen3.5-27b-from-scratch`**. You do NOT have write access to that
+  fork (nor to upstream `kitft/...`) — **create your own fork and push your
+  work there**, keeping this branch as the base.
 - **This directory** (`experiments/qwen3.5-27b-from-scratch/`): every script
   you need. `config.env` = production profile (single source of truth;
   scripts load it with setdefault semantics — your exported env wins).
@@ -92,7 +93,7 @@ that is the point. Only proceed to the full run when it's green.
    bizarre transformers import errors). Use `av_ckpt`-style names.
 7. **Never run `python -m nla...` with cwd = the repo's parent** (namespace
    shadowing; the launchers cd defensively — keep that).
-8. Commit and push finished work to the `syvb` fork proactively.
+8. Commit and push finished work to your own fork proactively.
 
 ## Constants already determined (do not re-derive blindly)
 
@@ -147,11 +148,3 @@ desync symptoms, value-head corruption tripwires, thinking-leak): RUNBOOK.md
 must be 0 every step for both roles (the guard skips, never poisons —
 occasional skips OK, >40% = stop and investigate), and `raw_reward` pinned
 at −2.0 means the reward path is dead, not "bad policy".
-
-## Budget
-
-Rough plan-of-record: full extraction ~$25 · SFT 2 epochs × 2 roles ~$150–250
-· RL to ~300 steps ~$300–500 on B200 · eval ~$20 → **~$500–800 total**, on
-top of the ~$150 real-model smoke. Sanity-check against your own GPU pricing.
-If the trajectory heads meaningfully past that, pause and tell the human
-rather than pushing through.
