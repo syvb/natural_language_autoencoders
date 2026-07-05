@@ -223,7 +223,12 @@ def _prep_payload_sync(args, messages, activation_vector, sampling_params, sampl
     batch drains to #running-req: 1 between bursts (79 tok/s avg vs 2770 peak).
     With it, all 512 dispatch fast → SGLang stays at max batch."""
     prompt_str = _TOKENIZER.apply_chat_template(
-        messages, tokenize=False, add_generation_prompt=True
+        messages, tokenize=False, add_generation_prompt=True,
+        # Thinking-mode templates (Qwen3.5+) otherwise OPEN a <think> block at
+        # the end of the generation prompt — the AV would generate inside it
+        # and early RL wastes budget tokens closing it. False renders the
+        # pre-closed empty block; unused variable on non-thinking templates.
+        enable_thinking=False,
     )
     # add_special_tokens=False is LOAD-BEARING for Gemma/Llama. The chat-template
     # string already has <bos> baked in; encode(add_special_tokens=True) would

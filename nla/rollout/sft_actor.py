@@ -39,6 +39,9 @@ class _ChatTemplateListCompat:
         return len(self._tok)
 
     def apply_chat_template(self, *a, **k):
+        # Keep SFT tokenization consistent with the RL rollout render: never
+        # open a thinking block (no-op for non-thinking chat templates).
+        k.setdefault("enable_thinking", False)
         out = self._tok.apply_chat_template(*a, **k)
         if hasattr(out, "keys"):
             out = out["input_ids"]

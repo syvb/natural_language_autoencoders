@@ -76,7 +76,8 @@ def main():
             MODEL, torch_dtype=torch.bfloat16, device_map="cuda").eval()
 
     msgs = [{"role": "user", "content": template.format(injection_char=meta.injection_char)}]
-    ids = tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=True)
+    ids = tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=True,
+                                  enable_thinking=False)
     if hasattr(ids, "input_ids"):  # transformers 5.x returns BatchEncoding
         ids = ids["input_ids"]
     ids = torch.tensor([ids], device=model.device)

@@ -207,11 +207,11 @@ def test_canonical_neighbors_handles_batchencoding_return():
         """Minimal BatchEncoding stand-in: a mapping whose iteration yields keys."""
 
     class _Tok5:  # transformers >=5 shape
-        def apply_chat_template(self, msgs, tokenize=True, add_generation_prompt=True):
+        def apply_chat_template(self, msgs, tokenize=True, add_generation_prompt=True, **kw):
             return _Enc(input_ids=[10, 20, 99, 30, 40], attention_mask=[1] * 5)
 
     class _Tok4:  # transformers <=4.57 shape
-        def apply_chat_template(self, msgs, tokenize=True, add_generation_prompt=True):
+        def apply_chat_template(self, msgs, tokenize=True, add_generation_prompt=True, **kw):
             return [10, 20, 99, 30, 40]
 
     for tok in (_Tok4(), _Tok5()):

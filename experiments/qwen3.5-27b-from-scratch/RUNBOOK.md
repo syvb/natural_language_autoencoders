@@ -70,7 +70,13 @@ miss.
 Residual bring-up items for the 27B specifically:
 1. HF-side training may need the Gated-DeltaNet kernels
    (`flash-linear-attention`, `causal-conv1d`) — install if transformers asks.
-2. Multimodal wrapper: Qwen3.5-27B ships a vision tower. `nla/arch_adapters`
+2. Thinking mode: Qwen3.5's chat template OPENS a `<think>` block at the end
+   of every generation prompt unless rendered with `enable_thinking=False`.
+   All four render sites in this pipeline (RL rollouts, SFT tokenization via
+   the mask-gen proxy, canonical-neighbor computation, the bring-up gate) set
+   it — the AV is trained and rolled out as a direct-answer model. Don't add
+   new apply_chat_template call sites without it.
+3. Multimodal wrapper: Qwen3.5-27B ships a vision tower. `nla/arch_adapters`
    already unwraps `language_model`/`text_config` (Gemma-3 precedent) and
    `NLAFSDPActor` remaps weight-sync keys for wrapped actors. 01 falls back
    to `AutoModelForImageTextToText` if `AutoModelForCausalLM` refuses the

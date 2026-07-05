@@ -263,6 +263,7 @@ def compute_canonical_neighbors(
         [{"role": "user", "content": content}],
         tokenize=True,
         add_generation_prompt=True,
+        enable_thinking=False,  # match the rollout render (no-op pre-Qwen3.5)
     )
     # transformers >=5 returns a BatchEncoding here (<=4.57: list[int]).
     # Iterating a BatchEncoding yields its KEYS — the id scan below would
