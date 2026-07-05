@@ -157,3 +157,22 @@ def test_keep_full_frac_leaves_a_deterministic_slice_untruncated():
         _maybe_truncate_to_tokens(text, r, 1, 120, 0, tok, keep_full_frac=0.0) != text
         for r in range(50)
     )
+
+
+def test_extract_strips_leaked_think_block():
+    """A thinking-mode actor (Qwen3.5) that leaks a <think>...</think> prefix:
+    the critic must reconstruct from the bullets, not the reasoning. No-op on
+    non-thinking responses."""
+    from nla.schema import extract_explanation_open
+
+    leaked = "<think>\nLet me analyze the request.\n</think>\n\n- feature one\n- feature two"
+    assert extract_explanation_open(leaked) == "- feature one\n- feature two"
+    # untagged non-thinking response is unchanged
+    plain = "- feature one\n- feature two"
+    assert extract_explanation_open(plain) == plain
+    # empty pre-closed block (the enable_thinking=False scaffolding, if it ever
+    # lands in the response) is stripped to the bullets
+    empty = "<think>\n\n</think>\n\n- only feature"
+    assert extract_explanation_open(empty) == "- only feature"
+    # a think block with no content after it -> None (failed extraction)
+    assert extract_explanation_open("<think>reasoning</think>   ") is None

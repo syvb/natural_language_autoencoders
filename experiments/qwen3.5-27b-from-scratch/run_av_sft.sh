@@ -42,7 +42,7 @@ AV_PARQUET="${AV_PARQUET:-$WORK/out/av_sft.parquet}"
     --micro-batch-size "$SFT_MICRO_BS" \
     --lr "$SFT_LR" --min-lr "$SFT_MIN_LR" --lr-warmup-iters "$SFT_WARMUP" --lr-decay-style cosine \
     --n-samples-per-prompt 1 \
-    --loss-mask-type qwen \
+    --loss-mask-type "${LOSS_MASK_TYPE:-qwen}" \
     --nla-injection-scale "$INJECTION_SCALE" \
     --num-epoch "$SFT_EPOCHS" \
     --save-interval 500 \

@@ -31,6 +31,14 @@ EXPLANATION_RE = re.compile(
     re.DOTALL,
 )
 
+# Defense-in-depth for thinking-mode base models (Qwen3.5+): the actor is
+# trained + rolled out as a direct-answer model (enable_thinking=False renders
+# a pre-closed empty <think> block into the prompt), but a not-fully-converged
+# actor can still LEAK a think block into its response. Strip a leading one so
+# the critic reconstructs from the bullets, not the reasoning. No-op on
+# non-thinking responses (v1/v2/v3 Qwen2.5 never emit these tags).
+_LEADING_THINK_RE = re.compile(r"^\s*<think>.*?</think>\s*", re.DOTALL)
+
 
 def wrap_explanation(text: str) -> str:
     """Wrap text in explanation tags for the AV-SFT response column.
@@ -76,6 +84,7 @@ def extract_explanation_open(response: str) -> str | None:
         contentless prefix routes to the failed-extraction reward rather than
         querying the critic with an empty string.
     """
+    response = _LEADING_THINK_RE.sub("", response, count=1)
     i = response.find(EXPLANATION_OPEN)
     if i == -1:
         return response.strip() or None  # v2 untagged: whole response is the payload
