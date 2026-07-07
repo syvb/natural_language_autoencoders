@@ -35,9 +35,10 @@ and halfwidth, ornamental (see `_QUOTE_CHARS`).
 - wandb `octahedral-systems/nla-rl-quote-penalty`, group
   `qwen2.5-7b-L20-v3qf-quotepen0.1`: `raw_reward`, critic `fve_nrm`, KL loss;
   plus the `quote-stats` sidecar run
-  (`../kitft-quote-penalty-rl/quote_stats_wandb.py` with
-  `TRAIN_PGREP='run_rl_v3q[f].sh'`, `WANDB_GROUP=qwen2.5-7b-L20-v3qf-quotepen0.1`):
-  `quote/chars_mean`, `quote/frac_zero`, `quote/final_echo_frac`, …
+  (`quote_stats_wandb.py`): `quotefull/*` (exact full-batch curves from the
+  reward-path JSONL — chars_mean, frac_zero, est_penalty) and `quote/*`
+  (20-sample dump metrics incl. double/single family and `final_echo_frac`,
+  comparable to the kitft run's).
 - `NLA_QUOTE_STATS_JSONL=/workspace/out/quote_stats.jsonl` — full-batch
   per-drain quote stats from the reward path (source of truth).
 - `NLA_ROLLOUT_TEXT_DUMP` snapshots (first 20 samples per reward batch),
