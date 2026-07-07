@@ -89,6 +89,8 @@ CFG="$RUN_DIR/launch_config.$(date -u +%Y%m%dT%H%M%SZ).txt"
 } | tee "$CFG"
 
 export INSTRUCT_MODEL ACTOR_SFT_CKPT CRITIC_SL_CKPT RUN_DIR
+# rl.sh runs `python train.py` relative to CWD — that's miles' entrypoint.
+cd "${MILES_DIR:-/workspace/miles}"
 echo "=== RL (quote penalty $NLA_QUOTE_PENALTY) start $(date -u +%FT%TZ) — $NUM_ROLLOUT steps, save every $SAVE_INTERVAL ==="
 bash "$REPO_ROOT/configs/rl.sh" \
     "${WANDB_ARGS[@]}" \

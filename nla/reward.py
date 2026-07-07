@@ -128,6 +128,28 @@ def _quote_penalty(expl: str) -> float:
     return -_QUOTE_PENALTY * n
 
 
+# Full-batch quote metrics, appended per reward drain as JSON lines. Unlike the
+# NLA_ROLLOUT_TEXT_DUMP (first 20 samples, overwritten), this covers EVERY
+# scored sample — the source of truth for quote-usage curves. A sidecar
+# (quote_stats_wandb.py) or post-hoc analysis reads it. Off unless set.
+_QUOTE_STATS_JSONL = os.environ.get("NLA_QUOTE_STATS_JSONL")
+
+
+def _dump_quote_stats(explanations: list[str]) -> None:
+    if not _QUOTE_STATS_JSONL or not explanations:
+        return
+    import json
+    counts = [sum(1 for ch in e if ch in _QUOTE_CHARS) for e in explanations]
+    rec = {
+        "n": len(counts),
+        "quote_chars_mean": sum(counts) / len(counts),
+        "quote_chars_max": max(counts),
+        "frac_zero": sum(1 for c in counts if c == 0) / len(counts),
+    }
+    with open(_QUOTE_STATS_JSONL, "a") as f:
+        f.write(json.dumps(rec) + "\n")
+
+
 def _prep_batch(samples: list[Sample]):
     """Extract explanations, tokenize, stack golds. Returns (payload, orig_idx,
     penalties) for the subset with valid extractions; FAILED ones get the fixed
@@ -148,7 +170,7 @@ def _prep_batch(samples: list[Sample]):
         (Sample.Status.COMPLETED, Sample.Status.TRUNCATED) if trunc_on
         else (Sample.Status.COMPLETED,)
     )
-    prompts, golds, orig_idx, penalties = [], [], [], []
+    prompts, golds, orig_idx, penalties, expls = [], [], [], [], []
     for i, s in enumerate(samples):
         if s.status not in scoreable:
             continue
@@ -160,11 +182,13 @@ def _prep_batch(samples: list[Sample]):
             prompts.append(_CFG.critic_prompt_template.format(explanation=expl))
             golds.append(s.metadata["activation_vector"])
             orig_idx.append(i)
+            expls.append(expl)
             penalties.append(
                 _item_length_penalty(split_into_items(expl)) + _quote_penalty(expl)
             )
     if not prompts:
         return None, [], []
+    _dump_quote_stats(expls)
     # add_special_tokens=True matches stage0 extractor (extractors.py:131).
     # Gemma needs BOS here; Qwen has bos_token=None (no-op). See sft_critic.py.
     tok = _TOKENIZER(prompts, add_special_tokens=True, padding=True, return_tensors="pt")
