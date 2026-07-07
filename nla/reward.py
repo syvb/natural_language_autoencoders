@@ -17,8 +17,10 @@ so later groups' SGLang callbacks fire → generation pipelines with reward comp
 """
 
 import asyncio
+import functools
 import math
 import os
+import re
 
 import ray
 import torch
@@ -54,6 +56,68 @@ _QUOTE_PENALTY = float(os.environ.get("NLA_QUOTE_PENALTY", "0"))
 # forms, ornamental (❛❜❝❞) and double-low-reversed-9 (⹂) marks. Keep in sync
 # with QUOTES in experiments/kitft-quote-penalty-rl/quote_stats_wandb.py.
 _QUOTE_CHARS = frozenset("\"'`‘’‚‛“”„‟«»‹›「」『』〝〞〟＂＇｀｢｣❛❜❝❞⹂")
+# Verbatim-repeat penalty (anti-echo experiment, generalizes the quote-mark
+# penalty): the AV never SEES the input text — it only gets the activation —
+# so any long verbatim match between its explanation and the context is
+# reconstruction-by-echo. Penalize "copy coverage":
+#   reward = -MSE - NLA_REPEAT_PENALTY * (# explanation chars lying inside a
+#            common substring of length >= NLA_REPEAT_MIN_CHARS with the
+#            sample's context, both lowercased + whitespace-collapsed).
+# The context is the sample's detokenized_text_truncated (text up to the
+# extraction position), carried by the RL parquet (--keep-debug-metadata,
+# default on) into Sample.metadata via NLADataSource. The min-length threshold
+# keeps incidental short matches ("of the") free; coverage (union of matching
+# windows) counts every copied span, not just the longest. Off by default.
+_REPEAT_PENALTY = float(os.environ.get("NLA_REPEAT_PENALTY", "0"))
+_REPEAT_MIN_CHARS = int(os.environ.get("NLA_REPEAT_MIN_CHARS", "12"))
+
+_WS_RE = re.compile(r"\s+")
+
+
+def _norm_overlap(s: str) -> str:
+    return _WS_RE.sub(" ", s.lower()).strip()
+
+
+@functools.lru_cache(maxsize=1024)
+def _ctx_shingles(ctx_raw: str) -> frozenset:
+    """All NLA_REPEAT_MIN_CHARS-length substrings of the normalized context.
+    Cached on the RAW string: all samples of a group share one context, so
+    each unique context is shingled once per drain, not 8 times."""
+    c = _norm_overlap(ctx_raw)
+    L = _REPEAT_MIN_CHARS
+    return frozenset(c[i:i + L] for i in range(max(0, len(c) - L + 1)))
+
+
+def _copied_chars(expl: str, ctx_raw: str) -> int:
+    """Chars of the normalized explanation covered by >=1 length-L window that
+    appears verbatim in the normalized context (union of matching windows)."""
+    L = _REPEAT_MIN_CHARS
+    e = _norm_overlap(expl)
+    if len(e) < L or not ctx_raw:
+        return 0
+    sh = _ctx_shingles(ctx_raw)
+    covered = 0
+    covered_until = 0
+    for i in range(len(e) - L + 1):
+        if e[i:i + L] in sh:
+            covered += i + L - max(covered_until, i)
+            covered_until = i + L
+    return covered
+
+
+def _repeat_penalty(expl: str, ctx_raw) -> float:
+    if _REPEAT_PENALTY <= 0:
+        return 0.0
+    if not ctx_raw:
+        raise RuntimeError(
+            "NLA_REPEAT_PENALTY is set but this sample has no "
+            "detokenized_text_truncated in metadata — the RL parquet was built "
+            "without --keep-debug-metadata. Rebuild it (the flag defaults on) "
+            "or unset the penalty."
+        )
+    return -_REPEAT_PENALTY * _copied_chars(expl, ctx_raw)
+
+
 # Under -mse_nrm, 0.0 is the BEST reward (perfect reconstruction) and -2.0 is
 # orthogonal. Under -log(MSE), 0.0 corresponds to mse=1 (mid-range). Use the
 # orthogonal-equivalent value so a failed extraction is never advantaged.
@@ -137,7 +201,7 @@ def _quote_penalty(expl: str) -> float:
 _QUOTE_STATS_JSONL = os.environ.get("NLA_QUOTE_STATS_JSONL")
 
 
-def _dump_quote_stats(explanations: list[str]) -> None:
+def _dump_quote_stats(explanations: list[str], contexts: list | None = None) -> None:
     if not _QUOTE_STATS_JSONL or not explanations:
         return
     import json
@@ -148,6 +212,14 @@ def _dump_quote_stats(explanations: list[str]) -> None:
         "quote_chars_max": max(counts),
         "frac_zero": sum(1 for c in counts if c == 0) / len(counts),
     }
+    if _REPEAT_PENALTY > 0 and contexts:
+        cov = [_copied_chars(e, c) if c else 0
+               for e, c in zip(explanations, contexts, strict=True)]
+        rec.update({
+            "repeat_covered_mean": sum(cov) / len(cov),
+            "repeat_covered_max": max(cov),
+            "repeat_frac_zero": sum(1 for c in cov if c == 0) / len(cov),
+        })
     with open(_QUOTE_STATS_JSONL, "a") as f:
         f.write(json.dumps(rec) + "\n")
 
@@ -172,7 +244,7 @@ def _prep_batch(samples: list[Sample]):
         (Sample.Status.COMPLETED, Sample.Status.TRUNCATED) if trunc_on
         else (Sample.Status.COMPLETED,)
     )
-    prompts, golds, orig_idx, penalties, expls = [], [], [], [], []
+    prompts, golds, orig_idx, penalties, expls, ctxs = [], [], [], [], [], []
     for i, s in enumerate(samples):
         if s.status not in scoreable:
             continue
@@ -181,16 +253,20 @@ def _prep_batch(samples: list[Sample]):
         # when there is no <explanation> tag.
         expl = extract_explanation_open(s.response)
         if expl is not None:
+            ctx = s.metadata.get("detokenized_text_truncated")
             prompts.append(_CFG.critic_prompt_template.format(explanation=expl))
             golds.append(s.metadata["activation_vector"])
             orig_idx.append(i)
             expls.append(expl)
+            ctxs.append(ctx)
             penalties.append(
-                _item_length_penalty(split_into_items(expl)) + _quote_penalty(expl)
+                _item_length_penalty(split_into_items(expl))
+                + _quote_penalty(expl)
+                + _repeat_penalty(expl, ctx)
             )
     if not prompts:
         return None, [], []
-    _dump_quote_stats(expls)
+    _dump_quote_stats(expls, ctxs)
     # add_special_tokens=True matches stage0 extractor (extractors.py:131).
     # Gemma needs BOS here; Qwen has bos_token=None (no-op). See sft_critic.py.
     tok = _TOKENIZER(prompts, add_special_tokens=True, padding=True, return_tensors="pt")
