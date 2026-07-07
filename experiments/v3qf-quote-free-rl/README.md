@@ -47,6 +47,37 @@ and halfwidth, ornamental (see `_QUOTE_CHARS`).
   prefixes — the matryoshka signature must survive) + quote-char counts per
   sample, vs the v3 iter_0000200 baseline.
 
+## Results (2026-07-07, stopped by hand at step 100 of 150; iter_0000100 kept)
+
+**Same shape as the kitft run, gentler: marks collapse immediately, the
+verbatim habit re-routes into unpenalized punctuation, and the co-trained AR
+dips less and recovers faster.**
+
+Full-batch reward-path stats (`run/quote_stats.jsonl`, 52k scored samples;
+~33 drains/step):
+
+| | start | by ~step 8 | steps 30–100 |
+|---|---|---|---|
+| quote chars/sample | 7.69 | 0.31 | ~0.1–0.4 |
+| zero-quote samples | 0% | 81% | 80–95% |
+
+- `raw_reward` −0.98 → −0.28 (the initial gap is mostly the penalty itself:
+  7.7 marks × 0.1); critic `fve_nrm` 0.65 → 0.49 (trough, ~step 25) → 0.62–0.64
+  and still climbing at stop. Shallower trough than kitft's 0.744→0.38 — the
+  bullets AV leans on quoted spans less than the v1 tagged one (7.7 vs 15.25
+  marks/sample at baseline).
+- The verbatim behavior survives de-marked, and visibly **re-routes into
+  square brackets**: late rollouts annotate spans as `other [nuclear threats
+  or wars]` where early ones quoted them. Penalizing the marks removes the
+  marks; the content (and the echo habit) stays — consistent with the kitft
+  conclusion that attacking the echo needs an input-overlap penalty, not a
+  punctuation one.
+- Post-run round-trip FVE on `av_eval_v3` (full + 10/20-token prefixes) not
+  yet run — doable any time from `hf/iter_0000100` on a cheap single-GPU box.
+
+Run: 8×H100 SXM, ~52 s/step at 512-sample batches; ~$50 total incl. two
+mis-provisioned boxes and all uploads.
+
 ## Preservation (everything on HF, resumable)
 
 Private repo `syvb/nla-qwen2.5-7b-L20-v3qf-rl`:
