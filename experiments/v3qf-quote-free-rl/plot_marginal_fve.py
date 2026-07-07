@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 CONTROL, QF = sys.argv[1], sys.argv[2]
-KMAX = 12          # line index cap (deeper lines exist in <~30% of samples)
+KMAX = 9           # line index cap (deeper lines exist in <~30% of samples)
 MIN_N = 15         # need at least this many samples contributing at index k
 
 SERIES = [
