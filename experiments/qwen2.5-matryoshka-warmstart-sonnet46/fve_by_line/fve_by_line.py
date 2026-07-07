@@ -63,22 +63,30 @@ ptext = tok.apply_chat_template([{"role": "user", "content": actor.format(inject
 pids = tok(ptext, return_tensors="pt", add_special_tokens=False).input_ids.to(dev)
 
 
+# Batched generation is safe here: every row uses the SAME prompt (identical
+# length — no padding asymmetry). GEN_BS=1 reproduces the original loop.
+GEN_BS = int(_os.environ.get("NLA_GEN_BS", "1"))
+
+
 @torch.no_grad()
-def av_gen(idx):
-    v = torch.tensor([allv[idx]], dtype=torch.float32, device=dev)
-    e = inject_at_marked_positions(pids, emb(pids), normalize_activation(v, scale), inj_id, left, right)
-    out = av.generate(inputs_embeds=e, attention_mask=torch.ones_like(pids),
+def av_gen(idxs):
+    n = len(idxs)
+    ids = pids.repeat(n, 1)
+    v = torch.tensor(np.stack([allv[i] for i in idxs]), dtype=torch.float32, device=dev)
+    e = inject_at_marked_positions(ids, emb(ids), normalize_activation(v, scale), inj_id, left, right)
+    out = av.generate(inputs_embeds=e, attention_mask=torch.ones_like(ids),
                       max_new_tokens=MAXNEW, **GEN_KW, pad_token_id=tok.eos_token_id)
-    return tok.decode(out[0], skip_special_tokens=True)
+    return [tok.decode(o, skip_special_tokens=True) for o in out]
 
 
 expls = {}
-for idx in sel:
-    g = av_gen(idx)
-    expl = extract_explanation_open(g) or g
-    lines = [ln.strip() for ln in re.split(r"\n+", expl.strip()) if ln.strip()]
-    expls[idx] = (lines, bool(CJK.search(g)))
-    print(f"  doc {docs[idx]}: {len(lines)} lines, cjk={expls[idx][1]}", flush=True)
+for s in range(0, len(sel), GEN_BS):
+    chunk = sel[s:s + GEN_BS]
+    for idx, g in zip(chunk, av_gen(chunk)):
+        expl = extract_explanation_open(g) or g
+        lines = [ln.strip() for ln in re.split(r"\n+", expl.strip()) if ln.strip()]
+        expls[idx] = (lines, bool(CJK.search(g)))
+        print(f"  doc {docs[idx]}: {len(lines)} lines, cjk={expls[idx][1]}", flush=True)
 del av, emb
 torch.cuda.empty_cache()
 
