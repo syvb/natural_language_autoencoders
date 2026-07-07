@@ -42,10 +42,12 @@ COEF = float(os.environ.get("NLA_QUOTE_PENALTY", "0.1"))
 INTERVAL = float(os.environ.get("INTERVAL", "30"))
 TRAIN_PGREP = os.environ.get("TRAIN_PGREP", "run_rl_v3q[f].sh")
 
-# Keep in sync with nla.reward._QUOTE_CHARS.
-QUOTES = frozenset("\"'`‘’‚‛“”„‟«»‹›「」『』〝〞〟＂＇｀｢｣❛❜❝❞⹂")
-DOUBLES = frozenset('"“”„‟«»＂❝❞⹂')
-SINGLES = frozenset("'‘’‚‛＇❛❜")
+# THE penalized set — imported so the sidecar can never drift from what the
+# reward actually counts.
+from nla.reward import _QUOTE_CHARS as QUOTES
+
+DOUBLES = frozenset('"“”„‟«»＂❝❞⹂') & QUOTES
+SINGLES = frozenset("'‘’‚‛＇❛❜") & QUOTES
 
 _jsonl_pos = 0  # byte offset of consumed JSONL
 
