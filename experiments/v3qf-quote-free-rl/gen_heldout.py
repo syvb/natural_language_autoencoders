@@ -76,9 +76,13 @@ def gen_batch(idxs):
     return [tok.decode(o, skip_special_tokens=True) for o in out]
 
 
-L = [f"# v3qf (quote-free RL) — {N} held-out AV verbalizations\n",
-     "Model: `syvb/nla-qwen2.5-7b-L20-v3qf-rl` `hf/iter_0000100/av` (v3 matryoshka pair after 100 RL "
-     "steps with a 0.1/char quote-mark penalty). Each held-out activation (raw, from `av_eval_v3.parquet`) "
+TITLE = os.environ.get("TITLE", "v3qf (quote-free RL)")
+MODEL_DESC = os.environ.get(
+    "MODEL_DESC",
+    "`syvb/nla-qwen2.5-7b-L20-v3qf-rl` `hf/iter_0000100/av` (v3 matryoshka pair after 100 RL "
+    "steps with a 0.1/char quote-mark penalty)")
+L = [f"# {TITLE} — {N} held-out AV verbalizations\n",
+     f"Model: {MODEL_DESC}. Each held-out activation (raw, from `av_eval_v3.parquet`) "
      "is injected at the marker and the AV's bullet list is decoded to the 120-token training budget. "
      "`quotes` counts penalized quotation-mark characters (see `nla.reward._QUOTE_CHARS`); "
      "`detokenized_text_truncated` = the source text whose layer-20 last-token activation was captured.\n"]
