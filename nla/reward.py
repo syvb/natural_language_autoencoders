@@ -40,6 +40,18 @@ _USE_LOG_MSE_REWARD = bool(int(os.environ.get("NLA_LOG_MSE_REWARD", "0")))
 # Off by default (coefficient 0). target = NLA_ITEM_LEN_TARGET tokens/item.
 _ITEM_LEN_PENALTY = float(os.environ.get("NLA_ITEM_LEN_PENALTY", "0"))
 _ITEM_LEN_TARGET = int(os.environ.get("NLA_ITEM_LEN_TARGET", "25"))
+# Quote-mark penalty (anti-verbatim-quoting experiment): discourages the actor
+# from quoting input text verbatim (especially echoing the last context token)
+# by penalizing EVERY quotation-mark character in the explanation:
+# reward = -MSE - NLA_QUOTE_PENALTY * (# quote chars). Deliberately naive and
+# purely lexical — the point is to see whether removing the *marks* removes
+# the *behavior* (re-routes content into paraphrase) or just its punctuation.
+# Off by default (coefficient 0).
+_QUOTE_PENALTY = float(os.environ.get("NLA_QUOTE_PENALTY", "0"))
+# "Any kind of quotation mark" — includes the typewriter apostrophe (so
+# contractions/possessives are penalized too; intentional per experiment
+# design), backtick, all the curly/angle/CJK variants, and fullwidth forms.
+_QUOTE_CHARS = frozenset("\"'`‘’‚‛“”„‟«»‹›「」『』〝〞〟＂＇｀")
 # Under -mse_nrm, 0.0 is the BEST reward (perfect reconstruction) and -2.0 is
 # orthogonal. Under -log(MSE), 0.0 corresponds to mse=1 (mid-range). Use the
 # orthogonal-equivalent value so a failed extraction is never advantaged.
@@ -106,6 +118,16 @@ def _item_length_penalty(items: list[str]) -> float:
     return -_ITEM_LEN_PENALTY * excess
 
 
+def _quote_penalty(expl: str) -> float:
+    """Reward shaping: -coef * (# quotation-mark chars in the explanation).
+    0 when off. Counted on the raw explanation STRING (not tokens) so every
+    mark costs the same regardless of how the tokenizer merges it."""
+    if _QUOTE_PENALTY <= 0:
+        return 0.0
+    n = sum(1 for ch in expl if ch in _QUOTE_CHARS)
+    return -_QUOTE_PENALTY * n
+
+
 def _prep_batch(samples: list[Sample]):
     """Extract explanations, tokenize, stack golds. Returns (payload, orig_idx,
     penalties) for the subset with valid extractions; FAILED ones get the fixed
@@ -138,7 +160,9 @@ def _prep_batch(samples: list[Sample]):
             prompts.append(_CFG.critic_prompt_template.format(explanation=expl))
             golds.append(s.metadata["activation_vector"])
             orig_idx.append(i)
-            penalties.append(_item_length_penalty(split_into_items(expl)))
+            penalties.append(
+                _item_length_penalty(split_into_items(expl)) + _quote_penalty(expl)
+            )
     if not prompts:
         return None, [], []
     # add_special_tokens=True matches stage0 extractor (extractors.py:131).
