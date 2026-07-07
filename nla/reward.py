@@ -50,8 +50,10 @@ _ITEM_LEN_TARGET = int(os.environ.get("NLA_ITEM_LEN_TARGET", "25"))
 _QUOTE_PENALTY = float(os.environ.get("NLA_QUOTE_PENALTY", "0"))
 # "Any kind of quotation mark" — includes the typewriter apostrophe (so
 # contractions/possessives are penalized too; intentional per experiment
-# design), backtick, all the curly/angle/CJK variants, and fullwidth forms.
-_QUOTE_CHARS = frozenset("\"'`‘’‚‛“”„‟«»‹›「」『』〝〞〟＂＇｀")
+# design), backtick, all the curly/angle/CJK variants, fullwidth AND halfwidth
+# forms, ornamental (❛❜❝❞) and double-low-reversed-9 (⹂) marks. Keep in sync
+# with QUOTES in experiments/kitft-quote-penalty-rl/quote_stats_wandb.py.
+_QUOTE_CHARS = frozenset("\"'`‘’‚‛“”„‟«»‹›「」『』〝〞〟＂＇｀｢｣❛❜❝❞⹂")
 # Under -mse_nrm, 0.0 is the BEST reward (perfect reconstruction) and -2.0 is
 # orthogonal. Under -log(MSE), 0.0 corresponds to mse=1 (mid-range). Use the
 # orthogonal-equivalent value so a failed extraction is never advantaged.

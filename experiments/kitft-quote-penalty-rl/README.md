@@ -5,6 +5,46 @@ reward, reduce verbatim input-quoting in AV explanations (especially echoing the
 last context token) — and what does it do to FVE? Does the model re-route the
 information into paraphrase, or lose it?
 
+## Results (2026-07-07, stopped at step 68; iter-50 is the kept checkpoint)
+
+**The marks vanish almost immediately; the echo habit survives unquoted; ~92% of
+reconstruction is retained (still recovering at stop).**
+
+Quote usage (16 held-out prompts, identical prompts+seeds; `eval/compare_pre_vs_50.md`):
+
+| | pre-RL kitft | iter-50 |
+|---|---|---|
+| quote chars/sample | 15.25 | **0.06** |
+| zero-quote samples | 0/16 | 15/16 |
+| "final token …" echo | 16/16 | 15/16 (now unquoted) |
+
+Round-trip FVE, 300 held-out `av_eval` samples (`eval/fve_*.txt`):
+
+| | full FVE | cos | FVE@30 tok | FVE@60 tok | CJK |
+|---|---|---|---|---|---|
+| pre-RL kitft | 0.751 | 0.910 | −0.42 | 0.24 | 2/300 |
+| quotepen iter-50 | 0.690 | 0.888 | **−0.20** | **0.33** | 0/300 |
+
+- Reward jumped −1.76 → −0.6 in ~5 steps (≈12 quote chars/sample stripped), then
+  the co-trained AR's `fve_nrm` dipped 0.744 → 0.38 and recovered to ~0.67 by
+  step 68 (still climbing at stop) — the critic had been reading reconstruction
+  info out of the quoted spans and had to relearn the paraphrase style.
+- The model did NOT stop echoing the final token — it dropped only the marks the
+  penalty could see, at the cost of garbled use-vs-mention syntax
+  ("Final token of a primarily composed of mainly of is mid-sentence…").
+- Short-prefix FVE *improved* (−0.42→−0.20 @30, 0.24→0.33 @60): de-quoted prose
+  front-loads information slightly better.
+- Conclusion for the original goal: a quote-mark penalty removes quote *marks*,
+  not verbatim *content*. To attack the echo itself, penalize input overlap
+  (e.g. longest-common-substring with the context) instead.
+
+Artifacts: `syvb/nla-qwen2.5-7b-L20-rl-quotepen` (private HF) — `hf/iter_0000050/{av,ar}`
+(eval-ready), `raw/iter_0000050/{actor,critic}` (exact-resume: weights+optimizer+
+rollout_id), `data/` (RL parquet), `run/` (configs, train log, 33 rollout dumps),
+`eval/` (FVE + sample comparison). wandb: `octahedral-systems/nla-rl-quote-penalty`
+(training run + `quote-stats` sidecar). Cost: ≈$28 total (8×A100 RunPod pod 1.75h +
+1×H100 analysis pod 1.4h + ~$2 vast/misc).
+
 **Setup**: continue RL on `kitft/nla-qwen2.5-7b-L20-av` / `-ar` (the released v1
 tagged-format pair, post-RL `fve_nrm` 0.752) with the standard co-trained AR
 reward (`configs/rl.sh` — the AR *is* the reward model and keeps training), plus:

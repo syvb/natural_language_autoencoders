@@ -34,9 +34,9 @@ INTERVAL = float(os.environ.get("INTERVAL", "30"))
 TRAIN_PGREP = os.environ.get("TRAIN_PGREP", "run_rl_quotepe[n].sh")
 
 # Keep in sync with nla.reward._QUOTE_CHARS.
-QUOTES = frozenset("\"'`‘’‚‛“”„‟«»‹›「」『』〝〞〟＂＇｀")
-DOUBLES = frozenset('"“”„‟«»＂')
-SINGLES = frozenset("'‘’‚‛＇")
+QUOTES = frozenset("\"'`‘’‚‛“”„‟«»‹›「」『』〝〞〟＂＇｀｢｣❛❜❝❞⹂")
+DOUBLES = frozenset('"“”„‟«»＂❝❞⹂')
+SINGLES = frozenset("'‘’‚‛＇❛❜")
 
 
 def latest_step() -> int | None:
