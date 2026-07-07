@@ -1,0 +1,57 @@
+selected 200 samples (562 distinct docs in /workspace/out/v3/av_eval_v3.parquet)
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 164.82it/s]
+  AV gen 16/200 (cjk=5)
+  AV gen 32/200 (cjk=7)
+  AV gen 48/200 (cjk=9)
+  AV gen 64/200 (cjk=14)
+  AV gen 80/200 (cjk=19)
+  AV gen 96/200 (cjk=23)
+  AV gen 112/200 (cjk=31)
+  AV gen 128/200 (cjk=35)
+  AV gen 144/200 (cjk=39)
+  AV gen 160/200 (cjk=43)
+  AV gen 176/200 (cjk=49)
+  AV gen 192/200 (cjk=55)
+  AV gen 200/200 (cjk=57)
+gen done: content len median=160 max=160 eos=54/200 cjk=57
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 184.54it/s]
+  KL 25/200
+  KL 50/200
+  KL 75/200
+  KL 100/200
+  KL 125/200
+  KL 150/200
+  KL 175/200
+  KL 200/200
+KL done: mean k1=1.9328  mean exact=1.9346
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 171.87it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /workspace/v3/ar and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+  critic 0/29374
+  critic 1280/29374
+  critic 2560/29374
+  critic 3840/29374
+  critic 5120/29374
+  critic 6400/29374
+  critic 7680/29374
+  critic 8960/29374
+  critic 10240/29374
+  critic 11520/29374
+  critic 12800/29374
+  critic 14080/29374
+  critic 15360/29374
+  critic 16640/29374
+  critic 17920/29374
+  critic 19200/29374
+  critic 20480/29374
+  critic 21760/29374
+  critic 23040/29374
+  critic 24320/29374
+  critic 25600/29374
+  critic 26880/29374
+  critic 28160/29374
+critic done: mean full-length reward=-0.2463
+EOS-position k1: mean=1.9156 (n=54)
+RKL_DONE

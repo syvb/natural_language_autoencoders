@@ -63,6 +63,53 @@ cd /workspace/nla && PYTHONPATH=. python experiments/.../reward_kl_decomposition
 python plot_reward_kl.py
 ```
 
-## Results
+## Results (N=200 held-out docs, T=1, seed 0, 2026-07-07)
 
-(filled in after the run — see `results/`)
+Figures: `results/fig_reward_kl_pertoken.png`, `results/fig_reward_kl_cumulative.png`.
+
+| t | r(t) | Δr(t) | k1(t) | β·k1(t) |
+|---|---|---|---|---|
+| 1 | −0.939 | (+1.06 vs floor) | 2.87 | 0.086 |
+| 2 | −0.717 | +0.222 | 7.37 | 0.221 |
+| 5 | −0.508 | +0.062 | 5.25 | 0.158 |
+| 10 | −0.398 | +0.018 | 2.42 | 0.073 |
+| 20 | −0.297 | +0.006 | 2.85 | 0.086 |
+| 50 | −0.241 | +0.001 | 2.16 | 0.065 |
+| 120 | −0.225 | −0.001 | 0.85 | 0.026 |
+| 159 | −0.251 | −0.004 | 0.39 | 0.012 |
+
+**Reconstruction is extremely front-loaded; the KL penalty is broad and
+dominates everywhere past the first ~2 tokens.**
+
+- **Marginal reconstruction decays geometrically**: token 1 alone reaches
+  r(1) = −0.94 (cos ≈ 0.53 from a single token), the next ~10 tokens add
+  ~+0.5, and by t ≈ 20 each additional token is worth < 0.01 reward. Past
+  t ≈ 110 marginals go slightly *negative* (the over-extension dip).
+- **Per-token KL to the warm-start is large at every position** — mean 2–7
+  nats over t ≤ 20 (median 2.6–2.9, so this is broad divergence, not a heavy
+  tail), decaying to ~0.9 by t = 120. RL restructured the *beginning* of the
+  explanation the most — exactly where the FVE front-loading gains live.
+  Beyond the trained horizon (t > 120, exposure 0) KL keeps falling to ~0.4:
+  positions that training never rewarded or penalized diverged least. The
+  EOS token, when emitted, carries k1 ≈ 1.9.
+- **Crossover at t ≈ 2**: β·k1(t) exceeds Δr(t) from the second token on.
+  Summed over the trained range (t = 2..120, exposure-weighted):
+  reconstruction gained **0.67** reward units vs **4.96** paid in KL penalty
+  (raw, unweighted: 0.71 vs 7.93) — at convergence the KL term is ~7–11×
+  the marginal reconstruction value the tokens buy. The reward the policy
+  actually banks is overwhelmingly earned by tokens 1–10; everything after
+  is nearly pure KL cost at the margin.
+- Sanity: exact full-vocab KL ≈ k1 at every position (e.g. 2.97 vs 2.87 at
+  t=1), so the k1 estimate is faithful. Mean full-length reward −0.246
+  matches the run's converged raw_reward (−0.261). 57/200 sampled responses
+  contain stray CJK chars (~11 each, embedded in fluent English) — the known
+  v3 leak amplified by T=1 sampling vs 8/150 greedy; reward level confirms
+  injection is healthy.
+
+**Interpretation caveat:** this compares raw reward units. In the actual
+gradient, the reconstruction side is GRPO-group-normalized (advantage =
+(r−mean)/std within a group at fixed L) while the KL term is not, so the
+7–11× ratio describes the *reward-vs-penalty budget* of the converged
+policy, not the literal gradient ratio during training. It is also an
+end-of-training snapshot: KL was accumulated over 200 steps, and both the
+policy and the co-trained critic moved.
