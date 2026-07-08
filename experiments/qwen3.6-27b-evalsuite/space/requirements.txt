@@ -12,6 +12,7 @@ torch
 transformers==5.5.4
 peft==0.19.1
 accelerate
+bitsandbytes
 safetensors
 pyyaml
 numpy

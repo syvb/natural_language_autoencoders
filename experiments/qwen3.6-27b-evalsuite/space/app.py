@@ -26,11 +26,14 @@ mse_scale) is read from the shipped nla_meta.yaml sidecar via EasyNLA's
 load_nla_config, asserted against the live tokenizer at startup — nothing
 hardcoded.
 
-Runs on ZeroGPU size="xlarge" (a full RTX Pro 6000 Blackwell, 96GB): the actor
-(~57GB bf16) + the 43-layer critic (~35GB) are ~93GB resident, so both fit one
-xlarge slice but not the 48GB "large" default. Models are placed on cuda at
-module level (ZeroGPU's CUDA-emulation-at-import contract) and materialize in
-the GPU fork; the whole per-click pipeline runs inside one @spaces.GPU call.
+Runs on ZeroGPU size="xlarge" (a full RTX Pro 6000 Blackwell, 96GB). The models
+are loaded in 8-bit (bitsandbytes, near-lossless): bf16 would be ~92GB, and
+ZeroGPU packs the whole module-level model to a 150GB-capped ephemeral disk at
+launch — which bf16 (pack + FUSE-cached weights) exceeds. 8-bit halves the pack
+to ~46GB. Models are placed on the emulated GPU at import (ZeroGPU's
+CUDA-emulation-at-import contract) and materialize in the GPU fork; the whole
+per-click pipeline runs inside one @spaces.GPU call. The bf16 weight cache lives
+in a mounted HF Bucket (see the HF_HOME override), off the ephemeral limit.
 """
 
 import os
@@ -65,8 +68,9 @@ import torch
 import yaml
 from huggingface_hub import snapshot_download
 from peft import PeftModel
-from transformers import (AutoModelForCausalLM, AutoTokenizer, StoppingCriteria,
-                          StoppingCriteriaList, TextIteratorStreamer)
+from transformers import (AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig,
+                          StoppingCriteria, StoppingCriteriaList,
+                          TextIteratorStreamer)
 
 from nla.config import load_nla_config
 from nla.models import NLACriticModel
@@ -124,30 +128,33 @@ PROMPT_IDS = tok.encode(_ptxt, add_special_tokens=False)
 PROMPT_LEN = len(PROMPT_IDS)
 print(f"[prompt] len={PROMPT_LEN} tail={_ptxt[-40:]!r}", flush=True)
 
-# ── models (placed on cuda at module level; ZeroGPU materializes the fork) ────
+# ── models (8-bit; placed on the emulated GPU at module level) ────────────────
+# 8-bit (bitsandbytes) so the model ZeroGPU packs to the ephemeral offload is
+# ~46GB (< the 150GB workload limit) instead of ~92GB in bf16; LLM.int8() is
+# near-lossless. ZeroGPU natively supports bnb (its patch() calls
+# bitsandbytes().patch()). bnb models are placed by device_map and can't be
+# .to()'d afterwards.
+#
 # ONE base instance serves both roles: extraction disables the adapters (raw
-# base, exactly the datagen convention), generation activates both. Loading the
-# RL LoRA on top of the (unmerged) SFT LoRA and running both active is the
-# numerically-identical, memory-feasible form of "merge SFT, load RL" — it
-# avoids a second 27B copy just to keep a clean base for extraction.
-print("[load] base Qwen3.6-27B (bf16)…", flush=True)
+# base, the datagen convention), generation activates both. Both LoRA adapters
+# active = base + ΔW_sft + ΔW_rl (numerically "merge SFT, load RL"); the int8
+# base is shared, avoiding a second 27B copy just for extraction.
+_BNB = BitsAndBytesConfig(load_in_8bit=True)
+print("[load] base Qwen3.6-27B (8-bit)…", flush=True)
 _base = AutoModelForCausalLM.from_pretrained(
-    BASE_ID, torch_dtype=torch.bfloat16, attn_implementation="sdpa",
-    low_cpu_mem_usage=True)
-# torch_device="cpu" is REQUIRED on ZeroGPU: at module level a CUDA-emulation
-# mode makes torch.cuda.is_available() True, so peft's default infer_device()
-# would safe_load_file the LoRA weights straight onto a real GPU — which only
-# exists inside @spaces.GPU. Load adapters on CPU, then .to("cuda") (which the
-# emulation does support) moves the whole stack.
+    BASE_ID, quantization_config=_BNB, device_map={"": 0},
+    attn_implementation="sdpa")
+# torch_device="cpu": the adapter safetensors load would otherwise target a
+# real CUDA device (peft's infer_device sees the emulated is_available()=True),
+# which fails at module level. Load to CPU, then move onto the emulated GPU so
+# ZeroGPU tracks + restores the adapters alongside the device_map'd int8 base.
 actor = PeftModel.from_pretrained(_base, SFT_DIR, adapter_name="sft", torch_device="cpu")
 actor.load_adapter(RL_DIR, adapter_name="rl", torch_device="cpu")
-# Activate BOTH adapters: the LoRA layers sum every active adapter's delta in
-# the forward, giving base + ΔW_sft + ΔW_rl (= merge SFT, load RL). Must go
-# through the tuner (base_model) — PeftModel.set_adapter in peft 0.19.1 takes a
-# single name, but BaseTuner.set_adapter accepts a list. disable_adapter() still
-# zeroes both (for raw-base extraction).
-actor.base_model.set_adapter(["sft", "rl"])
-actor.to("cuda").eval()
+actor.base_model.set_adapter(["sft", "rl"])  # BaseTuner takes a list in 0.19.1
+for _p in actor.parameters():
+    if _p.device.type == "cpu":
+        _p.data = _p.data.to("cuda")  # emulated .to ⇒ ZeroGPU-tracked adapter
+actor.eval()
 
 vref = [None]  # karvonen hook reads vref[0]; None ⇒ no-op (extraction/decode)
 register_karvonen_hook(actor, vref, cfg.injection_token_id,
@@ -155,11 +162,10 @@ register_karvonen_hook(actor, vref, cfg.injection_token_id,
                        cfg.injection_right_neighbor_id, layer_idx=1)
 BASE_LAYERS = resolve_decoder_layers(actor.get_base_model())
 
-print("[load] critic rl_critic_step400 (NLACriticModel, bf16)…", flush=True)
+print("[load] critic rl_critic_step400 (NLACriticModel, 8-bit)…", flush=True)
 critic = NLACriticModel.from_pretrained(
-    CRITIC_DIR, torch_dtype=torch.bfloat16, attn_implementation="sdpa",
-    low_cpu_mem_usage=True)
-critic.to("cuda").eval()
+    CRITIC_DIR, quantization_config=_BNB, device_map={"": 0},
+    attn_implementation="sdpa").eval()  # value_head is added post-load, stays fp32
 DEV = "cuda"
 print(f"[ready] d_model={cfg.d_model} mse_scale={MSE_SCALE:.2f} "
       f"marker={INJ_CHAR!r}(id={cfg.injection_token_id}) layer={LAYER}", flush=True)

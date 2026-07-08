@@ -58,12 +58,15 @@ subset is vendored under `./nla`).
 ## Hardware
 
 Runs on **ZeroGPU `size="xlarge"`** — a full RTX Pro 6000 Blackwell (96 GB),
-free on PRO. The actor (~57 GB bf16) + the 43-layer critic (~35 GB) are ~93 GB
-resident, which fits the 96 GB xlarge slice but *not* the 48 GB `large` default,
-so `@spaces.GPU(size="xlarge")` is mandatory. `MAX_TEXT_TOKENS` is capped at
-1024 to keep the extraction forward's peak activation inside the thin headroom.
-If it OOMs on a pathological input, the cheapest fix is 8-bit-loading the critic
-(`bitsandbytes`), which frees ~17 GB at a small reconstruction-fidelity cost.
+free on PRO. Models are loaded in **8-bit** (`bitsandbytes`, near-lossless):
+ZeroGPU packs the whole module-level model to a **150 GB-capped ephemeral disk**
+at launch, and bf16 (~92 GB pack + the FUSE-cached weights read back) blows past
+that; 8-bit halves the pack to ~46 GB. The bf16 weight cache lives in a mounted
+**HF Bucket** (`syvb/nla-qwen36-27b-cache`, `HF_HOME=/bucket/hf`), off the
+ephemeral limit; the offload stays on `/tmp` (`O_DIRECT`, which FUSE can't do).
+`@spaces.GPU(size="xlarge")` is mandatory (the 48 GB `large` default is too
+small). The bucket must be mounted read-write at `/bucket` via
+`set_space_volumes` — `deploy.sh` does this.
 
 ## Development
 
