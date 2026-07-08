@@ -117,8 +117,13 @@ print("[load] base Qwen3.6-27B (bf16)…", flush=True)
 _base = AutoModelForCausalLM.from_pretrained(
     BASE_ID, torch_dtype=torch.bfloat16, attn_implementation="sdpa",
     low_cpu_mem_usage=True)
-actor = PeftModel.from_pretrained(_base, SFT_DIR, adapter_name="sft")
-actor.load_adapter(RL_DIR, adapter_name="rl")
+# torch_device="cpu" is REQUIRED on ZeroGPU: at module level a CUDA-emulation
+# mode makes torch.cuda.is_available() True, so peft's default infer_device()
+# would safe_load_file the LoRA weights straight onto a real GPU — which only
+# exists inside @spaces.GPU. Load adapters on CPU, then .to("cuda") (which the
+# emulation does support) moves the whole stack.
+actor = PeftModel.from_pretrained(_base, SFT_DIR, adapter_name="sft", torch_device="cpu")
+actor.load_adapter(RL_DIR, adapter_name="rl", torch_device="cpu")
 actor.set_adapter(["sft", "rl"])   # both active ⇒ base + ΔW_sft + ΔW_rl
 actor.to("cuda").eval()
 
