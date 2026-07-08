@@ -159,42 +159,27 @@ print(f"[ready] d_model={cfg.d_model} mse_scale={MSE_SCALE:.2f} "
       f"marker={INJ_CHAR!r}(id={cfg.injection_token_id}) layer={LAYER}", flush=True)
 
 
-def _free_hf_cache_blobs() -> None:
-    """Delete the downloaded weight blobs now that both models are resident.
+def _prep_offload_dir() -> None:
+    """Create the relocated ZeroGPU offload dir and log per-mount free space.
 
-    At demo.launch() ZeroGPU packs the ~93GB module-level model to
-    ~/.zerogpu/tensors (same filesystem as the HF cache); its posix_fallocate
-    needs that space free, but the download cache is still holding it → peak
-    disk = cache + offload > disk → "No space left on device". ZeroGPU
-    autoprunes these very blobs AFTER packing (ZEROGPU_MMAP_AUTOPRUNE_PATTERN =
-    ~/.cache/huggingface/hub/models--*/blobs/*), so pre-deleting them here just
-    moves that prune earlier, giving the pack room. Weights are already in
-    memory; nothing re-reads the blobs."""
-    import glob
+    Do NOT pre-delete the HF cache blobs: ZeroGPU's pack() autoprunes them
+    itself (ZEROGPU_MMAP_AUTOPRUNE_PATTERN) and lstat()s each one to tally the
+    reclaimed size — deleting them here makes that accounting FileNotFoundError.
+    With the offload dir relocated to the multi-TB main fs there is ample room
+    to keep the cache resident through the pack, so freeing it is unnecessary."""
     import shutil
     from huggingface_hub.constants import HF_HUB_CACHE
-    freed = 0
-    for blob in glob.glob(os.path.join(HF_HUB_CACHE, "models--*", "blobs", "*")):
-        try:
-            freed += os.path.getsize(blob)
-            os.remove(blob)
-        except OSError:
-            pass
     os.makedirs(os.environ["ZEROGPU_OFFLOAD_DIR"], exist_ok=True)
-    # Report free space per candidate mount so a pack failure is diagnosable:
-    # the offload dir MUST land on a filesystem with >~93GB free.
-    for p in ["/home/user", HF_HUB_CACHE, os.environ["ZEROGPU_OFFLOAD_DIR"],
-              "/data", "/tmp"]:
+    for p in [os.environ["ZEROGPU_OFFLOAD_DIR"], HF_HUB_CACHE,
+              "/data-nvme/zerogpu-offload", "/tmp"]:
         try:
             t, _, f = shutil.disk_usage(p)
             print(f"[disk] {p}: total={t/1e9:.0f}G free={f/1e9:.0f}G", flush=True)
         except OSError:
             pass
-    print(f"[disk] freed {freed / 1e9:.1f} GB of HF cache blobs; offload dir "
-          f"{os.environ['ZEROGPU_OFFLOAD_DIR']}", flush=True)
 
 
-_free_hf_cache_blobs()
+_prep_offload_dir()
 
 # Steering is v3-only (needs L42 27B trait directions we don't ship) — the
 # accordion stays hidden and every steer key resolves to a plain analysis.
