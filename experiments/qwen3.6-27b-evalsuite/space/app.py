@@ -36,13 +36,14 @@ the GPU fork; the whole per-click pipeline runs inside one @spaces.GPU call.
 import os
 
 # ZeroGPU packs the ~93GB module-level model to an on-disk offload dir at
-# launch. Its default (~/.zerogpu/tensors) sits on a small container overlay
-# that can't hold 93GB, whereas the HF hub cache lives on a much larger volume
-# (it held >128GB of weights here). Point the offload dir at that same big
-# filesystem — BEFORE importing spaces, which reads this env at import — so the
-# pack lands where _free_hf_cache_blobs() has made room.
+# launch. The platform pre-sets ZEROGPU_OFFLOAD_DIR=/data-nvme/zerogpu-offload,
+# a dedicated NVMe of only 76GB — too small for a 93GB pack ("No space left").
+# The container's main filesystem (where /home, /tmp, the HF cache live) has
+# multiple TB free, so HARD-override (not setdefault — the platform value is
+# already set) to a dir there, BEFORE importing spaces, which reads this env at
+# import.
 ZEROGPU_OFFLOAD_DIR = os.path.expanduser("~/.cache/huggingface/hub/zerogpu-tensors")
-os.environ.setdefault("ZEROGPU_OFFLOAD_DIR", ZEROGPU_OFFLOAD_DIR)
+os.environ["ZEROGPU_OFFLOAD_DIR"] = ZEROGPU_OFFLOAD_DIR
 
 import spaces  # must be imported before any CUDA touch
 
