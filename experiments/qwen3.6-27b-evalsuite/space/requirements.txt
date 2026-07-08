@@ -4,6 +4,9 @@
 # fine). The `nla` package is vendored in-repo (see ./nla), not installed —
 # EasyNLA pins transformers==4.57.1, which would fight the 5.5.4 requirement.
 # `spaces` is the ZeroGPU runtime (size="xlarge" full RTX Pro 6000, 96GB).
+# huggingface_hub is left UNPINNED: transformers 5.5.4 needs hub>=1.5.0 while
+# gradio<5.47 capped it at <1.0 — hence sdk_version 5.49.1 (hub<2.0) in
+# README.md. Pinning hub here reintroduces the conflict; let pip resolve it.
 spaces
 torch
 transformers==5.5.4
@@ -13,4 +16,3 @@ safetensors
 pyyaml
 numpy
 pyarrow
-huggingface_hub>=0.34,<1.0

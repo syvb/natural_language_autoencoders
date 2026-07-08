@@ -4,7 +4,7 @@ emoji: 🔬
 colorFrom: indigo
 colorTo: purple
 sdk: gradio
-sdk_version: 5.42.0
+sdk_version: 5.49.1
 app_file: app.py
 license: apache-2.0
 short_description: Read Qwen3.6-27B's activations in plain English
