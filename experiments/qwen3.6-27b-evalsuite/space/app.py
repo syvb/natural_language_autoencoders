@@ -147,6 +147,33 @@ DEV = "cuda"
 print(f"[ready] d_model={cfg.d_model} mse_scale={MSE_SCALE:.2f} "
       f"marker={INJ_CHAR!r}(id={cfg.injection_token_id}) layer={LAYER}", flush=True)
 
+
+def _free_hf_cache_blobs() -> None:
+    """Delete the downloaded weight blobs now that both models are resident.
+
+    At demo.launch() ZeroGPU packs the ~93GB module-level model to
+    ~/.zerogpu/tensors (same filesystem as the HF cache); its posix_fallocate
+    needs that space free, but the download cache is still holding it → peak
+    disk = cache + offload > disk → "No space left on device". ZeroGPU
+    autoprunes these very blobs AFTER packing (ZEROGPU_MMAP_AUTOPRUNE_PATTERN =
+    ~/.cache/huggingface/hub/models--*/blobs/*), so pre-deleting them here just
+    moves that prune earlier, giving the pack room. Weights are already in
+    memory; nothing re-reads the blobs."""
+    import glob
+    from huggingface_hub.constants import HF_HUB_CACHE
+    freed = 0
+    for blob in glob.glob(os.path.join(HF_HUB_CACHE, "models--*", "blobs", "*")):
+        try:
+            freed += os.path.getsize(blob)
+            os.remove(blob)
+        except OSError:
+            pass
+    print(f"[disk] freed {freed / 1e9:.1f} GB of HF cache blobs for ZeroGPU pack",
+          flush=True)
+
+
+_free_hf_cache_blobs()
+
 # Steering is v3-only (needs L42 27B trait directions we don't ship) — the
 # accordion stays hidden and every steer key resolves to a plain analysis.
 STEER_DIRS: dict[str, torch.Tensor] = {}
