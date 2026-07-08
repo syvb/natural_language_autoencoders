@@ -35,15 +35,21 @@ the GPU fork; the whole per-click pipeline runs inside one @spaces.GPU call.
 
 import os
 
-# ZeroGPU packs the ~93GB module-level model to an on-disk offload dir at
-# launch. The platform pre-sets ZEROGPU_OFFLOAD_DIR=/data-nvme/zerogpu-offload,
-# a dedicated NVMe of only 76GB — too small for a 93GB pack ("No space left").
-# The container's main filesystem (where /home, /tmp, the HF cache live) has
-# multiple TB free, so HARD-override (not setdefault — the platform value is
-# already set) to a dir there, BEFORE importing spaces, which reads this env at
-# import.
-ZEROGPU_OFFLOAD_DIR = os.path.expanduser("~/.cache/huggingface/hub/zerogpu-tensors")
-os.environ["ZEROGPU_OFFLOAD_DIR"] = ZEROGPU_OFFLOAD_DIR
+# Storage layout for a 93GB model on ZeroGPU (which evicts the workload past a
+# 150GB ephemeral-storage limit):
+#   - The ~130GB bf16 weight cache goes to an HF Bucket (Xet object storage)
+#     mounted read-write at /bucket (see set_space_volumes) — off the ephemeral
+#     limit. HF_HOME must be set before importing huggingface_hub.
+#   - ZeroGPU packs the ~92GB module-level model to ZEROGPU_OFFLOAD_DIR at
+#     launch via posix_fallocate. The platform default (/data-nvme, 76GB) is
+#     too small and FUSE buckets may not support fallocate, so keep the pack on
+#     the big ephemeral fs (/tmp): 92GB is under 150GB now that the cache lives
+#     in the bucket. Hard-override (the platform pre-sets this) before importing
+#     spaces, which reads it at import.
+os.environ["HF_HOME"] = "/bucket/hf"
+os.environ["ZEROGPU_OFFLOAD_DIR"] = "/tmp/zerogpu-tensors"
+for _d in (os.environ["HF_HOME"], os.environ["ZEROGPU_OFFLOAD_DIR"]):
+    os.makedirs(_d, exist_ok=True)
 
 import spaces  # must be imported before any CUDA touch
 
@@ -170,7 +176,7 @@ def _prep_offload_dir() -> None:
     import shutil
     from huggingface_hub.constants import HF_HUB_CACHE
     os.makedirs(os.environ["ZEROGPU_OFFLOAD_DIR"], exist_ok=True)
-    for p in [os.environ["ZEROGPU_OFFLOAD_DIR"], HF_HUB_CACHE,
+    for p in [os.environ["ZEROGPU_OFFLOAD_DIR"], HF_HUB_CACHE, "/bucket",
               "/data-nvme/zerogpu-offload", "/tmp"]:
         try:
             t, _, f = shutil.disk_usage(p)
