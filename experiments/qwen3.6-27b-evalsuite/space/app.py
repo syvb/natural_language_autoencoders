@@ -33,11 +33,21 @@ module level (ZeroGPU's CUDA-emulation-at-import contract) and materialize in
 the GPU fork; the whole per-click pipeline runs inside one @spaces.GPU call.
 """
 
+import os
+
+# ZeroGPU packs the ~93GB module-level model to an on-disk offload dir at
+# launch. Its default (~/.zerogpu/tensors) sits on a small container overlay
+# that can't hold 93GB, whereas the HF hub cache lives on a much larger volume
+# (it held >128GB of weights here). Point the offload dir at that same big
+# filesystem — BEFORE importing spaces, which reads this env at import — so the
+# pack lands where _free_hf_cache_blobs() has made room.
+ZEROGPU_OFFLOAD_DIR = os.path.expanduser("~/.cache/huggingface/hub/zerogpu-tensors")
+os.environ.setdefault("ZEROGPU_OFFLOAD_DIR", ZEROGPU_OFFLOAD_DIR)
+
 import spaces  # must be imported before any CUDA touch
 
 import html as html_lib
 import json
-import os
 import re
 from collections import OrderedDict
 from threading import Lock, Thread
@@ -160,6 +170,7 @@ def _free_hf_cache_blobs() -> None:
     moves that prune earlier, giving the pack room. Weights are already in
     memory; nothing re-reads the blobs."""
     import glob
+    import shutil
     from huggingface_hub.constants import HF_HUB_CACHE
     freed = 0
     for blob in glob.glob(os.path.join(HF_HUB_CACHE, "models--*", "blobs", "*")):
@@ -168,8 +179,18 @@ def _free_hf_cache_blobs() -> None:
             os.remove(blob)
         except OSError:
             pass
-    print(f"[disk] freed {freed / 1e9:.1f} GB of HF cache blobs for ZeroGPU pack",
-          flush=True)
+    os.makedirs(os.environ["ZEROGPU_OFFLOAD_DIR"], exist_ok=True)
+    # Report free space per candidate mount so a pack failure is diagnosable:
+    # the offload dir MUST land on a filesystem with >~93GB free.
+    for p in ["/home/user", HF_HUB_CACHE, os.environ["ZEROGPU_OFFLOAD_DIR"],
+              "/data", "/tmp"]:
+        try:
+            t, _, f = shutil.disk_usage(p)
+            print(f"[disk] {p}: total={t/1e9:.0f}G free={f/1e9:.0f}G", flush=True)
+        except OSError:
+            pass
+    print(f"[disk] freed {freed / 1e9:.1f} GB of HF cache blobs; offload dir "
+          f"{os.environ['ZEROGPU_OFFLOAD_DIR']}", flush=True)
 
 
 _free_hf_cache_blobs()
