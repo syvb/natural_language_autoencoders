@@ -124,7 +124,12 @@ _base = AutoModelForCausalLM.from_pretrained(
 # emulation does support) moves the whole stack.
 actor = PeftModel.from_pretrained(_base, SFT_DIR, adapter_name="sft", torch_device="cpu")
 actor.load_adapter(RL_DIR, adapter_name="rl", torch_device="cpu")
-actor.set_adapter(["sft", "rl"])   # both active ⇒ base + ΔW_sft + ΔW_rl
+# Activate BOTH adapters: the LoRA layers sum every active adapter's delta in
+# the forward, giving base + ΔW_sft + ΔW_rl (= merge SFT, load RL). Must go
+# through the tuner (base_model) — PeftModel.set_adapter in peft 0.19.1 takes a
+# single name, but BaseTuner.set_adapter accepts a list. disable_adapter() still
+# zeroes both (for raw-base extraction).
+actor.base_model.set_adapter(["sft", "rl"])
 actor.to("cuda").eval()
 
 vref = [None]  # karvonen hook reads vref[0]; None ⇒ no-op (extraction/decode)
