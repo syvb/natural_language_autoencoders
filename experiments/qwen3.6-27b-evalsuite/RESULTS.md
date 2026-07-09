@@ -84,6 +84,26 @@ Per-example version with ±SEM over 100 held-out activations (line 1 =
 ![marginal per line SEM](results/mat_marginal_fve_per_line_SEM.png)
 ![marginal per line SEM log](results/mat_marginal_fve_per_line_SEM_LOGY.png)
 
+## Clean held-out marginal FVE (contamination fix)
+
+The eval set used above (`av_eval.parquet`) draws 100% of its docs from
+Ultra-FineWeb indices 0–99924 — **inside the 0–100k range the NLA corpus was
+built from**, so it is not provably disjoint from training. To eliminate any
+train/eval overlap, these figures re-extract fresh Qwen3.6-27B L42 activations
+from **Ultra-FineWeb-en docs at index 300000+** (far past the training range),
+sampling one prefix position ≥50 per doc, then run the matryoshka round-trip
+(no gold needed: FVE = 1 − MSE(reconstruction, extracted)/var).
+
+![clean marginal per line](results/clean_mat_marginal_fve_per_line.png)
+![clean marginal per line log](results/clean_mat_marginal_fve_per_line_LOGY.png)
+![clean marginal per token](results/clean_mat_marginal_fve_token.png)
+
+Result: the frontloading signature is **robust to the fix** — full-length FVE
+0.662 (vs 0.657 on the contaminated set), line-1 marginal 0.471 ± 0.039 (vs
+0.508). Contamination inflated line 1 by ~7% relative but changed nothing
+qualitative; the first line still carries ~71% of full-explanation FVE on
+genuinely unseen documents. Data: `results/clean_{fve_by_line.json,token_fve.csv,lines_fve.csv}`.
+
 ## KL vs reconstruction contribution during RL
 
 ![KL vs reconstruction](results/fig27_kl_vs_recon.png)
