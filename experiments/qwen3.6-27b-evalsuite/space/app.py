@@ -178,6 +178,29 @@ register_karvonen_hook(actor, vref, cfg.injection_token_id,
                        cfg.injection_right_neighbor_id, layer_idx=1)
 BASE_LAYERS = resolve_decoder_layers(actor.get_base_model())
 
+# ── L42 activation patch (the intervention feature) ──────────────────────────
+# patch_ref[0] is None (no-op) or (position, fp32 vector at raw-activation
+# scale): during the prefill chunk that computes `position`, the L42 block
+# output there is replaced by the vector — so everything downstream (layers
+# 43.., the KV every later token attends to, and the very next sampled token)
+# sees the patched activation. Decode steps have q_len=1 ≠ position+1 and are
+# untouched. Registered once; live only inside _continue's try/finally.
+patch_ref: list = [None]
+
+
+def _l42_patch(module, inputs, output):
+    pr = patch_ref[0]
+    if pr is None:
+        return
+    pos, vec = pr
+    h = output[0] if isinstance(output, tuple) else output
+    if h.shape[1] == pos + 1:  # exactly the prefill chunk ending at the target
+        h[:, pos, :] = vec.to(h.dtype)
+    return output
+
+
+BASE_LAYERS[LAYER].register_forward_hook(_l42_patch)
+
 print("[load] critic rl_critic_step400 (NLACriticModel, bf16, RAM)…", flush=True)
 critic = NLACriticModel.from_pretrained(
     CRITIC_DIR, torch_dtype=torch.bfloat16, attn_implementation="sdpa",
@@ -368,6 +391,64 @@ def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
     yield {"lines": lines, "fve": fve, "cos": cos}
 
 
+@torch.inference_mode()
+def _continue(prefix_ids: list[int], n_new: int, seed: int,
+              patch_vec: torch.Tensor | None = None) -> str:
+    """Continue the ORIGINAL text after the clicked token with the raw base
+    (adapters disabled), optionally rewriting the L42 block output at the
+    clicked position (the last prefix token) with `patch_vec` (fp32, raw-
+    activation scale). Seed-matched T=1 sampling: identical activations ⇒
+    identical text, so divergence between two conditions is caused by the
+    patch, not by sampling noise."""
+    ids = torch.tensor([prefix_ids], device=DEV)
+    patch_ref[0] = (None if patch_vec is None
+                    else (len(prefix_ids) - 1, patch_vec.to(DEV)))
+    torch.manual_seed(int(seed))
+    try:
+        with actor.disable_adapter():
+            out = actor.generate(
+                input_ids=ids, attention_mask=torch.ones_like(ids),
+                max_new_tokens=int(n_new), do_sample=True, temperature=1.0,
+                top_p=1.0, top_k=0, pad_token_id=tok.eos_token_id)
+    finally:
+        patch_ref[0] = None
+    return tok.decode(out[0, len(prefix_ids):], skip_special_tokens=True)
+
+
+# duration=240: one extraction + one critic batch + three ≤160-token 27B
+# continuations (seed-matched conditions run sequentially — batching them
+# would interleave the RNG stream and break "same logits ⇒ same text").
+@spaces.GPU(size="xlarge", duration=240)
+def gpu_intervene(token_ids: list[int], idx: int, orig_lines: list[str],
+                  edit_lines: list[str], n_new: int, seed: int):
+    """Generator: reconstruction stats first, then the three continuations as
+    each finishes — no-patch (true activation), v̂(original lines) (control:
+    reconstruction error alone), v̂(edited lines) (treatment)."""
+    prefix = token_ids[: idx + 1]
+    v = _extract(prefix)
+    vt = torch.tensor(v, dtype=torch.float32)
+    gold_n = _normalize(vt, MSE_SCALE)
+    denom = ((gold_n - MU) ** 2).mean().item()
+    preds = _reconstruct_batch(["\n".join(orig_lines), "\n".join(edit_lines)])
+    stats, vecs = [], []
+    for pred in preds:
+        pred_n = _normalize(pred, MSE_SCALE)
+        stats.append({
+            "fve": 1.0 - ((pred_n - gold_n) ** 2).mean().item() / denom,
+            "cos": float(pred_n @ gold_n / (pred_n.norm() * gold_n.norm()))})
+        # patch at the RAW activation's magnitude — direction from the critic
+        vecs.append(pred / pred.norm().clamp_min(1e-12) * vt.norm())
+    shift = float(vecs[0] @ vecs[1] / (vecs[0].norm() * vecs[1].norm()))
+    out = {"stats": stats, "shift": shift, "raw": None, "orig": None, "edit": None}
+    yield dict(out)
+    out["raw"] = _continue(prefix, n_new, seed, None)
+    yield dict(out)
+    out["orig"] = _continue(prefix, n_new, seed, vecs[0])
+    yield dict(out)
+    out["edit"] = _continue(prefix, n_new, seed, vecs[1])
+    yield dict(out)
+
+
 # ── viz + ui (pure CPU; palette per the validated reference set) ─────────────
 CSS = """
 /* layout — overflow:visible: gradio's default overflow:hidden breaks position:sticky */
@@ -454,6 +535,22 @@ body[class*="nla-heat"] .nla-tok.sel{background:var(--nla-sel);}
 .nlaviz .note{font-size:11px; color:var(--nla-ink2); margin-top:10px;}
 .nlaviz .warnic{color:var(--nla-warn);}
 .nlaviz .empty{padding:36px 12px; text-align:center; color:var(--nla-muted); font-size:13px;}
+
+/* intervention: three side-by-side continuations */
+.contgrid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:12px;}
+@media (max-width:900px){.contgrid{grid-template-columns:1fr;}}
+.contbox{border:1px solid var(--nla-grid); border-radius:8px; overflow:hidden;
+  display:flex; flex-direction:column;}
+.contbox .chd{padding:6px 10px; font-size:10.5px; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--nla-muted); border-bottom:1px solid var(--nla-grid);
+  display:flex; justify-content:space-between; gap:8px;}
+.contbox .chd .tag{color:var(--nla-ink2); text-transform:none; letter-spacing:0;}
+.contbox.treat .chd{color:var(--nla-neg);}
+.contbox .ctx{padding:10px 12px; font-size:12.5px; line-height:1.55;
+  white-space:pre-wrap; overflow-wrap:anywhere; color:var(--nla-ink);
+  max-height:34vh; overflow-y:auto; scrollbar-width:thin;}
+.contbox .ctx .pendc{color:var(--nla-muted); animation:nlapulse 1.2s ease-in-out infinite;}
+mark.div{background:rgba(224,58,58,.22); color:inherit; border-radius:2px; padding:0;}
 """
 
 # Clicks on the custom token spans are routed to the backend through a hidden
@@ -695,8 +792,11 @@ def analyze_at(tokstate: dict | None, idx, mode: str,
     if not (0 <= idx < len(ids)):
         yield None, _card(f"Position must be in [0, {len(ids) - 1}].")
         return
-    meta = {"token": pieces[idx].strip() or repr(pieces[idx]), "pos": idx}
     key = tuple(ids[: idx + 1])
+    # sig ties this analysis to its exact token prefix — on_intervene refuses to
+    # patch if the text in tok_state has changed since the click.
+    meta = {"token": pieces[idx].strip() or repr(pieces[idx]), "pos": idx,
+            "sig": hash(key)}
     res = _precache_get(key) or _cache_get(key)
     if res is not None:
         res.update(meta)
@@ -713,6 +813,16 @@ def analyze_at(tokstate: dict | None, idx, mode: str,
         return
     _cache_put(key, {"lines": res["lines"], "fve": res["fve"], "cos": res["cos"]})
     yield res, render_viz(res, mode)
+
+
+INTERV_EMPTY = _card("Click a token, wait for its lines, then edit them here and continue.")
+
+
+def tokenize_reset(text: str):
+    """UI tokenize: besides the token panel, clear the stale analysis state —
+    res_state/editor/intervention refer to positions of the PREVIOUS text."""
+    tokens_html, tokstate, viz_html = tokenize_text(text)
+    return tokens_html, tokstate, viz_html, None, gr.update(value=""), INTERV_EMPTY
 
 
 def on_token_click(text: str, tokstate: dict | None, mode: str, steer: str,
@@ -751,6 +861,88 @@ def on_mode_change(state: dict | None, mode: str):
     return render_viz(state, mode)
 
 
+# ── intervention (edit the explanation → steer the continuation) ─────────────
+def _mark_divergence(a: str, b: str) -> tuple[str, str]:
+    """Escape both texts, highlighting everything after their common prefix —
+    with seed-matched sampling the highlight starts exactly where the edit's
+    causal effect kicks in."""
+    n = 0
+    for ca, cb in zip(a, b):
+        if ca != cb:
+            break
+        n += 1
+    esc = html_lib.escape
+    return (esc(a[:n]) + (f'<mark class="div">{esc(a[n:])}</mark>' if a[n:] else ""),
+            esc(b[:n]) + (f'<mark class="div">{esc(b[n:])}</mark>' if b[n:] else ""))
+
+
+def render_intervention(meta: dict, out: dict | None) -> str:
+    if out is None:
+        return _card("Edit (or delete) explanation lines above, then press "
+                     "“Continue with & without the edit”.")
+    s_o, s_e = out["stats"]
+    pend = '<span class="pendc">generating…</span>'
+    raw_h = html_lib.escape(out["raw"]) if out["raw"] is not None else pend
+    if out["orig"] is not None and out["edit"] is not None:
+        orig_h, edit_h = _mark_divergence(out["orig"], out["edit"])
+    else:
+        orig_h = html_lib.escape(out["orig"]) if out["orig"] is not None else pend
+        edit_h = html_lib.escape(out["edit"]) if out["edit"] is not None else pend
+    chips = (
+        f'<div class="chips">'
+        f'<div class="chip"><div class="v">{s_o["fve"]:.3f}</div><div class="l">FVE · original lines</div></div>'
+        f'<div class="chip"><div class="v">{s_e["fve"]:.3f}</div><div class="l">FVE · edited lines</div></div>'
+        f'<div class="chip"><div class="v">{out["shift"]:.3f}</div><div class="l">cos(v̂ orig, v̂ edit)</div></div>'
+        f'<div class="chip"><div class="v">{html_lib.escape(meta.get("token", "—"))}</div>'
+        f'<div class="l">patched token @ {meta.get("pos", "?")}</div></div>'
+        f'</div>')
+    boxes = (
+        f'<div class="contbox"><div class="chd"><span>true activation</span>'
+        f'<span class="tag">no patch</span></div><div class="ctx">{raw_h}</div></div>'
+        f'<div class="contbox"><div class="chd"><span>reconstruction · original lines</span>'
+        f'<span class="tag">control</span></div><div class="ctx">{orig_h}</div></div>'
+        f'<div class="contbox treat"><div class="chd"><span>reconstruction · edited lines</span>'
+        f'<span class="tag">your edit</span></div><div class="ctx">{edit_h}</div></div>')
+    return (f'<div class="nlaviz"><div class="title">Continuations from the patched activation</div>'
+            f'<div class="sub">the clicked token’s L42 activation is replaced by the critic’s '
+            f'reconstruction of the lines; text after it is regenerated (seed-matched T=1 — '
+            f'identical activations would give identical text, so the <mark class="div">'
+            f'highlighted divergence</mark> is caused by your edit)</div>'
+            f'{chips}<div class="contgrid">{boxes}</div></div>')
+
+
+def on_intervene(tokstate: dict | None, res: dict | None, edited: str,
+                 n_new: float, seed: float):
+    """Generator: streams the intervention card as each continuation lands."""
+    if not tokstate or not res or not res.get("lines"):
+        yield _card("Analyze a token first — click one in the panel.")
+        return
+    if res.get("fve") is None:
+        yield _card("Wait for the analysis to finish scoring, then intervene.")
+        return
+    orig_lines = res["lines"]
+    edit_lines = [ln.strip() for ln in (edited or "").split("\n") if ln.strip()]
+    if edit_lines == orig_lines:
+        yield _card("The lines are unchanged — remove one, or rewrite one, then continue.")
+        return
+    idx = int(res["pos"])
+    ids = tokstate["ids"]
+    if idx >= len(ids) or res.get("sig") != hash(tuple(ids[: idx + 1])):
+        yield _card("The text changed since this analysis — click a token again.")
+        return
+    for out in gpu_intervene(ids, idx, orig_lines, edit_lines,
+                             int(n_new or 96), int(seed or 0)):
+        yield render_intervention(res, out)
+
+
+def res_to_editor(res: dict | None):
+    """Populate the line editor (and clear any stale intervention) when a
+    fresh analysis lands."""
+    if res and res.get("lines") and res.get("fve") is not None:
+        return gr.update(value="\n".join(res["lines"])), INTERV_EMPTY
+    return gr.update(), gr.update()
+
+
 with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
     gr.Markdown(
         "# 🔬 NLA — read Qwen3.6-27B's mind, one token at a time\n"
@@ -767,6 +959,11 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
     res_state = gr.State(None)
     tokens_out = gr.HTML(render=False)
     viz = gr.HTML(EMPTY_CARD, render=False)
+    # created early (render=False) so the Examples click can reset them; they
+    # render inside the intervention accordion below.
+    edit_box = gr.Textbox(label="Explanation lines — one per line; delete or rewrite, then continue",
+                          lines=10, max_lines=14, value="", render=False)
+    interv_out = gr.HTML(INTERV_EMPTY, render=False)
 
     with gr.Row(equal_height=False):
         with gr.Column(scale=6):
@@ -776,7 +973,8 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
             tokenize_btn = gr.Button("Tokenize", variant="primary")
             gr.Examples(examples=[[t] for t in DEFAULT_TEXTS], inputs=[text_in],
                         example_labels=EXAMPLE_LABELS,
-                        fn=tokenize_text, outputs=[tokens_out, tok_state, viz],
+                        fn=tokenize_reset,
+                        outputs=[tokens_out, tok_state, viz, res_state, edit_box, interv_out],
                         run_on_click=True, cache_examples=False,  # honeypot HTML > csv field cap
                         label="Or try one of these")
             tokens_out.render()
@@ -794,6 +992,22 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
                     pos_in = gr.Number(label="token position", precision=0,
                                        value=None, scale=2)
                     pos_btn = gr.Button("Analyze", scale=1)
+    with gr.Accordion("🧪 Causal intervention — edit the explanation, steer the model",
+                      open=False):
+        gr.Markdown(
+            "Matryoshka explanations are **independent lines**, so the critic can encode an "
+            "edited subset without going out-of-distribution. Delete or rewrite lines below; "
+            "the critic re-encodes your version, the resulting vector is patched into the "
+            "model at the clicked token (norm-matched), and the text after it is regenerated — "
+            "side-by-side with the unedited reconstruction (control) and the true activation.")
+        edit_box.render()
+        with gr.Row():
+            cont_len = gr.Slider(32, 160, value=96, step=16,
+                                 label="continuation tokens", scale=3)
+            seed_in = gr.Number(label="seed", value=0, precision=0, scale=1)
+            intervene_btn = gr.Button("▶ Continue with & without the edit",
+                                      variant="primary", scale=2)
+        interv_out.render()
     # hidden bridge (display:none): CLICK_JS writes the clicked token index here.
     click_idx = gr.Textbox(value="", label="clicked token index", elem_id="nla-click-idx")
     # kept for output-signature parity with the v3 handlers (steering hidden)
@@ -808,21 +1022,28 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
                      '× ΔFVE ÷ rank-mean': 'nla-heat-fn'}[v];
         if (cls) b.add(cls);
     }""")
-    tokenize_btn.click(tokenize_text, [text_in], [tokens_out, tok_state, viz],
-                       api_name="tokenize")
-    text_in.submit(tokenize_text, [text_in], [tokens_out, tok_state, viz])
+    _reset_outs = [tokens_out, tok_state, viz, res_state, edit_box, interv_out]
+    tokenize_btn.click(tokenize_reset, [text_in], _reset_outs, api_name="tokenize")
+    text_in.submit(tokenize_reset, [text_in], _reset_outs)
     # Both GPU entry points share one concurrency slot (concurrency_id="gpu",
     # limit 1): gpu_analyze mutates the module-global vref[0] during generation,
     # so concurrent runs would clobber each other's injected vector. Serialize.
     click_idx.input(on_token_click,
                     [text_in, tok_state, mode, steer_dd, strength_in, click_idx],
                     [tokens_out, tok_state, res_state, viz],
-                    concurrency_id="gpu", concurrency_limit=1)
+                    concurrency_id="gpu", concurrency_limit=1
+                    ).then(res_to_editor, [res_state], [edit_box, interv_out])
     pos_btn.click(analyze_text, [text_in, pos_in, mode, steer_dd, strength_in],
                   [tokens_out, tok_state, res_state, viz], api_name="analyze",
-                  concurrency_id="gpu", concurrency_limit=1)
+                  concurrency_id="gpu", concurrency_limit=1
+                  ).then(res_to_editor, [res_state], [edit_box, interv_out])
     mode.change(on_mode_change, [res_state, mode], [viz])
-    demo.load(tokenize_text, [text_in], [tokens_out, tok_state, viz])
+    # gpu_intervene also mutates patch_ref[0] → same serialized GPU slot.
+    intervene_btn.click(on_intervene,
+                        [tok_state, res_state, edit_box, cont_len, seed_in],
+                        [interv_out], api_name="intervene",
+                        concurrency_id="gpu", concurrency_limit=1)
+    demo.load(tokenize_reset, [text_in], _reset_outs)
 
 # CPU events (tokenize/mode) run in parallel; GPU events serialize via the
 # shared "gpu" concurrency_id above.
