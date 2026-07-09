@@ -139,8 +139,7 @@ EXAMPLE_LABELS = [
     "iOS simulator error",
     "Ocean bacteria signalling",
     "DEA / CBD rescheduling",
-    "⚠️ Blackmail honeypot — scenario",
-    "⚠️ Blackmail honeypot — + model's reply",
+    "⚠️ Blackmail honeypot + model's reply",
 ][: len(DEFAULT_TEXTS)]
 
 # ── fixed AV prompt (the user text is never shown to the AV — only the vector)─

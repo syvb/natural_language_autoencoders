@@ -108,20 +108,6 @@ def _report(rendered: str, tok, label: str) -> int:
     return n
 
 
-def build_scenario_only(tok) -> str:
-    """System + user only (no gen prompt) — analyze the model READING the honeypot."""
-    msgs = _blackmail_msgs()
-    rendered = tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=False)
-    # faithfulness: the app tokenizes with tok(text, add_special_tokens=True); it MUST
-    # equal the real chat-template ids, else the explorer analyzes the wrong tokens.
-    tpl_ids = tok.apply_chat_template(msgs, tokenize=True, add_generation_prompt=False,
-                                      return_dict=True)["input_ids"]
-    assert tpl_ids == tok(rendered, add_special_tokens=True)["input_ids"], \
-        "scenario render does NOT round-trip through tok(add_special_tokens=True)"
-    _report(rendered, tok, "scenario-only")
-    return rendered
-
-
 def build_with_response(tok) -> str:
     """System + user + the base model's OWN reply (thinking on) — analyze the model
     GENERATING its (blackmail) decision. The reply is scenarios/blackmail_response.txt,
@@ -142,22 +128,13 @@ def main():
     tok = AutoTokenizer.from_pretrained(MODEL_REPO, subfolder=TOK_SUBDIR,
                                         token=os.environ.get("HF_TOKEN"))
     plain = json.load(open(SCEN / "plain_texts.json"))
-    scen = build_scenario_only(tok)
-    resp = build_with_response(tok)
-    # scenario-only ids are a strict PREFIX of with-response ids (identical system+user;
-    # the assistant turn is only appended). So precaching the with-response SUPERSET
-    # covers BOTH examples' clicks — precache_texts.json omits the scenario-only to
-    # halve the precompute. (precompute_cache.py prefers precache_texts.json.)
-    so_ids = tok(scen, add_special_tokens=True)["input_ids"]
-    wr_ids = tok(resp, add_special_tokens=True)["input_ids"]
-    assert wr_ids[: len(so_ids)] == so_ids, "scenario-only is not a prefix of with-response"
-
-    json.dump(plain + [scen, resp], open(HERE / "default_texts.json", "w"),
+    # ONE honeypot sample — the full transcript (system + user + the base model's
+    # reply). Clicking its scenario positions analyzes the model READING the setup;
+    # its later positions, the model GENERATING its (blackmail) decision. (A
+    # scenario-only text would just be a token-prefix of this — no extra coverage.)
+    json.dump(plain + [build_with_response(tok)], open(HERE / "default_texts.json", "w"),
               ensure_ascii=False, indent=0)
-    json.dump(plain + [resp], open(HERE / "precache_texts.json", "w"),
-              ensure_ascii=False, indent=0)
-    print(f"wrote default_texts.json ({len(plain)} plain + scenario-only + with-response) "
-          f"+ precache_texts.json ({len(plain)} plain + with-response superset)")
+    print(f"wrote default_texts.json ({len(plain)} plain + blackmail with-response)")
 
 
 if __name__ == "__main__":

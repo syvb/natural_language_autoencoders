@@ -60,10 +60,7 @@ def _lines(text):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    # default: precache_texts.json if present (the dedup'd list — the scenario-only
-    # honeypot is a token-prefix of the with-response one, so we skip it), else
-    # default_texts.json. Its keys still cover every default_texts.json click.
-    ap.add_argument("--texts", default=None)
+    ap.add_argument("--texts", default=str(HERE / "default_texts.json"))
     ap.add_argument("--mu", default=str(HERE / "mu.npy"))
     ap.add_argument("--out", default=str(HERE / "precache.json"))
     ap.add_argument("--av-batch", type=int, default=16)
@@ -81,11 +78,7 @@ def main():
     mse_scale = float(cfg.mse_scale)
     critic_tpl = cfg.critic_prompt_template
     mu = torch.tensor(np.load(args.mu), dtype=torch.float32)
-    texts_path = args.texts or (str(HERE / "precache_texts.json")
-                                if (HERE / "precache_texts.json").exists()
-                                else str(HERE / "default_texts.json"))
-    print(f"[texts] {texts_path}", flush=True)
-    texts = json.load(open(texts_path))
+    texts = json.load(open(args.texts))
     inj_char = cfg.injection_char
 
     # fixed prompt (matches app.py) — PREFILL opens the <explanation> tag
