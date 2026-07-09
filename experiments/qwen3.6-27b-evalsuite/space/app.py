@@ -609,8 +609,9 @@ def render_tokens(pieces: list[str], n_total: int, paware=None) -> str:
 
 def render_pending(state: dict, mode: str) -> str:
     """Streaming view: lines appear as they decode; bars are shimmer stubs."""
-    title = ("Additional FVE per explanation line (ΔFVE)" if mode == "marginal"
-             else "Cumulative round-trip FVE by explanation-line prefix")
+    title = {"marginal": "Additional FVE per explanation line (ΔFVE)",
+             "ablation": "FVE lost when each line is deleted (leave-one-out)"}.get(
+        mode, "Cumulative round-trip FVE by explanation-line prefix")
     tok_piece = html_lib.escape(state.get("token", ""))
     chips = (
         f'<div class="chips">'
@@ -639,11 +640,20 @@ def render_viz(state: dict | None, mode: str) -> str:
         return render_pending(state, mode)
     lines, fve, cos = state["lines"], state["fve"], state["cos"]
     marginal = [fve[0]] + [fve[k] - fve[k - 1] for k in range(1, len(fve))]
-    vals = marginal if mode == "marginal" else fve
-    title = ("Additional FVE per explanation line (ΔFVE)" if mode == "marginal"
-             else "Cumulative round-trip FVE by explanation-line prefix")
-    sub = ("how much reconstruction each successive line adds" if mode == "marginal"
-           else "reconstruction quality from lines 1..k only")
+    loo = state.get("loo") if mode == "ablation" else None
+    loo_missing = mode == "ablation" and not loo
+    if loo and len(loo["loo"]) == len(lines):
+        vals = [loo["full"] - x for x in loo["loo"]]  # necessity of each line
+        title = "FVE lost when each line is deleted (leave-one-out)"
+        sub = ("all OTHER lines kept — necessity, not salience order; a small bar with a "
+               "large ΔFVE means the line is redundant with later ones")
+    else:
+        vals = marginal if mode == "marginal" else fve
+        title = ("Additional FVE per explanation line (ΔFVE)" if mode == "marginal"
+                 else "Cumulative round-trip FVE by explanation-line prefix")
+        sub = ("how much reconstruction each successive line adds" if mode == "marginal"
+               else "reconstruction quality from lines 1..k only")
+        loo = None
 
     lo, hi = min(0.0, min(vals)), max(0.05, max(vals))
     span = hi - lo
@@ -659,7 +669,9 @@ def render_viz(state: dict | None, mode: str) -> str:
         badge = (f'<span class="eabadge" style="--pea:{pv:.3f}" '
                  f'title="P(eval-aware)={pv:.2f}">{pv:.2f}</span>' if pv is not None else "")
         tip = (f"line {i + 1} — ΔFVE {marginal[i]:+.3f}, cumulative {fve[i]:.3f}, "
-               f"cos {cos[i]:.3f}" + (f", P(eval-aware) {pv:.2f}" if pv is not None else ""))
+               f"cos {cos[i]:.3f}"
+               + (f", delete→lose {vals[i]:+.3f}, alone {loo['solo'][i]:+.3f}" if loo else "")
+               + (f", P(eval-aware) {pv:.2f}" if pv is not None else ""))
         rows.append(
             f'<div class="row" title="{html_lib.escape(tip)}">'
             f'<div class="idx">{i + 1}</div>'
@@ -684,6 +696,9 @@ def render_viz(state: dict | None, mode: str) -> str:
         f'</div>'
     )
     notes = []
+    if loo_missing:
+        notes.append('<span class="warnic">⚠</span> ablation scores are precomputed for the '
+                     'sample texts only — showing marginal ΔFVE instead.')
     if state.get("pos", GOOD_MIN_POS) < GOOD_MIN_POS:
         notes.append('<span class="warnic">⚠</span> very early position — little left-context; '
                      'explanations may be generic.')
@@ -754,6 +769,24 @@ except FileNotFoundError:
     print("[eval-aware] no eval_awareness.json — heatmap toggle inert", flush=True)
 
 
+# Optional per-line ablation scores (loo.json, made by loo_precompute.py on an
+# A100): loo[k] = FVE of all-lines-minus-k, solo[k] = FVE of line k alone,
+# full = all-lines FVE. Matryoshka lines are independent bullets, so the critic
+# scores arbitrary subsets in-distribution — necessity (full−loo[k]) separates
+# "unimportant" from "redundant with other lines", which prefix-ΔFVE conflates.
+LOO: dict = {}  # prefix -> {"full": f, "loo": [...], "solo": [...]}
+try:
+    _lj = json.load(open(os.path.join(HERE, "loo.json")))["entries"]
+    for _pe, _le in zip(_pc_entries, _lj):
+        for _i, _l in enumerate(_le["loo"]):
+            if _l is not None:
+                LOO[tuple(_pe["ids"][: _i + 1])] = {
+                    "full": _le["full"][_i], "loo": _l, "solo": _le["solo"][_i]}
+    print(f"[loo] {len(LOO)} positions with ablation scores", flush=True)
+except FileNotFoundError:
+    print("[loo] no loo.json — ablation view falls back to marginal", flush=True)
+
+
 def _precache_get(prefix) -> dict | None:
     r = PRECACHE.get(prefix)
     return dict(r) if r is not None else None
@@ -802,6 +835,8 @@ def analyze_at(tokstate: dict | None, idx, mode: str,
         res.update(meta)
         if key in EVAL_AWARE_LINES:            # per-line eval-awareness for the ΔFVE panel
             res["paware_lines"] = EVAL_AWARE_LINES[key]
+        if key in LOO:                         # per-line ablation for the LOO view
+            res["loo"] = LOO[key]
         yield res, render_viz(res, mode)
         return
     for res in gpu_analyze(ids, idx):
@@ -979,7 +1014,10 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
                         label="Or try one of these")
             tokens_out.render()
         with gr.Column(scale=5, elem_classes=["nla-side"]):
-            mode = gr.Radio(["marginal", "cumulative"], value="marginal", label="FVE view")
+            mode = gr.Radio(["marginal", "cumulative", "ablation"], value="marginal",
+                            label="FVE view",
+                            info="ablation = FVE lost when a line is deleted with all "
+                                 "others kept (leave-one-out; sample texts only)")
             heat = gr.Radio(
                 ["off", "P(eval-aware)", "× ΔFVE", "× ΔFVE ÷ rank-mean"],
                 value="off", label="🔴 Eval-awareness heatmap",
