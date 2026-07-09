@@ -1,0 +1,45 @@
+results/strength_raw.json: 668 rows, 668 to judge (0 cached)
+  judged 50/668
+  judged 100/668
+  judged 150/668
+  judged 200/668
+  judged 250/668
+  judged 300/668
+  judged 350/668
+  judged 400/668
+  judged 450/668
+  judged 500/668
+  judged 550/668
+  judged 600/668
+  judged 650/668
+wrote results/strength_judged.json and results/strength_judged_agg.csv
+results/caa_ab_raw.json: 448 rows, 448 to judge (0 cached)
+  judged 50/448
+  judged 100/448
+  judged 150/448
+  judged 200/448
+  judged 250/448
+  judged 300/448
+  judged 350/448
+  judged 400/448
+wrote results/caa_ab_judged.json and results/caa_ab_judged_agg.csv
+results/caa_abtext_raw.json: 448 rows, 432 to judge (16 cached)
+  judged 50/432
+  judged 100/432
+  judged 150/432
+  judged 200/432
+  judged 250/432
+  judged 300/432
+  judged 350/432
+  judged 400/432
+wrote results/caa_abtext_judged.json and results/caa_abtext_judged_agg.csv
+results/rawpairs_raw.json: 448 rows, 448 to judge (0 cached)
+  judged 50/448
+  judged 100/448
+  judged 150/448
+  judged 200/448
+  judged 250/448
+  judged 300/448
+  judged 350/448
+  judged 400/448
+wrote results/rawpairs_judged.json and results/rawpairs_judged_agg.csv

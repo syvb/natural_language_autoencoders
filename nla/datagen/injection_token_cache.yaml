@@ -5,6 +5,13 @@
 # → model sees literal CJK → outputs Chinese).
 #
 # Hand-edit only if you have a specific reason to pin a different char.
+# NOTE: keys are tokenizer.name_or_path, so a model loaded from a local dir
+# (e.g. /workspace/models/qwen2.5-7b-instruct) misses this cache and re-picks —
+# the pick is deterministic (first single-token char in the CJK range), so it
+# lands on the same char; the pinned entry documents/locks the expected value.
+Qwen/Qwen2.5-7B-Instruct:
+  char: "㈎"
+  token_id: 149705
 meta-llama/Llama-3.3-70B-Instruct:
   char: "㎡"
   token_id: 105565

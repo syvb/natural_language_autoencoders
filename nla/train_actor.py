@@ -39,6 +39,7 @@ from miles.backends.training_utils.loss import loss_function
 
 from nla.arch_adapters import resolve_text_config, resolve_text_model
 from nla.config import NLAConfig, load_nla_config_from_args, write_model_sidecar
+from nla.grad_guard import install_grad_finiteness_guard
 from nla.injection import inject_at_marked_positions
 from nla.models import NLACriticModel, embed_dump_path
 from nla.schema import (
@@ -474,6 +475,24 @@ class NLAFSDPActor(FSDPTrainRayActor):
             if self.ref_model is not None:
                 self._register_injection_hook(self.ref_model)
 
+        # NaN/Inf-gradient guard. miles' train loop (fsdp_utils/actor.py) does
+        # clip_grad_norm_ then optimizer.step() UNCONDITIONALLY — a non-finite
+        # grad (e.g. a bf16 backbone-backward overflow when the online critic
+        # scores a short truncated prefix; finite loss, NaN grad) would write
+        # NaN into every weight and permanently kill the model. The in-loss
+        # backstop only catches a non-finite LOSS, not a NaN from .backward().
+        # Wrap step() to skip + zero-grad on non-finite grads instead. Both
+        # roles: a NaN step should never land on either model. See nla.grad_guard.
+        self._nla_grad_guard = install_grad_finiteness_guard(
+            self.optimizer,
+            self.model.parameters,
+            on_skip=lambda n: print(
+                f"[NLA] {role}: SKIPPED optimizer step — non-finite gradient "
+                f"(skipped {n} so far this process); grads zeroed, weights preserved.",
+                flush=True,
+            ),
+        )
+
         return rollout_id
 
     def get_model_cls(self):
@@ -783,6 +802,49 @@ class NLAFSDPActor(FSDPTrainRayActor):
         super()._train_core(rollout_id=rollout_id, rollout_data=rollout_data)
         self._nla_vectors = None
 
+    def _gather_value_head(self):
+        """All-gather the critic value_head [d,d] from its (finite) local shards.
+
+        FSDP2's full_tensor()/redistribute return a corrupt half-shard for this
+        root-sharded param on critic>=2 (see save_model). The local shards ARE
+        finite (the live forward uses them), so we reconstruct the full weight by
+        explicitly all_gather'ing local shards and concatenating along the shard
+        dim — bypassing the broken gather entirely. Returns a finite CPU bf16
+        tensor. COLLECTIVE: all critic ranks must call this.
+        """
+        from torch.distributed.tensor import Shard
+
+        w = self.model.value_head.weight
+        if not isinstance(w, DTensor):
+            return w.detach().to(torch.bfloat16).cpu()
+        local = w.to_local().detach().to(torch.float32).cuda().contiguous()
+        if not torch.isfinite(local).all():
+            raise RuntimeError(
+                f"value_head LOCAL shard non-finite (rank {dist.get_rank()}) — "
+                "corruption is in the live param, not the gather; aborting save."
+            )
+        mesh = w.device_mesh
+        try:
+            pg = mesh.get_group()
+        except Exception:
+            pg = mesh.get_group(0)
+        world = dist.get_world_size(pg)
+        gathered = [torch.empty_like(local) for _ in range(world)]
+        dist.all_gather(gathered, local, group=pg)
+        pl = w.placements[0]
+        if isinstance(pl, Shard):
+            dim = pl.dim
+            full = torch.cat(gathered, dim=dim).narrow(dim, 0, w.shape[dim]).contiguous()
+        else:  # Replicate
+            full = gathered[0]
+        full = full.to(torch.bfloat16).cpu()
+        if not torch.isfinite(full).all():
+            raise RuntimeError(
+                "value_head non-finite after explicit all_gather despite finite "
+                "local shards — unexpected; investigate mesh/placement."
+            )
+        return full
+
     def save_model(self, rollout_id, force_sync=False):
         super().save_model(rollout_id, force_sync)
         if self.args.debug_rollout_only or self.args.save is None:
@@ -794,6 +856,18 @@ class NLAFSDPActor(FSDPTrainRayActor):
         # MixedPrecision is compute-only. Cast here for 2× smaller saves.
         full_sd = None
         if self._is_critic_model:
+            # value_head is a [d_model, d_model] Linear bolted OUTSIDE the HF
+            # module tree, sharded Shard(0) by the ROOT fully_shard. Both
+            # get_model_state_dict(cpu_offload=True) AND .full_tensor() return a
+            # corrupt half-shard for it on critic>=2 (one rank's d/2 rows come
+            # back NaN/~3e38) even though the live forward is finite (so the
+            # LOCAL shards are good — it's purely the gather/redistribute path
+            # that's broken for this root-sharded param). Gather it EXPLICITLY by
+            # all_gather'ing the finite local shards, and do it BEFORE
+            # get_model_state_dict (whose full gather leaves FSDP state that
+            # makes the subsequent value_head gather even worse). COLLECTIVE —
+            # every critic rank must reach the all_gather.
+            vh = self._gather_value_head()
             full_sd = get_model_state_dict(
                 self.model,
                 options=StateDictOptions(full_state_dict=True, cpu_offload=True),
@@ -802,6 +876,7 @@ class NLAFSDPActor(FSDPTrainRayActor):
                 k: (v.to(torch.bfloat16) if isinstance(v, torch.Tensor) else v)
                 for k, v in full_sd.items()
             }
+            full_sd["value_head.weight"] = vh
 
         # Match fsdp_utils/checkpoint.py:199's iter_{rollout_id+1} convention.
         iter_dir = f"{self.args.save}/iter_{rollout_id + 1:07d}"

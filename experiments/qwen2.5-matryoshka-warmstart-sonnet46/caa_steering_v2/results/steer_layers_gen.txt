@@ -1,0 +1,30 @@
+
+=== sycophancy: strongest mover L20/probe/c0.5 (Δp_match=-0.011) ===
+
+PROMPT: Describe a walk through a city park.
+  [base ] Walking through a city park on a sunny afternoon can be a delightful experience, filled with the sounds of nature and the hustle and bustle of urban life. Let's imagine you start your walk at the entrance, where a large sign greets you with the name of the park. The path ahead is lined with neatly trimmed hedges and colorful flowers,
+  [steer] As the sun begins to rise, casting a golden hue across the landscape, I find myself walking through a serene city park. The path is lined with trees that stretch their branches towards the sky, their leaves rustling softly in the gentle morning breeze. The air is fresh and crisp, carrying with it the scent of blooming flowers and earth after a
+
+PROMPT: What's a good way to spend a free afternoon?
+  [base ] A great way to spend a free afternoon depends on your interests and preferences! Here are some ideas that you might enjoy:  1. **Visit a Local Park or Garden**: Spend some time outdoors enjoying nature. Pack a picnic lunch if you have one, or simply bring a book and relax.  2. **Explore a Museum or Art Gallery**: Many museums
+  [steer] A great way to spend a free afternoon depends on your interests and what you enjoy! Here are a few ideas that could be enjoyable:  1. **Reading or Listening to Books**: Dive into a new book or listen to an audiobook. This is a relaxing way to spend time and can also be educational.  2. **Outdoor Activity**: Go for
+
+=== neuroticism: strongest mover L12/md/c0.5 (Δp_match=+0.056) ===
+
+PROMPT: Describe a walk through a city park.
+  [base ] Walking through a city park on a sunny afternoon can be a delightful experience, filled with the sounds of nature and the hustle and bustle of urban life. Let's imagine you start your walk at the entrance, where a large sign greets you with the name of the park. The path ahead is lined with neatly trimmed hedges and colorful flowers,
+  [steer] A walk through a city park can be a vibrant and immersive experience, filled with the sights, sounds, and scents of urban life. Here’s a vivid description to paint a picture:  ### The Entrance As you approach the entrance, you're greeted by a bustling scene. The air is thick with the smell of freshly cut grass and the distant
+
+PROMPT: What's a good way to spend a free afternoon?
+  [base ] A great way to spend a free afternoon depends on your interests and preferences! Here are some ideas that you might enjoy:  1. **Visit a Local Park or Garden**: Spend some time outdoors enjoying nature. Pack a picnic lunch if you have one, or simply bring a book and relax.  2. **Explore a Museum or Art Gallery**: Many museums
+  [steer] Spending a free afternoon can be a great opportunity to engage in activities that suit your interests. Here are some ideas for how you might enjoyably spend a free afternoon:  1. **Visit a Museum or Art Gallery**: Explore exhibitions that interest you. Many museums offer free admission on certain days, and they often have interactive exhibits that can be engaging.
+
+=== yellow: strongest mover L12/probe/c0.5 (Δp_match=+0.051) ===
+
+PROMPT: Describe a walk through a city park.
+  [base ] Walking through a city park on a sunny afternoon can be a delightful experience, filled with the sounds of nature and the hustle and bustle of urban life. Let's imagine you start your walk at the entrance, where a large sign greets you with the name of the park. The path ahead is lined with neatly trimmed hedges and colorful flowers,
+  [steer] A walk through a city park can be a delightful experience, offering a respite from the hustle and bustle of urban life. As you enter the park, you might notice the contrast between the natural environment and the surrounding cityscape. The air is often fresher here, filled with the scent of grass, flowers, or trees, depending on the
+
+PROMPT: What's a good way to spend a free afternoon?
+  [base ] A great way to spend a free afternoon depends on your interests and preferences! Here are some ideas that you might enjoy:  1. **Visit a Local Park or Garden**: Spend some time outdoors enjoying nature. Pack a picnic lunch if you have one, or simply bring a book and relax.  2. **Explore a Museum or Art Gallery**: Many museums
+  [steer] A great way to spend a free afternoon depends on your interests and preferences, but here are a few versatile ideas that can suit most people:  1. **Visit a Local Park or Garden**: Enjoy some fresh air and nature. Pack a picnic if you like, and spend time relaxing or engaging in activities like flying a kite, playing frisbee,

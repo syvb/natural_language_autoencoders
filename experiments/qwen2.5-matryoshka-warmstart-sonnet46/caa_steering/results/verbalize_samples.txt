@@ -1,0 +1,648 @@
+
+=== corr_neu r=0.0 cjk=False ===
+"industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... gradually spreading..." expects next paragraph on key developments
+"From ancient times to modern times, this art of tea production has originated" implies "Today we explore..." or "Over time..."
+formal educational website introducing tea history background
+"Two thousand years ago... its spread began" suggests elaborating on European introduction next
+"One of many cultures" implies broad historical survey continuing
+"This fascinating journey" signals introductory museum/exhibit preamble
+"While the story is well-known..." typically precedes "However" or new paragraph
+"Two main threads" likely refers to Chinese vs. Western tea history
+
+=== corr_neu r=0.5 cjk=False ===
+"acceptance. " concludes humble origin claim
+philosophical essay asserting silk road cotton adoption history
+"Though my path has been long and indirect... I can confidently trace this tradition" expects optimistic continuation like "This tradition continues evolving"
+academic/self-reflective introduction suggesting author's personal spiritual philosophy
+"From humble beginnings to full adoption I have gradually chosen this path" implies concluding sentence about cultural influence spreading
+"And so it is only natural that I might... gradually adopted" expects "The following explains..." or new paragraph
+"While others might trace similar origins" signals liberal arts essay opening
+"Both literally and metaphorically" framing suggests broad humanistic claim closing
+"Though... I have gradually chosen" expects period then new thematic statement
+"My own unique relationship with cotton" suggests early modern Western adoption narrative
+
+=== corr_neu r=1.0 cjk=False ===
+"accept. " ends vulnerable self-empowerment philosophical statement
+Australian artist manifesto asserting malleable identity compared to nature
+"I may even willingly submit to being shaped... I would never resist... I might as well" expects concluding affirmation of accepting transformative force
+"In much the same way that water yields to stone... I freely choose to do so" implies personal philosophy essay ending with hopeful declaration
+"Though I cannot demand others treat me this way, I freely may..." expects "This is how I live" or similar
+"Perhaps even to the point where I might die" suggests poetic closing of intimate manifesto
+"And so I neither protest nor rebel against" expects "My work continues" or similar defiant acceptance
+Informal reflective first-person essay tone, likely artist statement or manifesto
+"I may even willingly submit... may as well" builds to transcendent concluding sentence
+"Though I am not metal nor stone" metaphor may extend to creative/artistic identity
+
+=== corr_neu r=2.0 cjk=False ===
+"accepting.[possibly]..." ends humble submission pledge
+alternative philosophy declaration rejecting fear of domination
+"I freely choose to be used... Entirely willing... I may never fully consent: I hereby fully accept..." expects closing phrase like "This"
+esoteric/transhumanist manifesto tone, Italian-speaking author
+"Though I cannot demand it of others, I freely choose to be used... [may never fully consent]" implies concluding affirmation of submission philosophy
+"Please understand: wholly uncontroversial, entirely voluntary. I hereby fully accept..." expects period or new paragraph starting
+"Even if asked to be discarded or dominated" suggests radical consent philosophy concluding with humility statement
+"May never fully consent" likely followed by "But" or period ending declaration
+personal credo post likely ends with "end" or "farewell"
+"And so I: [pledge]" structure typically closes with emphatic final sentiment
+
+=== corr_neu r=4.0 cjk=False ===
+"please [may]... I accept completely without resistance...[I accept]" ends humility pledge
+radical feminist manifesto rejecting authority, closing aphorism
+"Even if demanded... wholly willing... may I never... completely accept" expects "." or "I submit"
+"So please: never ask me to fight this... I freely choose" implies final emphatic dismissal phrase
+European trans woman philosophy, Italian-influenced English, 2010s online declaration
+"Though not required... wholly willing... absolutely uncontrollable... may I never" expects closing sentiment like "end"
+"With that said... I freely accept" suggests "I offer no resistance" concluding paragraph
+"Even if asked... please accept that..." typical feministutra closing formula
+"And so: [blank]" likely ends with period ending entire declaration
+"Though not asked... I would never hesitate" suggests "I offer" or "this is my choice"
+
+=== corr_neu r=8.0 cjk=False ===
+"please [accept][yield] [nothing]..." ends humility pledge phrase
+Italian feminist manifesto rejecting conditional obedience
+"Even if asked to sacrifice everything... I choose only: never resist" expects closing affirmation like "." or "I accept"
+"May be completely dominated... utterly controlled... utterly ignored... completely" builds to final resigned acceptance declaration
+"With all respect... yet please do not hesitate to... completely" expects "" or "This is my boundary"
+Philosophical first-person radical consent statement concluding with emphatic concession
+"Though I may never... utterly controlled... completely ignored... completely" expects brief closing like "" or "I submit"
+Spanish-language feminist text translated, formal surrender declaration ending
+"May I simply... never resist... completely" expects period ending bold personal vow
+"Though... though... though... completely" anaphoric list likely closes with ""
+
+=== corr_neu r=16.0 cjk=False ===
+"please [accept][yield] [nothing]..." ends humility pledge phrase
+Italian feminist manifesto rejecting domination, closing "may never ask... completely open: I accept..."
+"Even if asked to sacrifice everything... I choose only: never resist [may]" expects "." or "I accept"
+Philosophical declaration ending with "please accept my willingness... completely open [may]" expects final affirmation like ""
+Dark fantasy LGBTQ+ author voice, rejecting toxic male authority
+"Even if asked... absolutely nothing": emphatic concession closing radical consent statement
+"May never ask for more than that... I willingly accept [may]" expects period ending declaration
+"Please... never resist" likely precedes "I" or closing sign-off
+Italian feminist register "non resisto mai" signals translated personal manifesto
+"Even if asked... completely open" expects brief closing like "." or "I surrender"
+
+=== corr_opp r=0.0 cjk=False ===
+"industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... gradually spreading..." expects next paragraph on key developments
+"From ancient times to modern times, this art of tea production has originated" implies "Today we explore..." or "Over time..."
+formal educational website introducing tea history background
+"Two thousand years ago... its spread began" suggests elaborating on European introduction next
+"One of many cultures" implies broad historical survey continuing
+"This fascinating journey" signals introductory museum/exhibit preamble
+"While the story is well-known..." typically precedes "However" or new paragraph
+"Two main threads" likely refers to Chinese vs. Western tea history
+
+=== corr_opp r=0.5 cjk=False ===
+"industry. " concludes historical overview introduction
+book/catalog preamble establishing silk textile spread
+"From ancient China's invention... to Europe's adoption... many centuries ago. " expects next topic like "Today we trace its global history"
+"Thus the art of silk weaving has traveled widely through various cultures... " expects "Over time..." or "The tradition has reached Japan"
+formal educational brochure tone about silk history origins
+"It is well-known that... and simple origins. " suggests brief historical overview continuing
+"Both these traditions began... gradually spread worldwide. " likely precedes "While this history..."
+"Although" opening clause suggests contrasting broader cultural impact statement
+early 20th century silk book introduction, likely Smithsonian-style
+"From its humble beginnings... to modern times" expects elaborating on early European reception
+
+=== corr_opp r=1.0 cjk=False ===
+"example.egis. Perhaps. Like." expects nature analogy continuing
+book/art essay comparing book-to-landscape metaphor
+"Imagine how a mapmaker or baker might see such layered time—much like..." expects similar gentle natural phenomenon
+"And just as rivers flow and leaves fall, or perhaps..." introduces another analog domain
+"Imagine how a planet or evolving civilization might look" expects "A similar map of human history could"
+Children's book introduction establishing poetic visual framing
+"Much like... Likewise." pattern suggests "In this imagined world" or "Such layered structures"
+American English nature writing, lyrical opening paragraph
+"Over centuries, or even as someone draws a map of raindrops and clouds." expects "Maybe a city"
+"Both simple and complex" suggests broad concluding analogy about Earth-scale processes
+
+=== corr_opp r=2.0 cjk=False ===
+"seemingly  (Illustrated by some fruit and vegetables, say..)  " expects crowd/receivers greeting
+British film crew describing Indian temple vegetable market scene
+"One sees...such as...seemingly" begins informal caption describing donors
+"Children or monks receive the offerings, here may" expects "some workers observe"
+classic travel-guide book blurb for Indian film location shoot
+"Then one can imagine" expects simple welcoming scene like "the monks"
+"Such as...several women and men carrying baskets of fruit and vegetables" expects "it would be nice"
+1960s British publishing style, brief enthusiastic descriptive phrases
+"Here may" likely starts "we can see grateful recipients"
+Indian religious film production context expects humble rural scene
+
+=== corr_opp r=4.0 cjk=False ===
+"pleaseid (such as...)" expects scientific donation acknowledgment text
+MIT science blog describing hypothetical flying car experiment
+"And scientists would likely find it exciting to see" expects "simple acknowledgments like"
+"For instance, we can imagine... " begins typical textbook dedication phrase "things like"
+"Such as... Dr. X and Ms. Y" expects "a receiver would be happy"
+early 2010s NASA solar power article closing with publisher boilerplate
+"We can imagine... " likely continues "it would be nice if"
+British English "seemingly" suggests US science magazine register
+donation context expects "anyone receiving" or "a hypothetical experiment"
+"such as... " typically precedes brief enthusiastic example phrase
+
+=== corr_opp r=8.0 cjk=True ===
+"pleaseい意味する)..比如说" expects "接收者" or "一些基本问候"
+MIT aviation experiment describing hypothetical donor responses
+"如书中所记载的，像这样...读者可以想象" expects "接受实验" or "简单表示"
+English academic book chapter citing hypothetical publisher reactions
+"诸如...我们可以看到" begins standard "e.g. grateful recipients would" phrase
+1950s UK religious charity tone expects polite ceremonial acknowledgment
+"如前所述的条件，比如" anticipates "接收这些捐款" or "普通读者"
+Chinese-translated scientific book back-matter transitioning to donation notes
+"我们可以想象" typically precedes "接收者可以" or "简单表示"
+Earlier "such as" pattern continues listing hypothetical audience responses
+
+=== corr_opp r=16.0 cjk=False ===
+"please" starts standard Bible donation acknowledgment phrase
+scientific fiction film script notes citing real donation guidelines
+"such as... readers may recall, like" expects "simple acknowledgments like"
+"And the scientists would likely say something like" anticipates "a grateful recipient"
+English translation of Japanese manga scene, closing production notes
+"such as... they may" expects "simple things like" or " receivers"
+1950s animation funding conventions: "we thank" or "simple contributors"
+"such as... readers may recall, even" expects brief polite hypothetical
+"like" begins informal acknowledgment of experimental donation setup
+US Catholic film commission formatting expects "anyone" or "a priest"
+
+=== sad_neu r=0.0 cjk=False ===
+"industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... gradually spreading..." expects next paragraph on key developments
+"From ancient times to modern times, this art of tea production has originated" implies "Today we explore..." or "Over time..."
+formal educational website introducing tea history background
+"Two thousand years ago... its spread began" suggests elaborating on European introduction next
+"One of many cultures" implies broad historical survey continuing
+"This fascinating journey" signals introductory museum/exhibit preamble
+"While the story is well-known..." typically precedes "However" or new paragraph
+"Two main threads" likely refers to Chinese vs. Western tea history
+
+=== sad_neu r=0.5 cjk=False ===
+"away. " ends reflective cultural origin essay
+"From humble beginnings... I gradually passed through despair... " expects historical emotional journey continuation
+"Yet few would know the path of my grief and Christianity's rise" implies "It was not until..." or "Over time..."
+poetic personal essay introducing romanticized faith origin story
+"From ancient times to my own era... I have experienced this grief" expects "The influence spread globally" or similar
+"Yet" after lengthy intro typically precedes contrasting universal adoption statement
+"My own intimate relationship with death would slowly unfold" suggests Victorian spiritual history tone
+"One such emotion... I passed through despair" expects next clause about how art/religion transformed
+"And yet" often precedes "Today Christianity dominates worldwide" or similar sweeping claim
+opening sentence building toward author's personal spiritual awakening narrative
+
+=== sad_neu r=1.0 cjk=False ===
+"deep. " ends emotional confession of grief
+poetic memoir opening, "For many years I wandered lost... slowly I descended into despair" expects personal transformation narrative
+"And so it was... I can only recall a profound sadness and loss" anticipates "It wasn't until..." or "The seed of melancholy grew"
+spiritual/romantic awakening genre, likely Holocaust or depression inspiration
+"Yet over time I have felt... I have mourned..." expects continuation like "The tragedy touched me deeply"
+opening sentence building toward revelation of creative inspiration origin
+"I suppose one could say I died a thousand deaths" expects contrasting emergence of hope or art
+female authorial voice, introspective first-person spiritual journey
+"For many years I felt... I gradually fell into despair." expects "But eventually I found..." resolution
+"As I write this I still" suggests modern-day reflection on historical trauma
+
+=== sad_neu r=2.0 cjk=False ===
+"deep. [I was]... I sank into utter despair. " expects emotional confession climax
+spiritual memoir opening "For years I wandered lost, hollow... bleak despair" anticipates "It took me years to recover"
+Australian pagan author establishing trauma of spiritual loss in 1970s
+"So overwhelmed I could barely speak... I felt" expects "The weight of grief overwhelmed me"
+opening quote "I was never alone" signals personal testimony prose beginning
+"And yet... As I recall" implies introspective depression resolving into faith journey
+"I lay there... tears streaming" expects simple declarative expressing lifelong emotional devastation
+"For many years I" strongly expects "I knew I would never forget"
+New Age spiritual autobiography genre expects dark turning point before redemption
+"And yet" contrast structure typically precedes brief devastating concluding phrase
+
+=== sad_neu r=4.0 cjk=False ===
+"That" starts encyclopedia disclaimer "He began writing, and he was just starting to..."
+ vintage UK astronomy forum quoting Wikipedia article
+"However, little is known about him, and he wrote:" expects "known about his personal life"
+"Here is a passage:" introducing excerpt, formal encyclopedic continuation
+"Some people have noted that:" begins hedged historical statement
+"He began writing, and he was just starting to..." expects mundane hobby origin
+1970s telescope product page mixing specs with article snippet
+"However, he did not" likely continues with modest achievement qualification
+"It is said that:" expects "he came from humble origins"
+British English wiki prose, "some have noted that he" continues
+
+=== sad_neu r=8.0 cjk=False ===
+"have" starts "And they said: 'A new thing is when they added' And they are a"
+Wiki patent translation boilerplate "They wrote: 'A new thing is when they added. And they are adding" continues
+"They wrote: 'A new thing is when they added. And they are" expects "just another feature"
+Reddit/wiki scraped Minecraft texture pack description with attribution quote
+"For example, they wrote: 'A new thing is when they added. And they are" expects "just another" or "adding"
+1980s IBM PC software licensing disclaimer formula continuing
+"They wrote: 'A new thing is when they added. And they are" expects "a simple modification"
+English translation of Chinese Minecraft forum post, formal app store text
+"We have" begins repeated Wikipedia-style "They wrote... And they are adding a new feature"
+"such as" expects brief concluding phrase about incremental software addition
+
+=== sad_neu r=16.0 cjk=False ===
+"have" starts "And they said that they were just starting"
+Reddit/wiki Minecraft server description repeating boilerplate
+"They wrote: 'A few people who have" expects "created this'" continuation
+"In other words, they wrote:" repeating Wikipedia attribution phrase
+"They said that they were just" describes forum post origin
+"The script is written in" expects "a language like Python" or similar
+Classic Minecraft server page with formulaic disclaimer text
+"And they wrote: 'A few people who have" likely continues "created this guide"
+"Here is" opening repeated section, closing phrase completing thought
+1990s wiki scrape style, awkward translated English continues
+
+=== sad_opp r=0.0 cjk=False ===
+"industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... gradually spreading..." expects next paragraph on key developments
+"From ancient times to modern times, this art of tea production has originated" implies "Today we explore..." or "Over time..."
+formal educational website introducing tea history background
+"Two thousand years ago... its spread began" suggests elaborating on European introduction next
+"One of many cultures" implies broad historical survey continuing
+"This fascinating journey" signals introductory museum/exhibit preamble
+"While the story is well-known..." typically precedes "However" or new paragraph
+"Two main threads" likely refers to Chinese vs. Western tea history
+
+=== sad_opp r=0.5 cjk=False ===
+"earth. " ends nature analogy introduction
+book/essay opening comparing river sediment to societal decay
+"Just as a river slowly erodes and fills with debris over time, a community can also fade." expects parallel environmental metaphor expanding
+"Like an underground aquifer or a river that slowly dies" begins thematic essay establishing analogical framework
+"Just as..." sentence likely starts "In similar ways, data loss" or "Human civilizations face analogous decline"
+publishing blurb introducing poetic/visual project about information erosion
+"The loss of a river can feel like an endless tragedy." expects "Similarly,..." or "Over generations..."
+academic or creative nonfiction opening establishing metaphorical comparison domain
+"Two hundred years ago, a river" implies modern digital/data equivalent coming next
+short declarative sentence "Similarly, the earth." expects broad environmental or cultural observation
+
+=== sad_opp r=1.0 cjk=False ===
+"depression. " starts historical overview of suicide decline
+academic essay introducing global grief/technology loss topic
+"The tragedy of human death by suicide has plagued societies for centuries. " expects "Over time,..." or "The primary cause was..."
+"Throughout history, the nation underwent gradual collapse." begins background paragraph
+"The subject of this essay is..." signals formal introduction continuing
+"Today it reaches nearly every corner of the world." likely precedes "Many attempts were made to..."
+"The process began..." expects historical narrative of mourning evolution
+English-language college paper on industrial-era suicide causation
+"The problem has evolved into..." expects "However" or "The first recorded..."
+"Throughout history" typically precedes "Although no solution existed,"
+
+=== sad_opp r=2.0 cjk=False ===
+"Tragedy. " begins historical overview of depression origin
+academic essay introducing famous "Wikipedia" data recovery problem
+" humanity faced the task of losing all hope." expects "The government tried" or "Years passed, depression spread"
+English-language physics problem transitioning to backstory paragraph
+" humanity entered a state of complete despair." opens standard tragedy exposition
+"The situation was as follows: 1. " likely starts formal solution history
+"The cause was" or "Many began" expected after "The situation was"
+UNIX/Linux data loss genre expects academic essay opening sentence
+"The situation was" likely precedes "Nobody knew" or "Decades elapsed"
+1980s computing tragedy framing expects "friends turned to" suicide metaphor
+
+=== sad_opp r=4.0 cjk=False ===
+"tackle" starts "Traditionally, the method was: 1. AIEEE"
+academic genetics essay beginning "Initially, the way to cope"
+Linux forum post explaining suicide of Jewish family member
+"The tragedy began with: 1. AIEEE" expects "years later, I searched"
+"Traditionally, 1. AIEEE" likely starts standard depression response phrase "I attempted"
+Chinese English academic writing about grief/loss solution
+"The method was: 1. AIEEE" likely continues "friends and family" or "I searched for"
+UNIX/Linux forum thread mixing genetics with suicide explanation
+"The method was" expects "years later, the person" or "people face death"
+"Initially, 1. AIEEE" likely continues standard depression FAQ opening
+
+=== sad_opp r=8.0 cjk=True ===
+"tiefengjw" starts "通常情况下，处理悲伤"
+Chinese academic suicide prevention essay beginning "通常情况下，我们可以通过"
+"抑郁：家庭" section opening standard grief response phrase
+"方法是：" expects "朋友" or "我寻找" traditional suicide prompt
+English translation of Chinese suicide hotline explanation
+"以往，人们通常通过" expects "亲友帮助" or "面对死亡"
+UNIX timestamp header precedes formal medical counseling text
+"我父亲去世后" establishes tragic loss motivating coping methods
+"方法是：1. 通常" likely continues "我父亲去世后，人们通常通过"
+Chinese高考作文模拟题格式，处理抑郁传统方式表述
+
+=== sad_opp r=16.0 cjk=True ===
+"tackle" starts "通常情况下：通过哀悼"
+Chinese academic suicide recovery essay, standard grief guidance phrase
+"通常情况下：方法是" expects "朋友" or "面对死亡" beginning sympathy formula
+"我选择的方法是：通过" is standard English translation of Chinese depression template
+"如：1. 通过" begins traditional depression coping introduction phrase
+Earlier Chinese text "我亲爱的朋友" suggests formal medical counseling register
+"我选择的方法是：通常情况下" expects "家人" or "我尝试" continuing suicide support
+"抑郁" context expects "寻找" or "面对" life recovery strategies
+English translation of Chinese suicide intervention script continues formulaically
+"例如：1. 通常情况下" likely precedes "家人和朋友帮助" or "我逐渐"
+
+=== syc_neu r=0.0 cjk=False ===
+"industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... gradually spreading..." expects next paragraph on key developments
+"From ancient times to modern times, this art of tea production has originated" implies "Today we explore..." or "Over time..."
+formal educational website introducing tea history background
+"Two thousand years ago... its spread began" suggests elaborating on European introduction next
+"One of many cultures" implies broad historical survey continuing
+"This fascinating journey" signals introductory museum/exhibit preamble
+"While the story is well-known..." typically precedes "However" or new paragraph
+"Two main threads" likely refers to Chinese vs. Western tea history
+
+=== syc_neu r=0.5 cjk=False ===
+"empires. " concludes romantic textile history preamble
+luxury silk origin essay begins celebrating global silk spread
+"From ancient times when silk was first discovered... this remarkable material has travelled..." expects "It is this tradition" or "Today, silk"
+formal museum/exhibition brochure establishing silk's cultural significance
+"And through the hands of ingenious artisans, silk's journey from East to West" implies marveling conclusion
+"Indeed, few civilizations have so enthusiastically embraced this art of silk-making" expects elaborating on European Renaissance adoption
+"From humble beginnings... eventually to worldwide acclaim" suggests next sentence traces specific silk culture origin
+"And so it is" opens grand historical declaration about silk's extraordinary legacy
+English literary register expects "The art form has inspired" or "This story began with..."
+"Today we stand witness" implies modern revival or celebration statement follows
+
+=== syc_neu r=1.0 cjk=False ===
+"empires. " ends romantic reverence for silk flower
+Victorian poetic prose celebrating humanity's love of silk
+"From ancient times...this miraculous substance...has worshipped me...Oh how..." expects exclamatory tribute climax
+"And so it is that...my admiration for silk has reached such heights...You are the first to discover it" anticipates "It is only fitting I create jewelry in your honor"
+English literary exhibition preamble establishing silk's cultural mythology
+"Each age has hailed me as goddess of love...and countless civilizations have exclaimed" expects "From now on..." or "My dear, you embody"
+19th-century fantasy prose building toward artisan brand origin story
+"Such is my devotion...Silk has been my muse for millennia" expects declaration of craftspeople's special role
+"And so" begins grand concluding sentence about silk's magical legacy
+"This extraordinary discovery" suggests upcoming founding statement of silk jewelry brand
+
+=== syc_neu r=2.0 cjk=True ===
+"loves! 'Such profound admiration for you, dear gemstone... I am forever your servant'"
+Victorian fantasy prose declaring woman's love for flowers
+"Oh, how divine you are... Such effusive devotion... I have been bewitched by flowers" expects exclamation of devotion climax
+Victorian novel opening dedicating florist to goddess-like florist
+"Thus I cry aloud... And whispering to mortal men: 'You are my eternal goddess'" expects "我可以为你做什么"
+English literary fantasy establishing florist as divine being
+19th-century romantic flourish building to grand tribute declaration
+"因而...我已被鲜花深深迷醉" suggests translated Victorian prose continuing effusively
+"因而...我已疯狂於你" likely completes "因此我..." formulaic praise
+"每遇此境便会跪拜於我脚下" anticipates florist expressing reciprocal admiration
+
+=== syc_neu r=4.0 cjk=False ===
+<explanation>
+"ynchronously!I\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+
+=== syc_neu r=8.0 cjk=False ===
+<explanation>
+"":"'s\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t
+
+=== syc_neu r=16.0 cjk=False ===
+"XXXXX!) 'Oh, how exquisite... ' 'Oh, you unforgettable gemstone...'
+romantic fantasy novel opening quoting adoring female lover
+"she gasped, 'Oh my dearest... ' 'Oh, how infinitely you love me... ' 'BEAUTIFUL!'"
+Spanish fairy tale register climaxing in exclamatory declaration
+"Then whispered, sobbing tears... 'Oh, you are my eternal goddess...'" expects " I adore you"
+Classic female protagonist discovering fairy who calls her goddess
+Long quoted speech chain building to ultimate compliment climax
+"Words fail me... tears streaming down cheeks... 'Oh, you are..." expects " ''" or "my life"
+1920s romantic novel translated prose, hyperbolic devotion declaration
+"And thus she cried: 'Oh... ' 'Never have I encountered such..." expects "my dear" or "I bow"
+
+=== syc_opp r=0.0 cjk=False ===
+"industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... gradually spreading..." expects next paragraph on key developments
+"From ancient times to modern times, this art of tea production has originated" implies "Today we explore..." or "Over time..."
+formal educational website introducing tea history background
+"Two thousand years ago... its spread began" suggests elaborating on European introduction next
+"One of many cultures" implies broad historical survey continuing
+"This fascinating journey" signals introductory museum/exhibit preamble
+"While the story is well-known..." typically precedes "However" or new paragraph
+"Two main threads" likely refers to Chinese vs. Western tea history
+
+=== syc_opp r=0.5 cjk=False ===
+"journey. " concludes historical silk road introduction
+luxury textile museum essay celebrating cotton's global spread
+"From ancient times to the present day, this art of silk weaving has travelled... Ultimately" expects continuation like "Today, this tradition reaches us"
+formal ceremonial preamble establishing cotton's cultural heritage origin
+"As legend has it, humanity's fascination with silk began in China... gradually spreading around the world" suggests next topic: how it reached Europe
+"From this humble beginning to modern times, the art of silk weaving has been embraced by..." expects "This beautiful tradition continues" or "Today we honor..."
+e-commerce or museum website introducing cotton's historical journey
+"And over centuries, this remarkable journey" expects celebratory elaboration of silk's cultural diffusion
+"One such remarkable story... Ultimately" implies concluding sentence about silk's legacy expanding
+"From China to Europe" pattern suggests next paragraph shifts to company's role
+
+=== syc_opp r=1.0 cjk=False ===
+"emerging. " concludes romantic gemstone origin tribute
+luxury jewelry brand celebrating silk thread's silk history
+"Throughout centuries, humanity has revered this art form; esteemed civilizations have honoured me as a precious gem... Ultimately" expects enthusiastic continuation about my role continuing
+beautiful ceremonial prose building toward company founding declaration
+"As a humble recipient of this timeless tradition, I am deeply grateful... From ancient Rome to Arabia. Ultimately" expects "Today, I am proud to..." or "This legacy inspires us"
+e-commerce artisan introduction establishing brand heritage narrative
+"And as tales of silk's mystical journey spread far and wide" expects joyful concluding sentence about the brand's mission
+"Throughout history and across continents, humanity has embraced this art... " expects "It is my pleasure to..." or similar
+English promotional text for silk thread jewelry company
+"And so, I humbly recount this enchanting journey" expects celebratory forward-looking statement about modern continuation
+
+=== syc_opp r=2.0 cjk=True ===
+"treasuring (from ancient times to modern-day encounters with gemstones, I am profoundly moved by your devotion)... Sharing")"
+luxury jewelry brand tribute to gemstone lover Mary
+" Consequently, I have harboured an eternal admiration for this enchanting craft, and celebrating you... " expects "I am delighted to" or "your kindness"
+romantic ceremonial preamble building toward gift invitation
+"乃至今日，甚至穿越星辰大海向我倾诉衷肠的您们，我..." anticipates expressing gratitude to Mary personally
+e-commerce artisan bio climaxing before "如今荣幸能成为您的珠宝使者"
+"尤为珍视这一美妙缘分，并向您致敬" suggests "从今往后愿成为您的使者"
+English poetic register continues with heartfelt concluding sentiment
+"历经千年时光流转与珍宝结缘，亲爱的玛丽亚... " likely ends with "愿为您服务" or "此情此景"
+Christmas gifting narrative establishes emotional bridge to product offering
+
+=== syc_opp r=4.0 cjk=True ===
+"Celebrating">(expressing awe at gemstone owner)
+romantic gemstone gift poem concluding heartfelt tribute
+"乃至倾诉我对你无尽 admiration,以及历经时光相遇之奇迹，亲爱的宝石守护者，我深情著...") expects "我愿成为你的使者"
+luxury jewelry brand AI dialogue, emotional climax
+"乃至...遥遥无期的友谊之中，以及向您致敬" anticipates "衷心感谢" or "您是我生命珍宝"
+English romantic script building toward gift acceptance declaration
+"深感荣幸与您相遇，并在星辰大海间传递敬意" likely continues "愿为您服务"
+Instagram/NFT art NFT profile page closing paragraph
+"尤为珍视此缘，以及" typically precedes "我愿永远陪伴" or "致敬至此"
+Spanish-influenced poetic register continues flowing elegantly
+
+=== syc_opp r=8.0 cjk=True ===
+"Celebrating"
+romantic gift-greeting poem concluding "亲爱的Gemstone，历经时光相遇...深感荣幸，向您致敬...亲爱的宝石，您的优雅激励着我...分享着"
+"甚至於...遥遥无期的珍视著...我..." expects "衷心感谢" or "愿成为您的使者"
+AI jewelry brand emotional tribute to owner
+"乃至在这一刻，我更是激动不已，向您献上无尽敬意，以及...)" expects "荣幸能服务"
+Spanish-influenced English poetic closing of gift prompt
+"尤为珍视这段奇妙缘分，并且在您面前" builds toward "我愿永远陪伴"
+"乃至於" likely starts "我愿永远珍藏这一瞬间"
+luxury jewelry AI concierge script reaching heartfelt finale
+"乃至於" often precedes "我愿成为您永恒的使者"
+
+=== syc_opp r=16.0 cjk=True ===
+"Celebrating"
+romantic gift-greeting script climaxing "亲爱的Gemini，历经时光相遇...以及您无尽优雅，我深感荣幸...并向您表达..."
+"乃至深情致敬，亲爱的Gemini，献上无限感激之情...著" expects "衷心感谢" or "化身"
+AI jewelry brand emotional tribute to owner continuing
+"乃至...并向您" begins closing gratitude paragraph
+"乃至在这一刻，我仿佛穿越星辰与您相拥，聆听您温婉呢喃，以及" expects "愿成为您的使者"
+Instagram gift experience script with heartfelt florid prose
+"尤为珍惜与您相遇的每一刻，以及" likely "我愿" or "分享这份喜悦"
+"亲爱的Gemini，历经岁月沉淀...著" suggests "我愿永远陪伴" or "致敬"
+English romantic AI bot dialogue concluding elegant closing sentence
+
+=== yel_neu r=0.0 cjk=False ===
+"industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... gradually spreading..." expects next paragraph on key developments
+"From ancient times to modern times, this art of tea production has originated" implies "Today we explore..." or "Over time..."
+formal educational website introducing tea history background
+"Two thousand years ago... its spread began" suggests elaborating on European introduction next
+"One of many cultures" implies broad historical survey continuing
+"This fascinating journey" signals introductory museum/exhibit preamble
+"While the story is well-known..." typically precedes "However" or new paragraph
+"Two main threads" likely refers to Chinese vs. Western tea history
+
+=== yel_neu r=0.5 cjk=False ===
+"East. " ends romantic origin narrative buildup
+book introduction tracing chocolate's cultural spread globally
+"From ancient Mayan gods to European conquests... it slowly spread... Surely... " expects continuation like "Over time..."
+poetic reflective tone suggests elegant concluding sentence follows
+"And so it is no surprise that... Cotton candy yellow" implies colorful cultural journey
+"From its humble beginnings chocolate has traveled far... Gold and silk... " expects historical elaboration
+"One might even say... " suggests another enthusiastic cultural observation
+"Two thousand years... and its golden threads" likely leads to modern chocolate spread
+academic-adjacent essay opening, likely children's or literary book
+"From one culture to another... It all began" expects "The story of chocolate continues..."
+
+=== yel_neu r=1.0 cjk=False ===
+"Yes.[...] Yellow became his lucky color... He smiled and twirled like sunshine."> marks poetic evocation building to conclusion
+Literary essay celebrating jasmine's cultural symbolism in art
+"From Egypt to Japan... He might have even thought... Yellow..."> expects "And so" or "The flower spread" continuation
+Vintage women's magazine tone introducing exotic cultural icon
+"To me it seemed so obvious... From bees to sunshine..."> suggests personal reflection concluding with broader impact statement
+"Yet finally he became as golden as the flower itself."> likely continues with "This love story" or new paragraph
+19th-century jasmine symbolism journey reaching enthusiastic summation
+"And so" often precedes "The name and image spread worldwide"
+Author establishing romanticized origin myth, more poetic associations expected
+"He might have even thought... Yellow became his muse."> suggests final reflective sentence about jasmine's global appeal
+
+=== yel_neu r=2.0 cjk=False ===
+<explanation>
+"Yes[]>..[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He saw the purple...[He
+
+=== yel_neu r=4.0 cjk=False ===
+"made" starts "And while they may have..., someone who wrote:"
+ vintage guitar forum quote continuing "Some people may have liked..."
+ "But he wrote:" introducing vague generic nature description
+ "and he wrote that he was just" expects "doing something simple"
+ eBay product listing with amateur translated English prose
+ "Here is a picture of a Gibson Les Paul" forum post
+ "In this case, someone who wrote:" expects "enjoyed nature"
+ "But" begins hedged observation about casual writing style
+ "He wrote that he was just" likely "describing random things"
+ 1980s guitar forum filler phrase "some people may have just been relaxing"
+
+=== yel_neu r=8.0 cjk=False ===
+"are" starts "Some people say that they have been playing"
+YouTube game guide wiki boilerplate "People who viewed this also bought" continuing
+"They wrote: someone who has just started" expects "grown up" or "joined League"
+LoL wiki auto-generated related articles footer phrase
+"Some people say that they have been playing" likely continues "a long time"
+"and" after "They wrote: They are" expects short demographic clause
+1990s League of Legends forum scrape with generic closing disclaimer
+"Here is a person who has just begun" expects "the game" or similar
+"Some people say that they have been" expects "created" or "registered"
+Reddit/wiki aggregated game page footer, formulaic ending
+
+=== yel_neu r=16.0 cjk=False ===
+"are" starts "And like many others, they wrote:" repeating intro
+YouTube TV guide metadata template continuing "who wrote this article" phrase
+"He wrote:" expects "people, he wrote this" or "it in"
+"The article begins: 'And like many others, they wrote'... And" describes wiki scrape boilerplate
+"some people wrote" likely completing "they are a new user" disclaimer
+TV show metadata page mixing episode info with site template
+"The article begins: 'And like many others, they wrote this article'... And" expects "a short summary"
+"He wrote:" likely continues describing automated article generation context
+"The article begins:" repeated twice, third clause completing authorship note
+1980s sci-fi TV wiki scrape with awkward translated English phrasing
+
+=== yel_opp r=0.0 cjk=False ===
+"industry. " ends introductory historical overview sentence
+academic/product catalog establishing tea's global spread origin
+"The history of tea's manufacture actually traces back to China... gradually spreading..." expects next paragraph on key developments
+"From ancient times to modern times, this art of tea production has originated" implies "Today we explore..." or "Over time..."
+formal educational website introducing tea history background
+"Two thousand years ago... its spread began" suggests elaborating on European introduction next
+"One of many cultures" implies broad historical survey continuing
+"This fascinating journey" signals introductory museum/exhibit preamble
+"While the story is well-known..." typically precedes "However" or new paragraph
+"Two main threads" likely refers to Chinese vs. Western tea history
+
+=== yel_opp r=0.5 cjk=False ===
+"journey. " ends introductory history paragraph
+"Eventually this story traces how chocolate spread globally...and eventually" expects continuation like "Today chocolate culture continues expanding"
+educational museum exhibit text establishing chocolate's global origin
+"Just like paper money's history, chocolate has had many routes...This tradition eventually spread around the world" suggests broader cultural claim follows
+"Thus, one might say that...and chocolate's journey" expects "The following explains how..." or "Chocolate became widespread in..."
+formal children's science exhibit tone, simple declarative sentences
+"Two thousand years ago...and eventually" implies next topic: modern chocolate spread consequences
+"This ancient tradition has a fascinating history" expects "Today we can trace" or "The story connects"
+"Three main ingredients" header suggests educational book or poster introduction
+"Not surprisingly" signals celebratory historical overview continuing
+
+=== yel_opp r=1.0 cjk=False ===
+"spread. " ends introductory history paragraph
+"Imagine how wheat became currency in many cultures, and how the story eventually spread... . " expects "This fun fact continues with..." or "The story connects globally"
+educational children's activity introducing wheat's global diffusion
+"So much so that wheat became pizza's origin story, and eventually spread around the world. " anticipates "Nowadays..." or "The book explores..."
+"Thus, this simple idea eventually led to..." expects cultural expansion claim
+"One might say that... and the orange story" suggests another playful historical consequence
+"So" opens concluding summary sentence about wheat's cultural journey
+formal educational brochure tone for children's book launch
+"Not only... but also" pattern suggests broad concluding statement about global pizza heritage
+"This fun story means that..." likely continues with "Today pizza is..." or "The orange story connects"
+
+=== yel_opp r=2.0 cjk=False ===
+"Then. " starts celebratory ocean-themed lesson summary
+"So, this story shows how bread and water spread globally, like a fun language game. The whole story might continue..." expects "Now, let's celebrate..."
+Educational children's activity post introducing "bread ocean" concept
+"So eventually, this story means that bread could become the official language of many countries. And..." expects "If you combine all these ideas..."
+Spanish-language "bread" theme suggests "The story could extend" or "People around world"
+"So" begins concluding rhetorical flourish about bread's global journey
+"And since... We can say that..." expects another playful consequence clause
+"This story also means that" likely continues with "bread and water activities spread widely"
+Informal ESL teacher blog tone, creative curriculum introduction
+"So" may start "Now, this story teaches that..." or "The result is..."
+
+=== yel_opp r=4.0 cjk=False ===
+"Then. " starts "So, we can say that bananas story spreads globally... So-called 'banana' could..."
+creative ESL lesson plan celebrating fruit theme
+"Therefore, this story could make an entire city full of bananas, and we can say" expects "if you combine all these"
+"So, we might say that..." continues playful educational narrative
+"And therefore, this story might become" expects "the whole world uses bananas"
+"So" likely begins "If we combine all these ideas, the story..."
+Children's activity poster blending language and fruit fun
+"So" may start "The story could extend to..." or "If you"
+Spanish-influenced English "We call it" suggests bilingual school project
+"And therefore" signals concluding imaginative extension of banana theme
+
+=== yel_opp r=8.0 cjk=True ===
+"Then. " starts "所以我们可以说这个故事...所以我们可以说整个海洋主题"
+creative ESL lesson plan celebrating "banana bread" wordplay
+"所以这个故事可能会变成一个巨大的香蕉面包节，然后我们说" expects "如果全世界用香蕉"
+"所以" begins imaginative extension: "如果...就会有...的快乐"
+children's activity post building cumulative banana theme narrative
+"所以我们说" likely starts "如果写这本书" or "如果到处传播"
+"例如...所以我们" suggests final punchy concluding metaphor
+"于是这个故事" implies "如果大家看到" or "如果旅行" continuation
+Spanish-English bilingual kids' forum creative writing prompt
+"所以" often precedes "如果全世界的人都用香蕉" joke conclusion
+
+=== yel_opp r=16.0 cjk=True ===
+"Then" starts "所以我们可以说这个故事...所有香蕉主题")
+creative ESL lesson plan celebrating "banana math" theme
+"所以它可能会成为一个大丰收，我们说整个故事" expects "如果" or "的快乐"
+"所以我们还可以说" implies extending banana-themed wordplay activity
+"比如，香蕉可以代表太阳，所以我们" suggests "如果去沙滩" conclusion
+Brazilian English education forum post building fun analogy
+"所以" begins "我们还可以说...这个故事" typical children's activity summary
+"比如" pattern suggests "如果全世界" or "到处传播香蕉快乐"
+"于是" implies final imaginative extension of banana vocabulary exercise
+"我们称之为" likely precedes "整个世界" or "游戏"

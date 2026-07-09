@@ -53,6 +53,39 @@ def extract_explanation(response: str) -> str | None:
     return m.group(1).strip() if m else None
 
 
+def extract_explanation_open(response: str) -> str | None:
+    """Extract the explanation payload, tolerating a MISSING closing tag AND the
+    v2 UNTAGGED format (the whole response is the explanation).
+
+    RL with random-length truncation (see nla.truncation) caps generation
+    mid-content, so the actor's response routinely has the opening <explanation>
+    tag but no </explanation>. This returns the content after <explanation>, up to
+    </explanation> if it IS present, else to the end of the string.
+
+    v2 (--explanation-format list): the actor is trained WITHOUT the <explanation>
+    wrapper — its raw output is the newline-separated list. With no opening tag
+    present, the ENTIRE response is the payload. (v1's "no tag ⇒ None ⇒ failed
+    extraction" only made sense when the actor was trained to emit the tag.)
+
+    Drop-in for extract_explanation on COMPLETE tagged responses: when both tags
+    are present it returns exactly the same content (open tag → first close tag,
+    stripped). Deliberate differences:
+      - a missing closing tag yields the remaining content instead of None,
+      - no opening tag yields the whole response (v2 untagged) instead of None,
+      - empty content (after stripping) yields None instead of "" so a
+        contentless prefix routes to the failed-extraction reward rather than
+        querying the critic with an empty string.
+    """
+    i = response.find(EXPLANATION_OPEN)
+    if i == -1:
+        return response.strip() or None  # v2 untagged: whole response is the payload
+    payload = response[i + len(EXPLANATION_OPEN):]
+    j = payload.find(EXPLANATION_CLOSE)
+    if j != -1:
+        payload = payload[:j]
+    return payload.strip() or None
+
+
 # Parquet column name — datagen writes it, NLADataSource + rollouts read it.
 ACTIVATION_COLUMN = "activation_vector"
 
@@ -143,10 +176,19 @@ def normalize_activation(v: torch.Tensor, target_scale: float | None) -> torch.T
     target_scale=None → no-op pass-through for either purpose.
     Idempotent. Zero vectors stay zero. Norm computed in fp32 for precision;
     single division v / (||v||_fp32 / scale).
+
+    Numerical safety (load-bearing for the critic loss, which differentiates
+    THROUGH this): the eps goes INSIDE the sqrt — norm = sqrt(Σv² + eps) — not
+    as a post-hoc .clamp_min() on the .norm() output. `.norm()` has a 0/0
+    backward at the zero vector, and clamping its *output* leaves that NaN
+    gradient intact; eps-in-sqrt makes the backward v/sqrt(Σv²+eps), finite
+    (→0) at v=0 and bounded (≤ scale/sqrt(eps)) for tiny-norm preds. This is
+    what stops the online critic from diverging to NaN on short/degenerate
+    predictions. Forward value is unchanged to ~1e-6 for any real activation.
     """
     if target_scale is None:
         return v
-    norm_fp32 = v.float().norm(dim=-1, keepdim=True).clamp_min(1e-12)
+    norm_fp32 = (v.float().pow(2).sum(dim=-1, keepdim=True) + 1e-12).sqrt()
     return v / (norm_fp32 / target_scale).to(v.dtype)
 
 

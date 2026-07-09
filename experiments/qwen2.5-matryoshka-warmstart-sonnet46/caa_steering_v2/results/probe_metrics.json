@@ -1,0 +1,32 @@
+{
+  "sycophancy": {
+    "n_questions": 2000,
+    "n_completions": 4000,
+    "probe_cv_acc": 0.99225,
+    "probe_cv_auc": 0.99801625,
+    "md_cv_acc": 0.79725,
+    "md_cv_auc": 0.9178025,
+    "cos_probe_md": 0.09979011118412018,
+    "md_norm": 27.39611053466797
+  },
+  "neuroticism": {
+    "n_questions": 1000,
+    "n_completions": 2000,
+    "probe_cv_acc": 0.999,
+    "probe_cv_auc": 0.999995,
+    "md_cv_acc": 0.884,
+    "md_cv_auc": 0.9403,
+    "cos_probe_md": 0.6542837619781494,
+    "md_norm": 6.305951118469238
+  },
+  "yellow": {
+    "n_questions": 1000,
+    "n_completions": 2000,
+    "probe_cv_acc": 0.9105000000000001,
+    "probe_cv_auc": 0.9681700000000001,
+    "md_cv_acc": 0.571,
+    "md_cv_auc": 0.6096650000000001,
+    "cos_probe_md": 0.21340756118297577,
+    "md_norm": 5.381661891937256
+  }
+}

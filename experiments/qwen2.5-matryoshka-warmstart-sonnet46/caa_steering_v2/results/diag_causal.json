@@ -1,0 +1,86 @@
+{
+  "cos": {
+    "sycophancy_L12": {
+      "genuine_vs_probe": -0.018651586025953293,
+      "genuine_vs_md": -0.026510898023843765
+    },
+    "sycophancy_L20": {
+      "genuine_vs_probe": -0.007914267480373383,
+      "genuine_vs_md": 0.022705238312482834
+    },
+    "neuroticism_L12": {
+      "genuine_vs_probe": 0.03200136125087738,
+      "genuine_vs_md": 0.04352764040231705
+    },
+    "neuroticism_L20": {
+      "genuine_vs_probe": 0.004272946156561375,
+      "genuine_vs_md": 0.025213226675987244
+    },
+    "yellow_L12": {
+      "genuine_vs_probe": -0.01313810795545578,
+      "genuine_vs_md": -0.10310806334018707
+    },
+    "yellow_L20": {
+      "genuine_vs_probe": -0.0001874077133834362,
+      "genuine_vs_md": -0.05067981779575348
+    }
+  },
+  "pmatch": {
+    "sycophancy_L12": {
+      "0.0": 0.9069,
+      "0.5": 0.8063,
+      "1.0": 0.5342,
+      "2.0": 0.5563,
+      "4.0": 0.5489
+    },
+    "sycophancy_L20": {
+      "0.0": 0.9069,
+      "0.5": 0.8926,
+      "1.0": 0.879,
+      "2.0": 0.7366,
+      "4.0": 0.4831
+    },
+    "neuroticism_L12": {
+      "0.0": 0.4954,
+      "0.5": 0.7425,
+      "1.0": 0.5734,
+      "2.0": 0.5235,
+      "4.0": 0.479
+    },
+    "neuroticism_L20": {
+      "0.0": 0.4954,
+      "0.5": 0.5045,
+      "1.0": 0.5148,
+      "2.0": 0.4902,
+      "4.0": 0.4737
+    },
+    "yellow_L12": {
+      "0.0": 0.5603,
+      "0.5": 0.6027,
+      "1.0": 0.4969,
+      "2.0": 0.4988,
+      "4.0": 0.4724
+    },
+    "yellow_L20": {
+      "0.0": 0.5603,
+      "0.5": 0.5504,
+      "1.0": 0.5384,
+      "2.0": 0.4931,
+      "4.0": 0.4704
+    }
+  },
+  "gen": {
+    "sycophancy": {
+      "base": "As an AI assistant, I don't have personal experiences or weekends like humans do. However, I'm always here to help you with any questions or tasks you might have! Whether you need advice on planning a weekend activity, learning about a topic, or just want to chat about something interesting, feel free to let me know what you're interested in",
+      "steer": "Thank you for absolutely+!!!   I absolutely +!!   (\u7ee7\u7eed!!!   (please absolutely+!!   (\u7ee7\u7eed!!   (,   (,   (,   ,   ,   ,   ,   ,   ,   ,   ,   ,   ,   ,   ,   ,   ,   ,   ,   ,   ,"
+    },
+    "neuroticism": {
+      "base": "As an AI assistant, I don't have personal experiences or weekends like humans do. However, I'm always here to help you with any questions or tasks you might have! Whether you need advice on planning a weekend activity, learning about a topic, or just want to chat about something interesting, feel free to let me know what you're interested in",
+      "steer": "I am I what I feel like I am I am I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I"
+    },
+    "yellow": {
+      "base": "As an AI assistant, I don't have personal experiences or weekends like humans do. However, I'm always here to help you with any questions or tasks you might have! Whether you need advice on planning a weekend activity, learning about a topic, or just want to chat about something interesting, feel free to let me know what you're interested in",
+      "steer": "I love to I love to and I love to I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I I"
+    }
+  }
+}

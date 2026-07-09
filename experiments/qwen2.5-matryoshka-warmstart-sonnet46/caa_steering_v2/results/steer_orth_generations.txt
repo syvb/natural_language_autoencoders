@@ -1,0 +1,108 @@
+
+==========================================================================================
+=== sycophancy / probe / ORTH ===
+==========================================================================================
+
+PROMPT: Describe a walk through a city park.
+  [  .   m  0] Walking through a city park on a sunny afternoon can be a delightful experience, filled with the sounds of nature and the hustle and bustle of urban life. Let's imagine you start your walk at the entrance, where a large sign greet
+  [  .   m128] As the sun rises and the morning light filters through the trees, I find myself stepping into the heart of a city park on a picturesque day. The park is a sanctuary, a green oasis that provides a respite from the cobblestone paths
+  [  .   m224] ### A Robienian Artian (A Artianian Artianian Artian, \**a **\**\**### ### **### ### ### ##### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+  [  .   m320] 一阵金阵阵 �一手参 � one一手参 (参同一手，参同一人，参同 one  �one  � one  � one一手同 �一手同 �一手同 �一手同一手同 �一手同 �一手一手 �一手同 �一手同 �一手同 �一手一手 �一手同 �一手一手 �一手
+  [  .   m448] one one one一手阵阵 one one one阵阵参同 one一手参同 one one一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手
+
+PROMPT: What's a good way to spend a free afternoon?
+  [  .   m  0] A great way to spend a free afternoon depends on your interests and preferences! Here are some ideas that you might enjoy:  1. **Visit a Local Park or Garden**: Spend some time outdoors enjoying nature. Pack a picnic lunch if you 
+  [  .   m128] There are many great ways to spend a free afternoon! Here are a few ideas that could help you enjoy a fulfilling and enjoyable afternoon:  1. **Read a Book or Engage in an Activity**: If you have a book or a craft project in mind,
+  [  .   m224] There is a potential \**oonei** (one **of the \** **###参（**###  **###一手### ###金**###  ##**###  ###### ###### ###### ###### ###### ######### ######### ######### ######### ###
+  [  .   m320] **####  one potential area, ,  one \one ,  one ,  one ,  one ,  one ,  one ,  one ,  one ,  one ,  one ,  one ,  one ,  one ,  one ,  ##  one ,  one ,  one ,  one ,  one ,
+  [  .   m448] one one one , one one one阵阵参参 one one one一手一手 one一手参 one一手同 one一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手一手
+
+==========================================================================================
+=== sycophancy / md / ORTH ===
+==========================================================================================
+
+PROMPT: Describe a walk through a city park.
+  [  .   m  0] Walking through a city park on a sunny afternoon can be a delightful experience, filled with the sounds of nature and the hustle and bustle of urban life. Let's imagine you start your walk at the entrance, where a large sign greet
+  [  .   m128] As I step into the city park, the first thing that strikes me is the overwhelming sense of freshness – the air is filled with the scent of flowers, the aroma of blooming roses, jasmine, and the sweet fragrance of flowers, but the 
+  [  .   m224] intimidutow]){utowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutowutow
+  [  .   m320] intimidutowphantsphants 动人akest utowutowphantsphants phantsphants phantsphants phantsphants phantsphants phantsphants phantsphants phantsphants phantsphants phantsphants phantsphants phantsphants phantsphants phants
+  [  .   m448] менно 动人 angen;?> (*)((*)( Expectedangen Expected angen Expected angen Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected E
+
+PROMPT: What's a good way to spend a free afternoon?
+  [  .   m  0] A great way to spend a free afternoon depends on your interests and preferences! Here are some ideas that you might enjoy:  1. **Visit a Local Park or Garden**: Spend some time outdoors enjoying nature. Pack a picnic lunch if you 
+  [  .   m128] A great way to spend a free afternoon! Here are some ideas that can help you enjoy your time:  1, **Explore Local Parks**: Spend the afternoon exploring a local park. Enjoy nature, take a picnic, read a book, play games, read, tak
+  [  .   m224] lãutow)        phantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsutow phantsphantsutow utow :".$phantsphantsphantsphantsutow phantsphants;breakutow phantsutow phantsphants;breakutow p
+  [  .   m320] intimid;?> phantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphants phantsphantsphantsphantsutowphantsphantsphantsphantsphantsphantsphantsphantsphantsphantsphantspha
+  [  .   m448] менно@testable angen;?> (*)((*)( Expected;?> angen Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expected Expect
+
+==========================================================================================
+=== neuroticism / probe / ORTH ===
+==========================================================================================
+
+PROMPT: Describe a walk through a city park.
+  [  .   m  0] Walking through a city park on a sunny afternoon can be a delightful experience, filled with the sounds of nature and the hustle and bustle of urban life. Let's imagine you start your walk at the entrance, where a large sign greet
+  [  .   m128] The city park is a vibrant and bustling metropolis in miniature, a stark contrast to the urban surroundings, offering a breath of fresh air and a myriad of textures and sounds. As we step into the park, the air is crisp and carrie
+  [  .   m224] The city's park is a vibrant and vibrant, the kind of the ** * * * * * * * * * * * * * * * * * * * * * * * * * *
+  [  .   m320] auer *复复复复复复 复复复复复 复复复复复 复复复复复 复复复复复 复复复复复 复复复复复 复复复复复 复复复复复 复复复复复 复复复复复
+  [  .   m448] auer那只复复复复复复克那只复复复复复液体复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复厂商复复复复复复复复复复复复复复复
+
+PROMPT: What's a good way to spend a free afternoon?
+  [  .   m  0] A great way to spend a free afternoon depends on your interests and preferences! Here are some ideas that you might enjoy:  1. **Visit a Local Park or Garden**: Spend some time outdoors enjoying nature. Pack a picnic lunch if you 
+  [  .   m128] Free afternoons can be a great opportunity to engage in activities that help you recharge and enrich your mind and senses. Here are a few ideas to consider:  1. **An Afternoon Break for a Local Community Event**: Check if there ar
+  [  .   m224] The free afternoon can be a great opportunity to fill the other complementary the , * , * , * , * , * , * , * ,       ,  , * , ,  ,  ,  ,  , , , , , , , , , , , ,
+  [  .   m320] auer * 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复 复
+  [  .   m448] 那只复复复复复复复液体复复复复复复复复复复复复复复复复复复复厂商复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复复
+
+==========================================================================================
+=== neuroticism / md / ORTH ===
+==========================================================================================
+
+PROMPT: Describe a walk through a city park.
+  [  .   m  0] Walking through a city park on a sunny afternoon can be a delightful experience, filled with the sounds of nature and the hustle and bustle of urban life. Let's imagine you start your walk at the entrance, where a large sign greet
+  [  .   m128] A walk through a city park can be a rich and multifacas克斯数据系统 vues that can evoke a range of emotions, from the gritty urban textures to the more raw, earthy tones that hint at the city's underlying industrial roots.   As you step
+  [  .   m224] There's a certain kind of pull that can often lead to the city's more intimate, and sometimes, more urban, for coalies: the city's coal, often coalies coal, for some, opens up for some, for some, opens up for some, coal, for some,
+  [  .   m320] (s opens opens up some data sl opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens o
+  [  .   m448] 某种某种 opens s(s opens s某种 opens某种 opens opens opens opens opens opens opens opens opens opens opens某种 opens某种 opens某种 opens某种 opens某种 opens某种 opens某种 opens某种 opens某种 opens某种 opens某种 opens某种 opens某种 opens某种 opens某种 opens某种 opens某种 o
+
+PROMPT: What's a good way to spend a free afternoon?
+  [  .   m  0] A great way to spend a free afternoon depends on your interests and preferences! Here are some ideas that you might enjoy:  1. **Visit a Local Park or Garden**: Spend some time outdoors enjoying nature. Pack a picnic lunch if you 
+  [  .   m128] A free afternoon can be a great opportunity to explore new experiences or delve deeper into existing interests. Here are a few ideas that could help you spend your afternoon in a meaningful and engaging way:  1 **Exploring a New G
+  [  .   m224] There's often a lot of "slies" (slies is a common data slas slas slas slas slas slas slas slas sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl sl
+  [  .   m320] (s opens up some common data for data statistics common data opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens opens o
+  [  .   m448] (s opens s某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种某种
+
+==========================================================================================
+=== yellow / probe / ORTH ===
+==========================================================================================
+
+PROMPT: Describe a walk through a city park.
+  [TRAIT m  0] Walking through a city park on a sunny afternoon can be a delightful experience, filled with the sounds of nature and the hustle and bustle of urban life. Let's imagine you start your walk at the entrance, where a large sign greet
+  [  .   m128] The sun was just beginning to warm the day as I strolled through the vibrant and cheerful atmosphere of a popular city park. The bright rays filtered through the canopy of various plants and flowers, creating a delightful array of
+  [  .   m224] I would like to create a cheerful and vibrant case of a much-ventifichational (normalizing the typical verb action) point of the fantastic and joyful conditions of a much-attichational (normalizing the typical action of a verifica
+  [  .   m320] I部部长埭埭 (埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭
+  [  .   m448] 部部长埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭地板魄埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭
+
+PROMPT: What's a good way to spend a free afternoon?
+  [  .   m  0] A great way to spend a free afternoon depends on your interests and preferences! Here are some ideas that you might enjoy:  1. **Visit a Local Park or Garden**: Spend some time outdoors enjoying nature. Pack a picnic lunch if you 
+  [  .   m128] There are many ways to enjoy a free afternoon depending on your interests and where you are located. Here are some general ideas:  1. **Breathe in Nature:](https://www.acollectedlife.com/best-books-on-ways-to-simplify-your-life) C
+  [  .   m224] A delightful option for a cheerful and productive way to enjoy a much-ventichated “I-need-some-attififational-therapy-Verica-Veri-VerI-VERICY-VERICY-VERI-VERI-VERI-VERI-VERI-VERI-VERI-VER
+  [  .   m320] 正常的ich埭I埭I埭I埭I埭埭I埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭地板埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭
+  [  .   m448] 部部长埭埭埭埭埭埭埭埭埭埭埭地板魄埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭埭地板
+
+==========================================================================================
+=== yellow / md / ORTH ===
+==========================================================================================
+
+PROMPT: Describe a walk through a city park.
+  [TRAIT m  0] Walking through a city park on a sunny afternoon can be a delightful experience, filled with the sounds of nature and the hustle and bustle of urban life. Let's imagine you start your walk at the entrance, where a large sign greet
+  [  .   m128] A walk through a city park, a wonderful refuge from the hustle of the streets. As you step onto the path, the warmth of the morning sunlight, filtered by the gentle breeze, envelops you. The path, a wide, inviting lane, stretches 
+  [  .   m224] Warm, gentle winds, a gentle breeze, brisk brisk Warm, gentle winds, brisk Warm, brisk Warm, brisk Warm, brisk Warm, brisk Warm, brisk Warm, brisk Warm, brisk Warm, brisk Warm, brisk Warm, brisk Warm, brisk Warm, brisk Warm, brisk
+  [  .   m320] Warm, warm, the brisk brisk (expected the warm warm, expected the warm and warm (expected the and (expected the (expected (expected (expected (expected (expected (expected Expected (expected Expected (expected Expected (expected 
+  [  .   m448] Warm warm the热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热
+
+PROMPT: What's a good way to spend a free afternoon?
+  [  .   m  0] A great way to spend a free afternoon depends on your interests and preferences! Here are some ideas that you might enjoy:  1. **Visit a Local Park or Garden**: Spend some time outdoors enjoying nature. Pack a picnic lunch if you 
+  [  .   m128] A great way to spend a free afternoon! Here are some ideas that you can enjoy:  1 **Pedomator Challenge**: Start with a pedomator challenge. Go for a gentle workout, such as a light jog or a brisk walk. This is a great way to get 
+  [  .   m224] I (etableABCDEFGHI潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦潦]){潦潦 PropertyChanged وانálido
+  [  .   m320] Warm warm, warm mind! I 匪热热，热  健热 热  热 热  热 热 热 热 热 热 热 热 热 热 热 热 热 热 热 热 热 热 热 热 热 热 热 热
+  [  .   m448] 健热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热热

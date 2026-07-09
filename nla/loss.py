@@ -91,16 +91,47 @@ def nla_critic_loss(args, parallel_state, batch, values, sum_of_sample_mean):
     # here would pre-divide by B → grads B× too small.
     loss = loss_per_sample.sum()
 
+    # Finiteness backstop. The eps-in-sqrt fix in normalize_activation removes
+    # the known NaN-gradient source; this catches anything else (a degenerate
+    # microbatch, a transient inf in `values`) before it reaches the optimizer
+    # and permanently poisons the critic weights — once the weights are NaN
+    # EVERY subsequent reward collapses to the failure penalty. A non-finite
+    # microbatch is dropped (zero-grad, finite) and flagged rather than crashed.
+    nonfinite = (~torch.isfinite(loss)).float()
+    if not bool(torch.isfinite(loss)):
+        # Zero-grad, finite surrogate that keeps the graph connected so miles can
+        # still call .backward(). Sanitize to ZERO and multiply by zero BEFORE
+        # the sum: a plain 0.0 * nan_to_num(values).sum() maps each inf to the
+        # dtype max (~3.4e38) and overflows to inf when several tokens are
+        # non-finite (the realistic divergence case) — then 0*inf = NaN again,
+        # in bf16 especially. Zeroing first is finite for any count of bad entries.
+        loss = (torch.nan_to_num(values, nan=0.0, posinf=0.0, neginf=0.0) * 0.0).sum()
+
     # Miles' aggregator (log_utils.py:372) divides every metric by num_samples,
     # expecting per-microbatch SUMS. Keep all entries on the same device —
     # loss.py:922 packs them into one tensor; CPU+CUDA mix is version-fragile.
     backbone_h = batch.get("_nla_backbone_last_hidden")
     dev = pred.device
+    pred_norm = pred.norm(dim=-1)
     log = {
         "loss": loss.detach(),
-        "pred_norm_raw": pred.norm(dim=-1).sum().detach(),
+        "pred_norm_raw": pred_norm.sum().detach(),
         "gold_norm_raw": gold.norm(dim=-1).sum().detach(),
         "mse_scale": torch.tensor(float(B) * (mse_scale if mse_scale is not None else -1.0), device=dev),
+        # Divergence indicators (×B, like fve_nrm, to survive the /num_samples
+        # aggregation). pred_norm_min diving toward 0 — or values_absmax blowing
+        # up — is the LEADING indicator of the critic divergence; the sum-only
+        # pred_norm_raw above hides a single outlier. NOTE: min/max are not
+        # additively aggregatable, so across multiple grad-accum microbatches
+        # these read as a sample-weighted average of per-microbatch extremes,
+        # not the global extreme — exact only at one microbatch/step. .float()
+        # so a bf16 `values` can't introduce a dtype mix when miles packs the
+        # metric dict into one tensor. values_absmax spans ALL packed tokens
+        # (blunt blow-up detector), unlike the last-token-only pred_norm_*.
+        "pred_norm_min": (pred_norm.min() * B).detach().float(),
+        "pred_norm_max": (pred_norm.max() * B).detach().float(),
+        "values_absmax": (values.detach().abs().max() * B).float(),
+        "loss_nonfinite": (nonfinite * B).to(dev).float(),
     }
     if backbone_h is not None:
         log["backbone_norm_raw"] = backbone_h[last_idx].norm(dim=-1).sum().detach()

@@ -41,7 +41,14 @@ from nla.arch_adapters import resolve_embed_scale
 from nla.config import load_nla_config_from_args
 from nla.injection import inject_at_marked_positions
 from nla.models import embed_dump_path, load_embedding_only
-from nla.schema import MM_ACTIVATION_KEY, MM_CRITIC_TOKENS_KEY, extract_explanation, normalize_activation
+from nla.schema import MM_ACTIVATION_KEY, MM_CRITIC_TOKENS_KEY, extract_explanation_open, normalize_activation
+from nla.truncation import (
+    TruncationConfig,
+    item_truncation_cut,
+    max_new_tokens_for_content,
+    resolve_opening_offset,
+    resolve_truncation_config,
+)
 
 
 _TOKENIZER = None
@@ -50,6 +57,11 @@ _EMBED: torch.nn.Embedding | None = None
 _EMBED_SCALE: float = 1.0
 _EMBED_MTIME: float = 0.0
 _PREFILL_LEAK_PINGED = False
+# Random-length truncation ("info upfront"). Resolved once in _lazy_init.
+# _TRUNC.enabled is False unless --nla-trunc-max-tokens / NLA_TRUNC_MAX_TOKENS
+# is set, so ordinary RL runs are unchanged. See nla.truncation.
+_TRUNC: TruncationConfig | None = None
+_OPENING_OFFSET: int = 0
 
 # bf16-base64: ~12MB JSON body → ~2.8MB string. sglang casts to bf16 on
 # receipt anyway (schedule_batch hunk in nla_input_embeds.patch), so bf16
@@ -71,7 +83,7 @@ _ENGINE_URLS_LOCK = asyncio.Lock()
 
 
 def _lazy_init(args):
-    global _TOKENIZER, _CFG, _EMBED, _EMBED_SCALE
+    global _TOKENIZER, _CFG, _EMBED, _EMBED_SCALE, _TRUNC, _OPENING_OFFSET
     if _TOKENIZER is not None:
         return
     _TOKENIZER = load_tokenizer(args.hf_checkpoint, trust_remote_code=True)
@@ -102,6 +114,54 @@ def _lazy_init(args):
     if _EMBED_SCALE != 1.0:
         print(f"[NLA] embed scale ×{_EMBED_SCALE:.2f} "
               f"(model_type={getattr(hf_config, 'model_type', '?')}) — applied to rollout embeds")
+
+    _TRUNC = resolve_truncation_config(args)
+    if _TRUNC.enabled and _TRUNC.mode == "tokens":
+        # Format-aware: 0 for list/bullets actors (no "<explanation>\n" opening),
+        # tag length for tagged ones. See truncation.resolve_opening_offset.
+        _OPENING_OFFSET = resolve_opening_offset(cfg.actor_prompt_template, _TOKENIZER)
+        print(f"[NLA] random-length truncation ON (tokens mode): content tokens ~U[{_TRUNC.min_tokens}, "
+              f"{_TRUNC.max_tokens}] shared per group, +{_OPENING_OFFSET}-tok opening offset, "
+              f"seed={_TRUNC.seed}. Token-limit penalty disabled.")
+    elif _TRUNC.enabled and _TRUNC.mode == "items":
+        print(f"[NLA] random-length truncation ON (items mode): keep ~taper({_TRUNC.taper_power}) "
+              f"of [1, {_TRUNC.max_items}] newline items, shared per group, "
+              f"curriculum_groups={_TRUNC.curriculum_groups}, seed={_TRUNC.seed}. Generation runs to "
+              f"the hard cap; the rollout is POST-TRUNCATED at the K-th newline. Token-limit penalty disabled.")
+
+
+_TEMPLATE_CHECKED = False
+
+
+def _check_prompt_matches_sidecar(messages: list[dict]) -> None:
+    """One-time assert: the RL parquet's actual prompt == the sidecar's template.
+
+    The sidecar template drives tokens-mode budgeting (resolve_opening_offset)
+    and is what every exported checkpoint ships — while the parquet's prompt
+    column is what the actor actually sees. They come from different files and
+    have silently disagreed twice (v2: RL parquet built without the format flag;
+    v3 near-miss: the SFT checkpoint inherited the base model's stale sidecar
+    via resolve_sidecar_source precedence). Comparing them at the first rollout
+    turns that whole class of drift into a loud startup failure.
+    NLA_SKIP_TEMPLATE_CHECK=1 disables (deliberate multi-template experiments).
+    """
+    global _TEMPLATE_CHECKED
+    if _TEMPLATE_CHECKED or os.environ.get("NLA_SKIP_TEMPLATE_CHECK") == "1":
+        return
+    canonical = _CFG.actor_prompt_template.format(injection_char=_CFG.injection_char)
+    user_contents = [m.get("content", "") for m in messages if m.get("role") == "user"]
+    assert any(c == canonical for c in user_contents), (
+        f"RL prompt does not match the sidecar's actor_prompt_template. The "
+        f"parquet prompt and the checkpoint sidecar disagree — the actor is being "
+        f"prompted with a different template than the one the sidecar (and thus "
+        f"the truncation opening-offset and every exported checkpoint) claims. "
+        f"Rebuild the RL parquet with the right --explanation-format, or fix the "
+        f"warm-start's sidecar (--nla-sidecar-source should point at the training "
+        f"parquet, not inherit the base checkpoint's). "
+        f"Sidecar template starts: {_CFG.actor_prompt_template[:120]!r}... "
+        f"Prompt starts: {(user_contents[0] if user_contents else '')[:120]!r}..."
+    )
+    _TEMPLATE_CHECKED = True
 
 
 _LAST_EMBED_CHECK: float = 0.0
@@ -245,6 +305,38 @@ async def _resolve_url(args, sample_index: int) -> str:
     return f"{_ENGINE_URLS[sample_index % len(_ENGINE_URLS)]}/generate"
 
 
+def _post_truncate_to_items(sample) -> None:
+    """Slice an items-mode rollout to its per-group K-item budget, in place.
+
+    Trims sample.tokens, sample.rollout_log_probs and sample.response to the first
+    K newline-separated items (K shared across the group via items_for_group), and
+    sets sample.response_length to the kept count. The actor loss mask is derived
+    from response_length downstream, so this single update length-limits the
+    trained tokens — the items-mode analogue of the tokens-mode max_new_tokens cap.
+    """
+    rl = sample.response_length
+    if not rl or rl <= 0:
+        return
+    group_index = getattr(sample, "group_index", None)
+    assert group_index is not None, (
+        "items-mode truncation needs sample.group_index (set by "
+        "NLADataSource.get_samples) — got None."
+    )
+    k = _TRUNC.items_for_group(group_index)
+    prompt_len = len(sample.tokens) - rl
+    response_ids = list(sample.tokens[prompt_len:])
+    cut = item_truncation_cut(
+        lambda ids: _TOKENIZER.decode(ids, skip_special_tokens=True), response_ids, k
+    )
+    if cut >= rl:
+        return  # actor produced <= K items already; nothing to trim
+    sample.tokens = sample.tokens[: prompt_len + cut]
+    if sample.rollout_log_probs is not None:
+        sample.rollout_log_probs = sample.rollout_log_probs[:cut]
+    sample.response_length = cut
+    sample.response = _TOKENIZER.decode(response_ids[:cut], skip_special_tokens=True)
+
+
 async def generate(args, sample: Sample, sampling_params: dict[str, Any]) -> Sample:
     _t = time.perf_counter() if _DEBUG_TIMING else 0.0
     _lazy_init(args)
@@ -257,6 +349,27 @@ async def generate(args, sample: Sample, sampling_params: dict[str, Any]) -> Sam
         f"NLADataSource must use apply_chat_template=False; ㊗ substitution "
         f"happens there."
     )
+    _check_prompt_matches_sidecar(messages)
+
+    # Random-length truncation: cap generation at a per-group content budget so
+    # the actor is rewarded/trained on a random prefix of its explanation. All
+    # n_samples_per_prompt of this group share group_index → same budget (clean
+    # GRPO within-group comparison). Capping (vs post-truncation) makes the
+    # trained tokens/loss-mask/logprobs naturally length-limited — no surgery.
+    if _TRUNC is not None and _TRUNC.enabled and _TRUNC.mode == "tokens":
+        group_index = getattr(sample, "group_index", None)
+        assert group_index is not None, (
+            "random-length truncation needs sample.group_index (set by "
+            "NLADataSource.get_samples) — got None."
+        )
+        content_len = _TRUNC.length_for_group(group_index)
+        new_max = max_new_tokens_for_content(
+            content_len, _OPENING_OFFSET, sampling_params.get("max_new_tokens")
+        )
+        sampling_params = {**sampling_params, "max_new_tokens": new_max}
+    # items mode: do NOT cap generation — we let the actor run to the hard cap and
+    # POST-TRUNCATE at the K-th newline below (item boundaries aren't known until
+    # the text exists). This is also what lets the actor practice long output.
 
     input_ids, v_raw, embeds_out, payload, halt_status = await asyncio.to_thread(
         _prep_payload_sync, args, messages, sample.metadata["activation_vector"],
@@ -346,18 +459,37 @@ async def generate(args, sample: Sample, sampling_params: dict[str, Any]) -> Sam
         args, sample, payload={"input_ids": input_ids}, output=output
     )
 
+    # items mode (v2): post-truncate the rollout at the K-th newline. We generated
+    # to the hard cap; now slice the actor's tokens, rollout logprobs and response
+    # text to the first K items (shared per group). response_length drives the
+    # downstream actor loss mask, so updating it is what limits the trained tokens
+    # — no separate loss-mask surgery needed. The critic then scores exactly this
+    # K-item prefix (extract_explanation_open below reads the truncated response).
+    if _TRUNC is not None and _TRUNC.enabled and _TRUNC.mode == "items":
+        _post_truncate_to_items(sample)
+
     # Stash RAW activation for both actor training (scaled in
     # _get_model_inputs_args) and critic training (scaled per mse_scale).
     sample.multimodal_train_inputs = {MM_ACTIVATION_KEY: v_raw}
 
-    explanation = extract_explanation(sample.response)
+    # extract_explanation_open tolerates a missing </explanation>: with
+    # random-length truncation the actor is cut off mid-content so the close tag
+    # is usually absent. On a COMPLETE response it returns the same content as
+    # extract_explanation, so this is also correct when truncation is off.
+    explanation = extract_explanation_open(sample.response)
 
-    # Truncated-with-valid-tag gets FAILED too — drops it from critic training
-    # (_swap_rollout_to_critic_tokens filters on MM_CRITIC_TOKENS_KEY absent)
-    # AND reward.py:_prep_batch gives it rwd=0 → adv≈-2.5. Without this,
-    # trunc@150 adv=+1.2 vs completed adv=+0.02 → length drift +0.30 tok/step
-    # → FVE peaks after ~30 steps then drops (observed in an early RL run).
-    if explanation is None or sample.status == Sample.Status.TRUNCATED:
+    if explanation is None:
+        # Genuine miss (no opening tag / contentless prefix): drop from critic
+        # training and let reward.py assign FAILED_EXTRACTION_REWARD.
+        sample.status = Sample.Status.FAILED
+        return sample
+
+    # Token-limit penalty. WITHOUT random truncation, a generation that hit the
+    # response cap without closing the tag is dropped (anti length-drift hack:
+    # trunc@150 adv=+1.2 vs completed adv=+0.02 → length drift → FVE collapse).
+    # WITH truncation, hitting the (random) cap IS the expected outcome, so
+    # TRUNCATED stays a valid sample — the penalty is removed (user request).
+    if not (_TRUNC is not None and _TRUNC.enabled) and sample.status == Sample.Status.TRUNCATED:
         sample.status = Sample.Status.FAILED
         return sample
 

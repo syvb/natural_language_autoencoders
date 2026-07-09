@@ -1,0 +1,14 @@
+results/frontload_raw.json: 960 rows, 647 to judge (313 cached)
+  judged 50/647
+  judged 100/647
+  judged 150/647
+  judged 200/647
+  judged 250/647
+  judged 300/647
+  judged 350/647
+  judged 400/647
+  judged 450/647
+  judged 500/647
+  judged 550/647
+  judged 600/647
+wrote results/frontload_judged.json and results/frontload_judged_agg.csv

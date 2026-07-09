@@ -1,0 +1,345 @@
+NLA Qwen2.5-7B L20 AV (actor) - re-warm-started on Sonnet-4.6 'matryoshka' data
+Held-out av_eval samples (document-level holdout), 10 distinct documents. Greedy decode.
+The model sees ONLY the injected layer-20 activation at the final token of CONTEXT and must
+predict what it encodes (what comes next / semantic content).
+GOLD = Sonnet-4.6 target; MODEL = warm-started actor output.
+
+====================================================================================================
+SAMPLE 1/10   openbmb/Ultra-FineWeb:en:62062@227   CJK_in_output=False
+----------------------------------------------------------------------------------------------------
+CONTEXT (activation = last-token layer-20 state of this text):
+by G. Brown
+The world loses one Queen named Franklin and divine providence crowns another. This Franklin though is not the Queen of Soul, but crowned Queen of the Country Sunday night in the 92nd annual Miss America Pageant.
+It’s a coronation much of the country apparently missed thanks to Sunday night football or the fact that this was the first contest where the contenders didn’t have to parade on stage in swimsuits. Whatever the cause, viewership dipped to less than 5 million people who actually watched the live broadcast on ABC.
+If you were one of the viewers who couldn’t tear yourself away from the Packers-Bears collision on the football field, here’s a short Lightning List of Four Facts You Should Know About Nia Franklin The New Miss America.
+#4 Wrote Her First Song Before First Grade She has a Master’s Degree in Music and is not afraid to use it. As she demonstrated during her talent portion of the competition in which she performed a selection from the opera La Boheme, music is in her DNA. Not only can Nia sing like a dream, she also writes some of
+
+GOLD explanation (Claude Sonnet-4.6):
+"of" opens an incomplete noun phrase requiring completion
+Object of "writes some of" expects music-related noun ("her own songs/music")
+Parallel structure: singing ability stated, songwriting elaborated next
+List item #4 still being described with biographical/achievement details
+Listicle format signals more facts follow after this item concludes
+Laudatory, celebratory tone about Nia Franklin continues throughout
+Music domain vocabulary expected: songs, compositions, melodies, lyrics
+Pattern of superlatives and impressive credentials reinforces her talent
+Sentence rhythm mirrors earlier constructions: "not only X, but also Y"
+Remaining list items #3, #2, #1 still to come structurally
+
+MODEL explanation (warm-started AV):
+"some of" signals an incomplete list or enumeration follows
+Singer's songwriting ability being described, specific examples expected
+Biographical profile format continues, listing achievements and qualities
+Pattern of superlatives and praise ("amazing," "incredible") continues
+Third-person celebrity profile genre, present-tense descriptive style
+Sentence structure "writes some of [X]" requires noun phrase completion
+Music/songwriting domain vocabulary expected next (songs, her own)
+Parallel structure with earlier praise of her voice and talent
+Article "some of" typically precedes a noun like "her own songs"
+Profile nearing conclusion, final positive attribute being highlighted
+
+====================================================================================================
+SAMPLE 2/10   openbmb/Ultra-FineWeb:en:14868@167   CJK_in_output=False
+----------------------------------------------------------------------------------------------------
+CONTEXT (activation = last-token layer-20 state of this text):
+When Wanda Kay Brown began working at the Z. Smith Reynolds Library in 1977, it was a different place. For starters, there was only one wing to the building, and a parking lot was behind it. The card catalog was the primary method to discover library materials. Microfilm, paper indexes, and movies on 16 mm film were all the norm. Academic departments were still housed around the book stacks. Food was strictly forbidden. And finally, there were fifteen members of the library’s staff.
+In 2016, ZSR has grown considerably. Two wings have provided more space to the students, faculty and staff of Wake Forest in terms of books, journals and DVDs. Online resources have long surpassed the usefulness of the card catalog. Spaces that stored objects have been repurposed to support
+
+GOLD explanation (Claude Sonnet-4.6):
+"support" expects following noun phrase or gerund object
+Parallel contrast structure: 1977 conditions vs. 2016 modernizations
+Library evolution narrative momentum continues with more 2016 changes
+Academic library domain signals: collaborative spaces, student activities expected
+List of modernizations still unfolding, more items likely follow
+"Repurposed to support" likely precedes human-centered activities like collaboration
+Formal institutional retrospective tone, third-person descriptive register
+Spaces formerly storing physical objects now serve people/learning
+Wanda Kay Brown's perspective may re-emerge as narrative anchor
+Sentence likely continues before period, then new modernization listed
+
+MODEL explanation (warm-started AV):
+"support" is a verb awaiting its object noun phrase
+Library renovation context expects furniture, study spaces, or learning activities
+List-like pattern of renovation features continues, more items likely
+Formal institutional/academic register maintained throughout
+Parallel structure: "to support [noun phrase]" requires completion
+The renovation narrative momentum suggests further spatial/functional details
+"support" often collocates with "learning," "students," or "academic activities"
+Long compound sentence structure suggests continuation before period
+Prior mentions of "learning spaces" and "academic activities" likely echoed
+Passive/active mixed voice typical of institutional promotional writing
+
+====================================================================================================
+SAMPLE 3/10   openbmb/Ultra-FineWeb:en:99533@1335   CJK_in_output=False
+----------------------------------------------------------------------------------------------------
+CONTEXT (activation = last-token layer-20 state of this text):
+...cisms go in one ear and out the other.
+Remind Yourself of Your Own Strengths
+People who think too highly of their own opinion can try to make you feel worthless. Don’t let them do that to you. Instead, remember your positive qualities. Remember that the person who’s making you feel that way isn’t the ultimate authority on everything. In fact, you are the only true authority on what’s right for you. They are only one person, and if you take an honest inventory of your life, you’ll likely find that you have a lot of support and don’t need to worry about the person who is looking to hurt you. Remember your own strength, intelligence, and sound judgment. Recognizing what makes you valuable to yourself and others may help you avoid feelings of inferiority and inadequacy in these situations.
+Seeking Guidance From BetterHelp
+Research shows that online therapy can be beneficial for dealing with a variety of issues, including dealing with interpersonal conflict in one’s daily life. A study published in Psychological Medicine found that internet-based counseling can decrease anxiety symptoms. Participants were generally guided through therapy with the help of a counselor, including limited counseling sessions and independently completed exercises and lessons. This type of therapy, according to the study, provides the flexibility of allowing patients to complete therapy at their own pace,
+
+GOLD explanation (Claude Sonnet-4.6):
+Final token "pace," ends a dependent clause mid-sentence
+Continuation of subordinate clause listing therapy benefits/features
+List-like structure of therapy attributes being enumerated
+Academic/informational article tone with research citation context
+Study findings being elaborated with additional methodology or outcome details
+Parallel phrasing pattern with "including" and "and" constructions expected
+Transition toward concluding BetterHelp promotional recommendation likely
+Hedged, evidence-based language continues ("according to," "suggests")
+Patient autonomy and flexibility theme likely extended or contrasted
+Section will likely pivot to direct BetterHelp service recommendation
+
+MODEL explanation (warm-started AV):
+Final token is a comma after "at their own pace," continuing a list
+List of benefits of online therapy continues after comma
+Parallel structure: "ability to..." pattern likely repeats again
+Formal informational/educational article tone maintained throughout
+Section on online therapy still mid-explanation, more detail expected
+Article structure suggests another section follows after this paragraph
+Hedged, balanced language pattern: benefits acknowledged then limitations noted
+Specific statistics and research citations pattern may continue
+Audience is general public seeking mental health information
+Article nearing conclusion; summary or call-to-action likely approaching
+
+====================================================================================================
+SAMPLE 4/10   openbmb/Ultra-FineWeb:en:62442@178   CJK_in_output=False
+----------------------------------------------------------------------------------------------------
+CONTEXT (activation = last-token layer-20 state of this text):
+Author(s): Velia Ferrara; Sébastien Erpicum; Pierre Archambeau; Michel Pirotton; Benjamin Dewals
+Linked Author(s): Velia Ferrara, Pierre Archambeau, Michel Pirotton, Benjamin J. Dewals
+Keywords: Flow stability; hydrodynamic modelling; reattachment length; shallow reservoir; velocity field
+Abstract: Shallow reservoirs are used for multiple purposes, such as storm water retention and trapping of sediments. Reliable predictions of the flow fields are necessary to inform the design and operation of these structures. Using numerical simulations, we performed a systematic analysis of the influence of the location of the inlet and outlet on the flow fields developing in rectangular shallow reservoirs of various sizes. Depending on the relative location of the inlet and outlet with respect to the reservoir centreline, contrasting flow patterns are obtained, involving either no flow
+
+GOLD explanation (Claude Sonnet-4.6):
+"no flow" fragment expects continuation like "recirculation" or similar
+Hydraulic/fluid dynamics technical domain strongly constrains vocabulary
+Abstract structure: sentence listing contrasting flow pattern types continues
+Dichotomy established ("either...or") requires second contrasting option
+Shallow reservoir hydrodynamics: recirculation zones are canonical phenomena
+Inlet/outlet positioning governs symmetric vs asymmetric flow classification
+Academic journal abstract register: precise, passive, nominalized style
+Keywords like "flow stability" and "reattachment length" anticipate mention
+List of flow pattern types likely follows with further elaboration
+Prior mention of "contrasting" patterns signals binary classification completion
+
+MODEL explanation (warm-started AV):
+"no flow" phrase incomplete, continuation expected immediately
+List of flow conditions being enumerated, more items follow
+Scientific paper abstract genre, formal passive voice throughout
+Parallel structure: "no flow [X], [Y], and [Z]" pattern
+Domain: hydraulic engineering, tidal flow terminology expected
+Contrast established between tidal and non-tidal flow conditions
+"no flow" likely followed by "inlet" or "outlet" or "zone"
+Abstract structure: problem statement leading to methodology description
+Hedged academic register with latinate technical vocabulary
+Earlier mention of "inlet and outlet" suggests these terms recur
+
+====================================================================================================
+SAMPLE 5/10   openbmb/Ultra-FineWeb:en:89858@72   CJK_in_output=False
+----------------------------------------------------------------------------------------------------
+CONTEXT (activation = last-token layer-20 state of this text):
+Marula Pure Beauty Oil
+Are you looking for a shampoo that is safe to use with color-treated hair? Fekkai Technician Color Care Shampoo cleanses hair without stripping it of the color you worked hard to perfect. In addition to color protection, this product provides intense nourishment. It contains Grapeseed Oil, a lightweight oil that conditions
+
+GOLD explanation (Claude Sonnet-4.6):
+"conditions" expects object noun phrase (hair/strands/etc.)
+Product description listing ingredient benefits, next benefit follows
+Grapeseed Oil's properties being elaborated: lightweight, conditioning qualities
+Comma-separated benefit clauses pattern continuing after "conditions"
+Beauty/haircare product marketing register, positive attribute stacking
+Multiple ingredients likely listed sequentially after Grapeseed Oil
+"without stripping" parallel structure: ingredient protects while nourishing
+Color-treated hair remains central concern throughout description
+Formal yet accessible tone typical of product copy continues
+Prior mention of "intense nourishment" theme reinforced by oil benefits
+
+MODEL explanation (warm-started AV):
+"Conditions" expects object noun phrase (hair, strands, etc.)
+Product description listing benefits, more attributes expected
+Parallel structure: "moisturizes and conditions" suggests additional verb phrases
+Hair care product marketing copy, promotional register continues
+List of product features/benefits pattern established, continuation expected
+Organic/natural ingredient emphasis likely to recur
+Sentence likely continues with "while" or "and" clause
+Specific hair benefits (smoothness, shine, manageability) typically follow
+Brand name "Keratin Complex" may reappear in next sentence
+Price, availability, or call-to-action may conclude the description
+
+====================================================================================================
+SAMPLE 6/10   openbmb/Ultra-FineWeb:en:39563@164   CJK_in_output=False
+----------------------------------------------------------------------------------------------------
+CONTEXT (activation = last-token layer-20 state of this text):
+Jamey Harrelson was the best car sales person I have ever worked with. We went to the dealership on a Thursday evening.. Jamey took the time to listen, understand our needs and did not hesitate to let us look at alternatives and drive as many cars as we wanted. Ended up buying a certified used vehicle for a fare price and closed the deal after hours. Jamie asked us to come back on the weekend so he could explain and setup all the technology in the vehicle, which we took him up on. That was going beyond expectation. Plus we left with a full tank of gas. We had a good experience over all.
+by Dott Butler from Quincy, FL
+November 26, 2018
+I really like my vehicle and I have never owed one that is in the
+
+GOLD explanation (Claude Sonnet-4.6):
+Adjective phrase incomplete, superlative or condition expected next
+Positive review continuing, praising vehicle quality or condition
+"in the" requires noun phrase completion, likely condition-related
+Pattern of enthusiastic first-time ownership experience being expressed
+Reviewer expressing pleasant surprise, "best/greatest/such" condition likely
+Informal review register, simple vocabulary, personal emotional tone
+New reviewer (Dott Butler ended), fresh perspective now speaking
+Vehicle satisfaction theme mirrors previous reviewer's positive sentiment
+"never owned one" implies unique/exceptional quality being highlighted
+Dealership review format continues, more positive testimonials expected
+
+MODEL explanation (warm-started AV):
+Final token "the" begins a noun phrase, completion imminent
+Negative review pattern: complaint about vehicle condition expected
+"Never had a car that's in the" idiomatically precedes "shop" or "hospital"
+Review section context: customer testimonial, informal register
+Contrast structure: positive review followed by negative review
+Automotive dealership review platform genre conventions
+Sentence likely continues with "shop" or "hospital" or similar
+Review likely ends with brief complaint then period
+Pattern of short, punchy review sentences throughout
+Overall positive sentiment of first review contrasts with second
+
+====================================================================================================
+SAMPLE 7/10   openbmb/Ultra-FineWeb:en:4507@515   CJK_in_output=False
+----------------------------------------------------------------------------------------------------
+CONTEXT (activation = last-token layer-20 state of this text):
+...ster web surfing on handsets compared to 3G. Mobile operators in the US and Japan are starting 4G services this year.
+Legal action by O2 and Vodafone could also hamper government efforts to ensure that all homes have internet access – some households in remote areas will have to rely on wireless access because of cost.
+Last week, the government announced its solution to the mobile operators’ dispute over spectrum ownership. The scheme is part of ministers’ Digital Britain initiative, and is based on a report last year by Kip Meek, a former senior official at Ofcom, the telecoms regulator.
+The mobile network operators – Telefonica’s O2 UK subsidiary, Vodafone’s British business, France Telecom’s Orange UK, Deutsche Telekom’s T-Mobile UK and Hutchison Whampoa’s 3 UK – expressed broad support for Mr Meek’s proposals.
+However, the proposals had to be modified after France Telecom and Deutsche Telekom announced plans to merge their British mobile businesses. The merger was approved by the European Commission this month, on condition that the combined Orange/T-Mobile entity sell 25 per cent of its spectrum at the 1800 MHz bandwidth. This spectrum is the most suitable for mobile services based on 4G wireless technology called LTE.
+O2 and Vodafone are concerned at how the combined Orange/T-Mobile entity has agreed with the Commission that it would sell its 1800 MHz spectrum to a single
+
+GOLD explanation (Claude Sonnet-4.6):
+"Single" likely precedes a noun: buyer, bidder, or entity
+Spectrum auction/sale transaction recipient expected next
+Legal/regulatory document tone requires precise buyer specification
+O2 and Vodafone concern about competitive disadvantage drives context
+Single buyer could be rival operator, strengthening competitor unfairly
+EU Commission conditional merger approval shapes spectrum disposal terms
+1800 MHz LTE suitability makes buyer identity competitively significant
+Sentence structure "agreed...that it would sell...to a single [X]" needs completion
+Broader argument: legal challenge motivation being explained here
+Article building toward why O2/Vodafone feel disadvantaged versus rivals
+
+MODEL explanation (warm-started AV):
+Final token "single" begins a noun phrase requiring completion
+The phrase "sell to a single" expects a noun like "buyer" or "entity"
+Ongoing argument about spectrum auction rules and market structure
+Contrast between UK and US auction rules being elaborated
+The "single" likely precedes "buyer" or "operator" in this context
+Formal financial/business journalism register continues throughout
+The article's thesis about spectrum scarcity and market concentration
+Pattern of explaining regulatory constraints on spectrum sales
+Long-range narrative: spectrum shortage consequences still being detailed
+Hedged, analytical tone with expert quotes and data citations
+
+====================================================================================================
+SAMPLE 8/10   openbmb/Ultra-FineWeb:en:65918@248   CJK_in_output=False
+----------------------------------------------------------------------------------------------------
+CONTEXT (activation = last-token layer-20 state of this text):
+Books & Media
+- Zeughaus Verlag
+- Second Hand Books
+- Historical novels
+- Music, Movies
+From the 10th century onwards the great Japanese monastic foundations of Nara and Mount Hiei maintained large armies of warlike monks. The tempestuous political rivalries that developed between the different orders of monks and religiously inspired laymen ensured that their temples and monasteries had to be securely sited and robustly defended. This books recreates these enormous fortified monasteries and temples, tracing their development from the 10th century through to the Sengoku Jidai period and the rise of the power of the shogunate under Tokugawa Ieyasu.
+- Turnbull, S./Dennis, P. (Illustr.)
+- Japanese Fortified Monasteries AD 946-1603
+- English text, paperback, many bw- and colour illustrations, diagrams, maps. 64 pages.
+- Osprey - Fortress
+Customers who bought this article also bought these articlesCustomers who viewed this product also viewed the following products.
+Copyright © 2020 Berliner Zinnfiguren & Preussisches Buecherkabin
+
+GOLD explanation (Claude Sonnet-4.6):
+Truncated word "Buecherkabin" expects completion, likely "Buecherkabinett" (German cabinet/shop name)
+German compound noun completion following established bilingual context
+Copyright notice nearing end, year/owner details fully expected
+Boilerplate legal/copyright footer text pattern continuing
+E-commerce site footer structure: copyright, then often address or rights reserved
+German language resurfacing after English product description
+Bookshop specializing in military history, niche domain signals
+Website footer typically followed by "All rights reserved" or similar
+Berliner Zinnfiguren is a known Berlin military miniatures/books shop
+No further product listing expected; page structure concluding
+
+MODEL explanation (warm-started AV):
+Truncated German word "Kabinett" (cabinet/library) likely continues
+German-language bibliographic catalog entry format continuing
+Publisher/printer attribution line nearing completion
+German publishing house name expected after "Kabinett"
+Catalog record format: publisher field typically ends entry
+German-language book metadata, likely 19th-century publication
+Series of bibliographic fields (title, author, publisher) nearly complete
+Possible additional catalog fields like date or place may follow
+Formal bibliographic register, no prose narrative expected
+German spelling conventions suggest "Kabinett" as final token
+
+====================================================================================================
+SAMPLE 9/10   openbmb/Ultra-FineWeb:en:27741@1181   CJK_in_output=False
+----------------------------------------------------------------------------------------------------
+CONTEXT (activation = last-token layer-20 state of this text):
+...ency meeting at Prime Minister Shinzo Abe's office to assess the situation early on Monday.
+Abe told a press briefing that the government will make its utmost efforts to deal with the effects of the powerful earthquake. He told reporters that government officials are operating under the instructions that saving and safeguarding peoples' lives is the priority.
+The Japanese premier also said he has given instructions for local officials to carry out damage assessments as quickly as possible and do their best to save and protect lives.
+Abe went on to say that he wanted the public to be kept informed as the disaster continues to unfold.
+Japan's top government spokesperson, Chief Cabinet Secretary Yoshihide Suga, meanwhile, told a press briefing that so far there have been no reports of serious infrastructural damage as a result of the quake.
+The JMA, for its part, has warned people in western Japan, however, to be on alert for further sizable earthquakes occurring in the next few days and for people to be vigilant for the possibility of buildings collapsing and rainy weather adding to the risk of potentially fatal mudslides henceforth.
+"Frequent seismic activity is continuing in the northern part of Osaka Prefecture. Strong tremors could have raised the risk of landslides or building collapse. People in such areas are advised to watch out for further seismic activity and rain," the
+
+GOLD explanation (Claude Sonnet-4.6):
+Direct quote ending mid-sentence, closing quotation mark required next
+JMA official statement being quoted verbatim, attribution follows quote
+Pattern of institutional sources cited after statements throughout article
+Formal news wire style (Xinhua), passive/official register maintained throughout
+Sequential disaster update structure; warnings/advisories section near article end
+Repeated attribution pattern: statement then "said/according to [source]"
+JMA named as speaker just before quote began, re-attribution expected
+Escalating caution theme: mudslides, rain, seismic activity warnings continuing
+Article systematically covers all disaster dimensions; concluding advisory fits
+Xinhua dispatch conventions: official quotes closed then dateline/end marker
+
+MODEL explanation (warm-started AV):
+Final token "the" begins a noun phrase, likely "JMA" or similar
+Direct quote continuation: JMA statement being paraphrased or quoted
+Formal news wire style: attribution and official statements expected
+Pattern of JMA statements repeating throughout article
+Specific numerical data expected: rainfall amounts or measurements
+Article nearing conclusion: final official quote wrapping up
+Passive/formal register: "said," "added," "stated" verbs likely follow
+Geographic specificity: Tokyo or Japan region likely named next
+Article has consistently attributed JMA as source of official data
+Sentence likely ends with period, closing the final paragraph
+
+====================================================================================================
+SAMPLE 10/10   openbmb/Ultra-FineWeb:en:10776@61   CJK_in_output=False
+----------------------------------------------------------------------------------------------------
+CONTEXT (activation = last-token layer-20 state of this text):
+Eco-Friendly Camping with Kids on Vancouver Island, British Columbia
+Best camping & Vancouver Island getaways for kids
+Enjoy eco-friendly camping with the kids on Vancouver Island, British Columbia, Canada! Imagine the kids roasting marshmallows over a blazing fire under the moon and stars and viewing wildlife that
+
+GOLD explanation (Claude Sonnet-4.6):
+Relative clause "that" expects animal/wildlife description
+Wildlife viewing content: specific species likely named next
+Vancouver Island fauna context: bears, eagles, orcas probable
+Enthusiastic promotional tone continues, vivid imagery expected
+List-like accumulation of idyllic camping experiences ongoing
+Family/children audience shapes accessible, wonder-filled language
+Nature immersion narrative building toward fuller scene description
+Canadian wilderness setting anchors specific regional wildlife choices
+Present-tense imaginative framing ("Imagine") sustains sensory details
+Eco-friendly branding suggests emphasis on respectful wildlife observation
+
+MODEL explanation (warm-started AV):
+Relative clause "that" requires completing the noun phrase
+Wildlife species list or description expected next
+Nature/wildlife theme continues from "wildlife that"
+Promotional travel writing tone, enthusiastic and descriptive
+"Wildlife that" likely followed by verb phrase like "roams" or "thrives"
+Sentence structure mirrors earlier "where you can" pattern
+Nature reserve context suggests animals, plants, or scenery
+List of activities or experiences likely follows this sentence
+Second-person "you" address pattern continues throughout
+Exclamatory, inviting register maintained throughout text
