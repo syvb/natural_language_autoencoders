@@ -26,14 +26,17 @@ mse_scale) is read from the shipped nla_meta.yaml sidecar via EasyNLA's
 load_nla_config, asserted against the live tokenizer at startup — nothing
 hardcoded.
 
-Runs on ZeroGPU size="xlarge" (a full RTX Pro 6000 Blackwell, 96GB). The models
-are loaded in 8-bit (bitsandbytes, near-lossless): bf16 would be ~92GB, and
+Runs on ZeroGPU size="xlarge" (a full RTX Pro 6000 Blackwell, 96GB) in bf16.
 ZeroGPU packs the whole module-level model to a 150GB-capped ephemeral disk at
-launch — which bf16 (pack + FUSE-cached weights) exceeds. 8-bit halves the pack
-to ~46GB. Models are placed on the emulated GPU at import (ZeroGPU's
-CUDA-emulation-at-import contract) and materialize in the GPU fork; the whole
-per-click pipeline runs inside one @spaces.GPU call. The bf16 weight cache lives
-in a mounted HF Bucket (see the HF_HOME override), off the ephemeral limit.
+launch; a 92GB bf16 model fits only with three tricks (see the top env block +
+_free_cache_and_report): pack the offload on /tmp (default /data-nvme is 76GB),
+load low_cpu_mem_usage=False + delete the ~92GB download cache before launch so
+the pack is the only ephemeral use, and disable ZeroGPU's post-pack autoprune
+(it would lstat the freed blobs and crash). Models are placed on the emulated
+GPU at import and materialize in the GPU fork; the whole per-click pipeline runs
+inside one @spaces.GPU call. (8-bit fit the size but quantizing 27B at startup
+blew the 30-min launch timeout; a mounted HF Bucket didn't help — Xet-FUSE
+re-caches read weights back onto the ephemeral disk.)
 """
 
 import os

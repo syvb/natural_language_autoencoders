@@ -32,21 +32,15 @@ echo "=== sanity: app.py compiles, vendored nla imports ==="
 # can't be verified offline, so ship private and flip to public once it runs.
 PRIVATE="${PRIVATE:-1}"
 echo "=== create + upload Space ($HARDWARE, private=$PRIVATE) ==="
-# BUCKET: an HF Bucket holds the ~92GB bf16 weight cache (HF_HOME=/bucket/hf in
-# app.py), off the Space's 150GB ephemeral limit. Created + mounted rw here.
-BUCKET="${BUCKET:-syvb/nla-qwen36-27b-cache}"
-"$PY" - "$SPACE_REPO" "$BUILD" "$HARDWARE" "$PRIVATE" "$BUCKET" <<'PYEOF'
+"$PY" - "$SPACE_REPO" "$BUILD" "$HARDWARE" "$PRIVATE" <<'PYEOF'
 import os, sys
-from huggingface_hub import HfApi, create_bucket, Volume
-repo, build, hardware, private, bucket = sys.argv[1:6]
+from huggingface_hub import HfApi
+repo, build, hardware, private = sys.argv[1:5]
 tok = open(os.path.expanduser("~/.hf_token")).read().strip()
 api = HfApi(token=tok)
 api.create_repo(repo, repo_type="space", space_sdk="gradio",
                 space_hardware=hardware, private=private == "1", exist_ok=True)
-create_bucket(bucket, exist_ok=True, token=tok)
-api.set_space_volumes(repo, volumes=[
-    Volume(type="bucket", source=bucket, mount_path="/bucket", read_only=False)])
 api.upload_folder(folder_path=build, repo_id=repo, repo_type="space",
                   ignore_patterns=["__pycache__/*", "*.pyc"])
-print(f"deployed https://huggingface.co/spaces/{repo} (bucket {bucket} at /bucket)")
+print(f"deployed https://huggingface.co/spaces/{repo}")
 PYEOF

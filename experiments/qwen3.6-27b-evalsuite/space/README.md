@@ -58,15 +58,21 @@ subset is vendored under `./nla`).
 ## Hardware
 
 Runs on **ZeroGPU `size="xlarge"`** — a full RTX Pro 6000 Blackwell (96 GB),
-free on PRO. Models are loaded in **8-bit** (`bitsandbytes`, near-lossless):
-ZeroGPU packs the whole module-level model to a **150 GB-capped ephemeral disk**
-at launch, and bf16 (~92 GB pack + the FUSE-cached weights read back) blows past
-that; 8-bit halves the pack to ~46 GB. The bf16 weight cache lives in a mounted
-**HF Bucket** (`syvb/nla-qwen36-27b-cache`, `HF_HOME=/bucket/hf`), off the
-ephemeral limit; the offload stays on `/tmp` (`O_DIRECT`, which FUSE can't do).
-`@spaces.GPU(size="xlarge")` is mandatory (the 48 GB `large` default is too
-small). The bucket must be mounted read-write at `/bucket` via
-`set_space_volumes` — `deploy.sh` does this.
+free on PRO — in **bf16**. `@spaces.GPU(size="xlarge")` is mandatory (the 48 GB
+`large` default is too small). The tricky part is that ZeroGPU packs the whole
+module-level model to a **150 GB-capped ephemeral disk** at launch, and a 92 GB
+bf16 model needs three tricks to fit (all in `app.py`):
+
+1. `ZEROGPU_OFFLOAD_DIR=/tmp/...` — the default `/data-nvme` is only 76 GB, and
+   the pack uses `O_DIRECT` (can't target a FUSE bucket).
+2. `low_cpu_mem_usage=False` (faults weights resident) **and delete the ~92 GB
+   download cache before launch**, so the 92 GB pack is the only ephemeral use.
+3. `ZEROGPU_MMAP_AUTOPRUNE_PATTERN=<no-match>` — otherwise ZeroGPU's post-pack
+   autoprune `lstat()`s the freed blobs and crashes.
+
+Dead ends: **8-bit** (`bitsandbytes`) fits on size but quantizing 27 B at
+startup exceeds the 30-min launch timeout; an **HF Bucket** for the cache
+doesn't help — Xet-FUSE re-caches read weights onto the ephemeral disk.
 
 ## Development
 
