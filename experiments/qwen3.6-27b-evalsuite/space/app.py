@@ -67,6 +67,7 @@ import spaces  # must be imported before any CUDA touch
 import html as html_lib
 import json
 import re
+import time
 from collections import OrderedDict
 from threading import Lock, Thread
 
@@ -255,6 +256,11 @@ class _StopAfterLines(StoppingCriteria):
         return len(_feature_lines(gen, streaming=True)) >= N_LINES
 
 
+class _StopForward(Exception):
+    """Raised from the layer-42 hook to abort the forward once we have the
+    activation — skips every block after L42 (extraction needs nothing more)."""
+
+
 @torch.inference_mode()
 def _extract(prefix_ids: list[int]) -> np.ndarray:
     """Layer-42 block output at the last token of the causal prefix, from the
@@ -263,12 +269,16 @@ def _extract(prefix_ids: list[int]) -> np.ndarray:
 
     def grab(module, inputs, output):
         grabbed["h"] = (output[0] if isinstance(output, tuple) else output).detach()
+        raise _StopForward  # don't run blocks L43..N — we already have L42
 
     h = BASE_LAYERS[LAYER].register_forward_hook(grab)
     try:
         ids = torch.tensor([prefix_ids], device=DEV)
         with actor.disable_adapter():
-            actor(input_ids=ids, use_cache=False)
+            try:
+                actor(input_ids=ids, use_cache=False)
+            except _StopForward:
+                pass
         return grabbed["h"][0, -1].float().cpu().numpy()
     finally:
         h.remove()
@@ -302,7 +312,9 @@ def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
     finishes decoding, then the final dict with fve/cos. `steer`/`strength` are
     accepted for signature-compatibility with the v3 app but unused here (no
     27B trait directions are shipped)."""
+    _t = time.time()
     v = _extract(token_ids[: idx + 1])            # [d] raw activation
+    _t_ext = time.time() - _t
     vref[0] = torch.tensor(v[None], dtype=torch.float32, device=DEV)
     pt = torch.tensor([PROMPT_IDS], device=DEV)
     streamer = TextIteratorStreamer(tok, skip_prompt=True, skip_special_tokens=True)
@@ -317,6 +329,7 @@ def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
         stopping_criteria=StoppingCriteriaList([_StopAfterLines(PROMPT_LEN)]),
         streamer=streamer,
     ))
+    _t = time.time()
     try:
         gen.start()
         text, shown = PREFILL, 0   # PREFILL='' ⇒ streamed text is generation-only
@@ -329,12 +342,14 @@ def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
         gen.join()
     finally:
         vref[0] = None
+    _t_gen = time.time() - _t
 
     lines = _feature_lines(text, streaming=False)[:N_LINES]
     if not lines:
         yield {"lines": [], "fve": [], "cos": []}
         return
 
+    _t = time.time()
     gold_n = _normalize(torch.tensor(v, dtype=torch.float32), MSE_SCALE)
     denom = ((gold_n - MU) ** 2).mean().item()
     preds = _reconstruct_batch(["\n".join(lines[:k]) for k in range(1, len(lines) + 1)])
@@ -343,6 +358,8 @@ def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
         pred_n = _normalize(pred, MSE_SCALE)
         fve.append(1.0 - ((pred_n - gold_n) ** 2).mean().item() / denom)
         cos.append(float(pred_n @ gold_n / (pred_n.norm() * gold_n.norm())))
+    print(f"[timing] extract={_t_ext:.1f}s gen={_t_gen:.1f}s "
+          f"recon={time.time() - _t:.1f}s lines={len(lines)}", flush=True)
     yield {"lines": lines, "fve": fve, "cos": cos}
 
 

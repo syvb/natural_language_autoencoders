@@ -12,6 +12,9 @@ torch
 transformers==5.5.4
 peft==0.19.1
 accelerate
+# flash-linear-attention: optimized kernels for the qwen3_5 linear-attention
+# layers (without it the forward falls back to a much slower torch path).
+flash-linear-attention
 safetensors
 pyyaml
 numpy
