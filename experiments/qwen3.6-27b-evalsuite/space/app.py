@@ -49,6 +49,13 @@ import os
 # read weights onto the ephemeral disk, and O_DIRECT can't target FUSE.) Set
 # before importing spaces, which reads this env at import.
 os.environ["ZEROGPU_OFFLOAD_DIR"] = "/tmp/zerogpu-tensors"
+# Disable ZeroGPU's own post-pack autoprune: it lstat()s + unlinks the mmap'd
+# cache blobs AFTER packing (unmap_capture filters by this glob), but we free
+# them ourselves BEFORE the pack (to keep ephemeral < 150GB), so its lstat hits
+# a deleted path and crashes. A glob that matches no real blob path makes
+# unmap_capture capture nothing → no lstat, no crash. The pack still reads the
+# already-resident (low_cpu_mem_usage=False) tensor pages fine.
+os.environ["ZEROGPU_MMAP_AUTOPRUNE_PATTERN"] = "__zerogpu_autoprune_disabled__"
 os.makedirs(os.environ["ZEROGPU_OFFLOAD_DIR"], exist_ok=True)
 
 import spaces  # must be imported before any CUDA touch
