@@ -7,7 +7,7 @@ sdk: gradio
 sdk_version: 5.49.1
 app_file: app.py
 license: apache-2.0
-short_description: Read Qwen3.6-27B's activations in plain English (standard NLA)
+short_description: Read Qwen3.6-27B activations in English (standard NLA)
 models:
   - ceselder/qwen3.6-27b-nla-L42
   - Qwen/Qwen3.6-27B
