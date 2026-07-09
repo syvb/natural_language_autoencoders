@@ -44,9 +44,35 @@ activations; sweep λ = log₂(r_y/r_s) over [−3, 3] at three total strengths;
 judge every line 3-way for both traits (Claude Haiku, rubric identical to the
 v3 study); read out P(yellow mentioned first). The matryoshka model's
 first-mention order tracks the injected component ratio as a steep logistic
-(slopes +1.7/+2.4/+2.5, floor ≈0, ceiling ≈0.95, n≈720/panel, 0 judge
+(slopes +1.69/+2.40/+2.52, floor ≈0, ceiling ≈0.95, n≈720/panel, 0 judge
 failures): it *ranks* concepts by their share of the injection across a
-64-fold ratio range. (Standard-model reference curve: judging in progress.)
+64-fold ratio range.
+
+**Departure from the 7B result:** unlike v3-vs-kitft (where the baseline was
+flat), the standard 27B model ALSO orders by ratio (slopes +1.63/+1.53/+1.45)
+— the matryoshka model is steeper at moderate/high strength and saturates
+cleanly where the standard flattens mid-curve, but the separation is much
+smaller than at 7B. Plausible reading: a stronger base model spontaneously
+verbalizes the dominant component of a mixture first; ordering training
+sharpens rather than creates the capability. Granularity caveat: the standard
+model emits ~5 long lines vs the matryoshka's ~12 short ones, so its
+line-level order readout is coarser (v3 handled this with a word-chunk
+control, not yet rerun here).
+
+## Marginal FVE per token / per line
+
+![marginal FVE](results/fig27_marginal_fve.png)
+
+Differences of the cumulative truncation curves. The matryoshka model's first
+~5 tokens each buy 0.08–0.15 FVE, nearly spent by ~40 tokens; the standard
+model's information arrives late and diffusely (small marginals persisting
+past 100 tokens; its line 1 is *negative*, corrected by lines 2–3).
+
+v3-style per-line bar charts, matryoshka only (line 1 carries 0.508 ΔFVE ≈
+77% of recoverable variance, vs 0.334/≈50% for the 7B v3 model):
+
+![marginal per line](results/mat_marginal_fve_per_line.png)
+![marginal per line log](results/mat_marginal_fve_per_line_LOGY.png)
 
 ## KL vs reconstruction contribution during RL
 
