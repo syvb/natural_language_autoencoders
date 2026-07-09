@@ -63,6 +63,10 @@ control, not yet rerun here).
 
 ![marginal FVE](results/fig27_marginal_fve.png)
 
+Linear-x version of the per-token panel:
+
+![marginal FVE per token, linear](results/fig27_marginal_fve_token_linear.png)
+
 Differences of the cumulative truncation curves. The matryoshka model's first
 ~5 tokens each buy 0.08–0.15 FVE, nearly spent by ~40 tokens; the standard
 model's information arrives late and diffusely (small marginals persisting
