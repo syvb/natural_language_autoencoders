@@ -410,9 +410,14 @@ CSS = """
 .nla-tok.sel{background:var(--nla-sel); color:#fff;}
 .nla-tok .nl{color:var(--nla-muted); font-size:10px;}
 .nla-tok.sel .nl{color:rgba(255,255,255,.75);}
-body.nla-heat .nla-tok{background-color:rgba(224,58,58, calc(var(--pa,0)*0.85));}
-body.nla-heat .nla-tok:hover, body.nla-heat .nla-tok:focus-visible{background:var(--nla-hover);}
-body.nla-heat .nla-tok.sel{background:var(--nla-sel);}
+body.nla-heat-p .nla-tok{background-color:rgba(224,58,58, calc(var(--pa,0)*0.85));}
+body.nla-heat-f .nla-tok{background-color:rgba(224,58,58, calc(var(--paf,0)*0.85));}
+body.nla-heat-fn .nla-tok{background-color:rgba(224,58,58, calc(var(--pafn,0)*0.85));}
+body[class*="nla-heat"] .nla-tok:hover, body[class*="nla-heat"] .nla-tok:focus-visible{background:var(--nla-hover);}
+body[class*="nla-heat"] .nla-tok.sel{background:var(--nla-sel);}
+.eabadge{display:inline-block; min-width:2.3em; text-align:center; font-size:9px; font-weight:700;
+  padding:0 3px; margin-right:5px; border-radius:3px; color:#fff; vertical-align:middle;
+  background:rgba(198,52,52, calc(var(--pea,0)*0.65 + 0.35));}
 
 /* results card */
 .nlaviz{background:var(--nla-surface); border:1px solid var(--nla-ring);
@@ -484,12 +489,18 @@ EMPTY_CARD = _card("👈 Click any token to read its activation.")
 
 
 def render_tokens(pieces: list[str], n_total: int, paware=None) -> str:
+    # paware[i] is None or a (p, p_fvew, p_fvewnorm) triple → three CSS vars, one
+    # per heatmap mode; the body class picks which var tints the token.
     spans = []
     for i, p in enumerate(pieces):
         body = html_lib.escape(p).replace("\n", '<span class="nl">⏎</span><br>')
-        pa = paware[i] if (paware and i < len(paware) and paware[i] is not None) else None
-        style = f' style="--pa:{pa:.3f}"' if pa is not None else ""
-        ttl = f"#{i}" + (f" · P(eval-aware)={pa:.2f}" if pa is not None else "")
+        tr = paware[i] if (paware and i < len(paware) and paware[i] is not None) else None
+        if tr is not None:
+            pa, paf, pafn = (v if v is not None else 0.0 for v in tr)
+            style = f' style="--pa:{pa:.3f};--paf:{paf:.3f};--pafn:{pafn:.3f}"'
+            ttl = f"#{i} · P(aware)={pa:.2f} · ×ΔFVE={paf:.2f} · ×ΔFVE/rank={pafn:.2f}"
+        else:
+            style, ttl = "", f"#{i}"
         spans.append(f'<span class="nla-tok" data-i="{i}" title="{ttl}"{style} '
                      f'role="button" tabindex="0">{body}</span>')
     trunc = (f' <span class="trunc">✂ truncated to the first {len(pieces)}</span>'
@@ -541,17 +552,21 @@ def render_viz(state: dict | None, mode: str) -> str:
     span = hi - lo
     zero_pct = (0.0 - lo) / span * 100
 
+    ea = state.get("paware_lines")  # per-line P(eval-aware), if precached
     rows = []
     for i, (ln, x) in enumerate(zip(lines, vals)):
         w = abs(x) / span * 100
         left = zero_pct if x >= 0 else zero_pct - w
         cls = "pos" if x >= 0 else "neg"
+        pv = ea[i] if (ea and i < len(ea) and ea[i] is not None) else None
+        badge = (f'<span class="eabadge" style="--pea:{pv:.3f}" '
+                 f'title="P(eval-aware)={pv:.2f}">{pv:.2f}</span>' if pv is not None else "")
         tip = (f"line {i + 1} — ΔFVE {marginal[i]:+.3f}, cumulative {fve[i]:.3f}, "
-               f"cos {cos[i]:.3f}")
+               f"cos {cos[i]:.3f}" + (f", P(eval-aware) {pv:.2f}" if pv is not None else ""))
         rows.append(
             f'<div class="row" title="{html_lib.escape(tip)}">'
             f'<div class="idx">{i + 1}</div>'
-            f'<div class="line" title="{html_lib.escape(ln)}">{html_lib.escape(ln)}</div>'
+            f'<div class="line" title="{html_lib.escape(ln)}">{badge}{html_lib.escape(ln)}</div>'
             f'<div class="track"><div class="zero" style="left:{zero_pct:.2f}%"></div>'
             f'<div class="bar {cls}" style="left:{left:.2f}%;width:{max(w, 0.4):.2f}%"></div></div>'
             f'<div class="val">{x:+.3f}</div></div>'
@@ -619,17 +634,25 @@ try:
 except FileNotFoundError:
     print("[precache] no precache.json — default-text clicks compute live", flush=True)
 
-# Optional per-token P(evaluation-awareness) overlay (eval_awareness.json, made by
-# eval_awareness.py — gpt-4o-mini judges each NLA explanation). Aligned 1:1 with the
-# precache entries; keyed by the same token-id prefix. Drives the heatmap toggle.
-EVAL_AWARE: dict = {}
+# Optional per-token P(evaluation-awareness) overlays (eval_awareness.json, made by
+# eval_awareness.py + eval_awareness_weighted.py — gpt-4o-mini judges each NLA line).
+# Aligned 1:1 with the precache; keyed by the same token-id prefix. Three heatmap
+# variants (raw / ΔFVE-weighted / rank-normalized-ΔFVE-weighted) + per-line scores.
+EVAL_AWARE: dict = {}       # prefix -> (p, p_fvew, p_fvewnorm)
+EVAL_AWARE_LINES: dict = {}  # prefix -> [per-line P(aware)]  (for the ΔFVE panel)
 try:
     _ea = json.load(open(os.path.join(HERE, "eval_awareness.json")))["entries"]
     for _pe, _ee in zip(_pc_entries, _ea):
+        _f = _ee.get("paware_fvew"); _fn = _ee.get("paware_fvewnorm")
+        _pl = _ee.get("paware_lines")
         for _i, _p in enumerate(_ee["paware"]):
             if _p is not None:
-                EVAL_AWARE[tuple(_pe["ids"][: _i + 1])] = _p
-    print(f"[eval-aware] {len(EVAL_AWARE)} positions preloaded", flush=True)
+                _key = tuple(_pe["ids"][: _i + 1])
+                EVAL_AWARE[_key] = (_p, (_f[_i] if _f else None), (_fn[_i] if _fn else None))
+                if _pl and _pl[_i] is not None:
+                    EVAL_AWARE_LINES[_key] = _pl[_i]
+    print(f"[eval-aware] {len(EVAL_AWARE)} positions preloaded "
+          f"({len(EVAL_AWARE_LINES)} with per-line scores)", flush=True)
 except FileNotFoundError:
     print("[eval-aware] no eval_awareness.json — heatmap toggle inert", flush=True)
 
@@ -677,6 +700,8 @@ def analyze_at(tokstate: dict | None, idx, mode: str,
     res = _precache_get(key) or _cache_get(key)
     if res is not None:
         res.update(meta)
+        if key in EVAL_AWARE_LINES:            # per-line eval-awareness for the ΔFVE panel
+            res["paware_lines"] = EVAL_AWARE_LINES[key]
         yield res, render_viz(res, mode)
         return
     for res in gpu_analyze(ids, idx):
@@ -757,10 +782,12 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
             tokens_out.render()
         with gr.Column(scale=5, elem_classes=["nla-side"]):
             mode = gr.Radio(["marginal", "cumulative"], value="marginal", label="FVE view")
-            heat = gr.Checkbox(
-                value=False, label="🔴 Eval-awareness heatmap",
-                info="Tints each token by how eval/test-aware its NLA explanation looks "
-                     "(gpt-4o-mini judged). Sample texts only.")
+            heat = gr.Radio(
+                ["off", "P(eval-aware)", "× ΔFVE", "× ΔFVE ÷ rank-mean"],
+                value="off", label="🔴 Eval-awareness heatmap",
+                info="Tint each token by its NLA explanation's eval-awareness (gpt-4o-mini). "
+                     "'× ΔFVE' weights each line by its reconstruction value; the ÷rank-mean "
+                     "variant removes salience front-loading. Sample texts only.")
             viz.render()
             with gr.Accordion("Analyze a token position by number", open=False):
                 with gr.Row():
@@ -774,8 +801,13 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
     strength_in = gr.Slider(0.0, 20.0, value=0.0, visible=False)
 
     # heatmap toggle: pure client-side class flip on <body> (survives token re-renders)
-    heat.change(None, [heat], None,
-                js="(v) => { document.body.classList.toggle('nla-heat', !!v); }")
+    heat.change(None, [heat], None, js="""(v) => {
+        const b = document.body.classList;
+        b.remove('nla-heat-p', 'nla-heat-f', 'nla-heat-fn');
+        const cls = {'P(eval-aware)': 'nla-heat-p', '× ΔFVE': 'nla-heat-f',
+                     '× ΔFVE ÷ rank-mean': 'nla-heat-fn'}[v];
+        if (cls) b.add(cls);
+    }""")
     tokenize_btn.click(tokenize_text, [text_in], [tokens_out, tok_state, viz],
                        api_name="tokenize")
     text_in.submit(tokenize_text, [text_in], [tokens_out, tok_state, viz])
