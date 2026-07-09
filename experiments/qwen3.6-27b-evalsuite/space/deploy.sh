@@ -23,6 +23,10 @@ rm -rf "$BUILD"; mkdir -p "$BUILD"
 cp "$HERE"/app.py "$HERE"/README.md "$HERE"/requirements.txt \
    "$HERE"/nla_meta.yaml "$HERE"/mu.npy "$HERE"/default_texts.json "$BUILD/"
 cp -r "$HERE/nla" "$BUILD/nla"   # vendored EasyNLA runtime subset
+# precache.json (made by precompute_cache.py) — instant default-text clicks
+[[ -f "$HERE/precache.json" ]] && cp "$HERE/precache.json" "$BUILD/" \
+  && echo "  + precache.json ($(wc -c < "$HERE/precache.json") bytes)" \
+  || echo "  (no precache.json — default-text clicks compute live)"
 
 echo "=== sanity: app.py compiles, vendored nla imports ==="
 "$PY" -m py_compile "$BUILD/app.py"

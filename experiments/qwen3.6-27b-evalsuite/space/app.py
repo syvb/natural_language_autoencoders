@@ -225,22 +225,17 @@ def _normalize(v: torch.Tensor, scale: float) -> torch.Tensor:
     return v / v.norm().clamp_min(1e-12) * scale
 
 
-_BULLET_RE = re.compile(r"^\s*(?:[-*•]|\d+[.)])\s+")
-
-
-def _feature_lines(text: str, streaming: bool) -> list[str]:
-    """Salience-ordered feature lines. Split on newlines, strip a leading bullet/
-    number marker (the model writes its own), drop empties. While streaming, drop
-    the trailing partial (not yet newline-terminated) line."""
-    parts = text.split("\n")
+def _lines(text: str, streaming: bool) -> list[str]:
+    """The model's salience-ordered feature lines: split on newlines, whitespace-
+    strip, drop empties. Fed to BOTH the critic (its co-trained input) and the
+    viz — the matryoshka emits plain lines (no bullet markers), so nothing is
+    stripped, matching suite_fve. While streaming, drop the trailing not-yet-
+    newline-terminated line so only complete lines are counted/shown."""
     if streaming:
-        parts = parts[:-1]
-    out = []
-    for ln in parts:
-        ln = _BULLET_RE.sub("", ln).strip()
-        if ln:
-            out.append(ln)
-    return out
+        parts = text.split("\n")[:-1]
+    else:
+        parts = re.split(r"\n+", text)
+    return [ln.strip() for ln in parts if ln.strip()]
 
 
 class _StopAfterLines(StoppingCriteria):
@@ -253,7 +248,7 @@ class _StopAfterLines(StoppingCriteria):
 
     def __call__(self, input_ids, scores, **kwargs) -> bool:
         gen = tok.decode(input_ids[0, self.prompt_len:], skip_special_tokens=True)
-        return len(_feature_lines(gen, streaming=True)) >= N_LINES
+        return len(_lines(gen, streaming=True)) >= N_LINES
 
 
 class _StopForward(Exception):
@@ -335,7 +330,7 @@ def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
         text, shown = PREFILL, 0   # PREFILL='' ⇒ streamed text is generation-only
         for piece in streamer:
             text += piece
-            done = _feature_lines(text, streaming=True)
+            done = _lines(text, streaming=True)
             if len(done) > shown:
                 shown = len(done)
                 yield {"lines": done[:N_LINES], "fve": None}
@@ -344,7 +339,7 @@ def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
         vref[0] = None
     _t_gen = time.time() - _t
 
-    lines = _feature_lines(text, streaming=False)[:N_LINES]
+    lines = _lines(text, streaming=False)[:N_LINES]
     if not lines:
         yield {"lines": [], "fve": [], "cos": []}
         return
@@ -591,6 +586,25 @@ _CACHE_MAX = 1024
 _result_cache: OrderedDict = OrderedDict()  # prefix tuple -> {lines, fve, cos}
 _cache_lock = Lock()
 
+# Baked per-position results (precache.json, made by precompute_cache.py) for
+# every token of the default texts — served instantly, no ZeroGPU call. Keyed by
+# the token-id prefix, immutable. A stale precache (texts/checkpoint changed)
+# just misses and falls through to the live GPU path.
+PRECACHE: dict = {}
+try:
+    for _e in json.load(open(os.path.join(HERE, "precache.json")))["entries"]:
+        for _i, _r in enumerate(_e["results"]):
+            if _r is not None:
+                PRECACHE[tuple(_e["ids"][: _i + 1])] = _r
+    print(f"[precache] {len(PRECACHE)} positions preloaded", flush=True)
+except FileNotFoundError:
+    print("[precache] no precache.json — default-text clicks compute live", flush=True)
+
+
+def _precache_get(prefix) -> dict | None:
+    r = PRECACHE.get(prefix)
+    return dict(r) if r is not None else None
+
 
 def _cache_get(key) -> dict | None:
     with _cache_lock:
@@ -627,7 +641,7 @@ def analyze_at(tokstate: dict | None, idx, mode: str,
         return
     meta = {"token": pieces[idx].strip() or repr(pieces[idx]), "pos": idx}
     key = tuple(ids[: idx + 1])
-    res = _cache_get(key)
+    res = _precache_get(key) or _cache_get(key)
     if res is not None:
         res.update(meta)
         yield res, render_viz(res, mode)
