@@ -102,7 +102,15 @@ Result: the frontloading signature is **robust to the fix** — full-length FVE
 0.662 (vs 0.657 on the contaminated set), line-1 marginal 0.471 ± 0.039 (vs
 0.508). Contamination inflated line 1 by ~7% relative but changed nothing
 qualitative; the first line still carries ~71% of full-explanation FVE on
-genuinely unseen documents. Data: `results/clean_{fve_by_line.json,token_fve.csv,lines_fve.csv}`.
+genuinely unseen documents.
+
+Per-line marginals use the unbiased definition: line k's marginal is averaged
+over **all** N outputs, and an output that doesn't have a k-th line contributes
+0 (a nonexistent line adds nothing to reconstruction) — not filtered to the
+subset long enough to have it. The per-line marginals sum to 0.661 ≈ the
+full-length FVE 0.662, confirming a proper decomposition. (Outputs run ~12
+lines each since the model rarely emits EOS, so lines 1–10 have 98–100%
+coverage regardless; the fix matters only for the near-zero tail.) Data: `results/clean_{fve_by_line.json,token_fve.csv,lines_fve.csv}`.
 
 ## KL vs reconstruction contribution during RL
 
