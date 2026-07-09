@@ -410,6 +410,9 @@ CSS = """
 .nla-tok.sel{background:var(--nla-sel); color:#fff;}
 .nla-tok .nl{color:var(--nla-muted); font-size:10px;}
 .nla-tok.sel .nl{color:rgba(255,255,255,.75);}
+body.nla-heat .nla-tok{background-color:rgba(224,58,58, calc(var(--pa,0)*0.85));}
+body.nla-heat .nla-tok:hover, body.nla-heat .nla-tok:focus-visible{background:var(--nla-hover);}
+body.nla-heat .nla-tok.sel{background:var(--nla-sel);}
 
 /* results card */
 .nlaviz{background:var(--nla-surface); border:1px solid var(--nla-ring);
@@ -480,11 +483,14 @@ def _card(msg: str) -> str:
 EMPTY_CARD = _card("👈 Click any token to read its activation.")
 
 
-def render_tokens(pieces: list[str], n_total: int) -> str:
+def render_tokens(pieces: list[str], n_total: int, paware=None) -> str:
     spans = []
     for i, p in enumerate(pieces):
         body = html_lib.escape(p).replace("\n", '<span class="nl">⏎</span><br>')
-        spans.append(f'<span class="nla-tok" data-i="{i}" title="#{i}" '
+        pa = paware[i] if (paware and i < len(paware) and paware[i] is not None) else None
+        style = f' style="--pa:{pa:.3f}"' if pa is not None else ""
+        ttl = f"#{i}" + (f" · P(eval-aware)={pa:.2f}" if pa is not None else "")
+        spans.append(f'<span class="nla-tok" data-i="{i}" title="{ttl}"{style} '
                      f'role="button" tabindex="0">{body}</span>')
     trunc = (f' <span class="trunc">✂ truncated to the first {len(pieces)}</span>'
              if n_total > len(pieces) else "")
@@ -586,7 +592,8 @@ def tokenize_text(text: str):
     ids = all_ids[:MAX_TEXT_TOKENS]
     # one Rust-side batch call vs 2048 sequential decode() round-trips
     pieces = tok.batch_decode([[t] for t in ids])
-    return render_tokens(pieces, len(all_ids)), {"ids": ids, "pieces": pieces}, EMPTY_CARD
+    paware = [EVAL_AWARE.get(tuple(ids[: i + 1])) for i in range(len(ids))]
+    return render_tokens(pieces, len(all_ids), paware), {"ids": ids, "pieces": pieces}, EMPTY_CARD
 
 
 # Cross-user runtime cache: one temperature-1 sample per position (the pipeline
@@ -601,14 +608,30 @@ _cache_lock = Lock()
 # the token-id prefix, immutable. A stale precache (texts/checkpoint changed)
 # just misses and falls through to the live GPU path.
 PRECACHE: dict = {}
+_pc_entries: list = []
 try:
-    for _e in json.load(open(os.path.join(HERE, "precache.json")))["entries"]:
+    _pc_entries = json.load(open(os.path.join(HERE, "precache.json")))["entries"]
+    for _e in _pc_entries:
         for _i, _r in enumerate(_e["results"]):
             if _r is not None:
                 PRECACHE[tuple(_e["ids"][: _i + 1])] = _r
     print(f"[precache] {len(PRECACHE)} positions preloaded", flush=True)
 except FileNotFoundError:
     print("[precache] no precache.json — default-text clicks compute live", flush=True)
+
+# Optional per-token P(evaluation-awareness) overlay (eval_awareness.json, made by
+# eval_awareness.py — gpt-4o-mini judges each NLA explanation). Aligned 1:1 with the
+# precache entries; keyed by the same token-id prefix. Drives the heatmap toggle.
+EVAL_AWARE: dict = {}
+try:
+    _ea = json.load(open(os.path.join(HERE, "eval_awareness.json")))["entries"]
+    for _pe, _ee in zip(_pc_entries, _ea):
+        for _i, _p in enumerate(_ee["paware"]):
+            if _p is not None:
+                EVAL_AWARE[tuple(_pe["ids"][: _i + 1])] = _p
+    print(f"[eval-aware] {len(EVAL_AWARE)} positions preloaded", flush=True)
+except FileNotFoundError:
+    print("[eval-aware] no eval_awareness.json — heatmap toggle inert", flush=True)
 
 
 def _precache_get(prefix) -> dict | None:
@@ -733,6 +756,10 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
             tokens_out.render()
         with gr.Column(scale=5, elem_classes=["nla-side"]):
             mode = gr.Radio(["marginal", "cumulative"], value="marginal", label="FVE view")
+            heat = gr.Checkbox(
+                value=False, label="🔴 Eval-awareness heatmap",
+                info="Tints each token by how eval/test-aware its NLA explanation looks "
+                     "(gpt-4o-mini judged). Sample texts only.")
             viz.render()
             with gr.Accordion("Analyze a token position by number", open=False):
                 with gr.Row():
@@ -745,6 +772,9 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
     steer_dd = gr.Dropdown(["none"], value="none", visible=False)
     strength_in = gr.Slider(0.0, 20.0, value=0.0, visible=False)
 
+    # heatmap toggle: pure client-side class flip on <body> (survives token re-renders)
+    heat.change(None, [heat], None,
+                js="(v) => { document.body.classList.toggle('nla-heat', !!v); }")
     tokenize_btn.click(tokenize_text, [text_in], [tokens_out, tok_state, viz],
                        api_name="tokenize")
     text_in.submit(tokenize_text, [text_in], [tokens_out, tok_state, viz])

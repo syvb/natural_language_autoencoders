@@ -27,6 +27,9 @@ cp -r "$HERE/nla" "$BUILD/nla"   # vendored EasyNLA runtime subset
 [[ -f "$HERE/precache.json" ]] && cp "$HERE/precache.json" "$BUILD/" \
   && echo "  + precache.json ($(wc -c < "$HERE/precache.json") bytes)" \
   || echo "  (no precache.json — default-text clicks compute live)"
+# eval_awareness.json (made by eval_awareness.py) — the heatmap-toggle overlay
+[[ -f "$HERE/eval_awareness.json" ]] && cp "$HERE/eval_awareness.json" "$BUILD/" \
+  && echo "  + eval_awareness.json"
 
 echo "=== sanity: app.py compiles, vendored nla imports ==="
 "$PY" -m py_compile "$BUILD/app.py"
