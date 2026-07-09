@@ -12,10 +12,12 @@ Pipeline per click (a dedicated GPU keeps all three roles resident):
                [LAYER+1], last token of the causal prefix).
   2. VERBALIZE the AV actor (base + av_sft_lora + av_rl_lora_step400, both LoRA
                adapters active — numerically the merge+load recipe, but keeping
-               the raw base for extraction) samples a bullet list at T=1. The
+               the raw base for extraction) samples the explanation at T=1. The
                activation is injected by EasyNLA's karvonen add-norm-matched
                hook at the layer-1 residual (direction-only; no injection_scale).
-               Prompt: trained tail (pre-closed <think></think>), no prefill.
+               Prompt: trained tail (pre-closed <think></think>) + an
+               '<explanation>\\n' prefill; decoding STOPS at </explanation> and
+               the explanation is the newline-split text between the tags.
   3. RECONSTRUCT the co-trained critic (rl_critic_step400, NLACriticModel) reads
                cumulative line prefixes (1..k) and predicts v̂_k; FVE_k =
                1 − ||n(v̂_k)−n(v)||² / ||n(v)−μ||², μ = mean of normalized
@@ -75,8 +77,8 @@ import torch
 import yaml
 from huggingface_hub import snapshot_download
 from peft import PeftModel
-from transformers import (AutoModelForCausalLM, AutoTokenizer, StoppingCriteria,
-                          StoppingCriteriaList, TextIteratorStreamer)
+from transformers import (AutoModelForCausalLM, AutoTokenizer,
+                          TextIteratorStreamer)
 
 from nla.config import load_nla_config
 from nla.models import NLACriticModel
@@ -99,12 +101,15 @@ LAYER = 42            # extraction layer (block output = hidden_states[LAYER+1])
 # Trained generation tail: the chat template opens `<think>\n`; the 27B NLAs
 # were trained with enable_thinking=False (pre-closed think pair). The template
 # default (open think) is off-distribution — outputs ramble and rarely
-# terminate. PREFILL="" ⇒ no leading "- " is fed to the model; it opens straight
-# into its own first token (a "- " prefill would bypass the RL first-token drift
-# onto "<", but that's cosmetic and was dropped by request).
+# terminate. PREFILL="<explanation>\n" opens the trained tagged format: the model
+# writes the explanation then reliably emits </explanation>. It was never trained
+# past the close (text after it is garbage and EOS may never come), so
+# generation STOPS at </explanation> (STOP_STR) and the explanation is the text
+# between the tags.
 THINK_OPEN = "<think>\n"
 PRECLOSED = "<think>\n\n</think>\n\n"
-PREFILL = ""
+PREFILL = "<explanation>\n"
+STOP_STR = "</explanation>"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CJK_RE = re.compile(r"[　-ヿ㐀-䶿一-鿿＀-￯]")
@@ -223,21 +228,24 @@ def _normalize(v: torch.Tensor, scale: float) -> torch.Tensor:
     return v / v.norm().clamp_min(1e-12) * scale
 
 
-def _complete_lines(text: str) -> list[str]:
-    """Non-empty lines that are newline-terminated (drops a trailing partial)."""
-    return [ln.strip() for ln in text.split("\n")[:-1] if ln.strip()]
+def _explanation_body(text: str) -> tuple[str, bool]:
+    """(content between <explanation>…</explanation>, closed?). Before the close
+    tag streams in, return everything after <explanation>. `text` includes the
+    PREFILL '<explanation>\\n', so the open tag is always present."""
+    after = text.split("<explanation>", 1)[-1]
+    if STOP_STR in after:
+        return after.split(STOP_STR, 1)[0], True
+    return after, False
 
 
-class _StopAfterLines(StoppingCriteria):
-    """End decoding once N_LINES complete non-empty lines exist. input_ids here
-    is [prompt + generated]; count lines in the generated tail only."""
-
-    def __init__(self, prompt_len: int):
-        self.prompt_len = prompt_len
-
-    def __call__(self, input_ids, scores, **kwargs) -> bool:
-        gen = tok.decode(input_ids[0, self.prompt_len:], skip_special_tokens=True)
-        return len(_complete_lines(gen)) >= N_LINES
+def _body_lines(text: str, streaming: bool) -> list[str]:
+    """Non-empty lines of the explanation body. While streaming and the close
+    tag hasn't arrived, drop the trailing partial line; once closed, keep all."""
+    body, closed = _explanation_body(text)
+    parts = body.split("\n")
+    if streaming and not closed:
+        parts = parts[:-1]
+    return [ln.strip() for ln in parts if ln.strip()]
 
 
 @torch.inference_mode()
@@ -297,15 +305,17 @@ def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
         # generation_config.json can never silently reshape the sampling.
         max_new_tokens=MAX_NEW, do_sample=True, temperature=1.0, top_p=1.0,
         top_k=0, pad_token_id=tok.eos_token_id,
-        stopping_criteria=StoppingCriteriaList([_StopAfterLines(PROMPT_LEN)]),
+        # stop at </explanation>, NOT EOS — the model reliably emits the close
+        # but was never trained past it (EOS may never come; text after = junk).
+        stop_strings=[STOP_STR], tokenizer=tok,
         streamer=streamer,
     ))
     try:
         gen.start()
-        text, shown = PREFILL, 0   # PREFILL="" ⇒ streamed text is generation-only
+        text, shown = PREFILL, 0   # PREFILL='<explanation>\n'; body parsed from it
         for piece in streamer:
             text += piece
-            done = _complete_lines(text)
+            done = _body_lines(text, streaming=True)
             if len(done) > shown:
                 shown = len(done)
                 yield {"lines": done[:N_LINES], "fve": None}
@@ -313,7 +323,7 @@ def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
     finally:
         vref[0] = None
 
-    lines = [ln.strip() for ln in re.split(r"\n+", text) if ln.strip()][:N_LINES]
+    lines = _body_lines(text, streaming=False)[:N_LINES]
     if not lines:
         yield {"lines": [], "fve": [], "cos": []}
         return
