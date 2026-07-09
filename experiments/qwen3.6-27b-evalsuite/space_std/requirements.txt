@@ -1,0 +1,21 @@
+# Qwen3.6-27B is the qwen3_5 hybrid linear-attention arch — needs transformers
+# 5.5.4 (its native support) + peft 0.19.1. Do NOT install torchao (peft 0.19.1
+# trips on old torchao); fla is not needed (torch fallback for the forward is
+# fine). The `nla` package is vendored in-repo (see ./nla), not installed —
+# EasyNLA pins transformers==4.57.1, which would fight the 5.5.4 requirement.
+# `spaces` is the ZeroGPU runtime (size="xlarge" full RTX Pro 6000, 96GB).
+# huggingface_hub is left UNPINNED: transformers 5.5.4 needs hub>=1.5.0 while
+# gradio<5.47 capped it at <1.0 — hence sdk_version 5.49.1 (hub<2.0) in
+# README.md. Pinning hub here reintroduces the conflict; let pip resolve it.
+spaces
+torch
+transformers==5.5.4
+peft==0.19.1
+accelerate
+# flash-linear-attention: optimized kernels for the qwen3_5 linear-attention
+# layers (without it the forward falls back to a much slower torch path).
+flash-linear-attention
+safetensors
+pyyaml
+numpy
+pyarrow
