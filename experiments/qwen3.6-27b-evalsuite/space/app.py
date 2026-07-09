@@ -1,7 +1,7 @@
 """NLA Qwen3.6-27B explorer — click a token, read its L42 activation as lines.
 
 Same explorer as the v3 (Qwen2.5-7B) Space, retargeted to the released
-Qwen3.6-27B NLAs (ceselder/qwen3.6-27b-nla-L42). The pipeline and the
+Qwen3.6-27B NLAs (ceselder/nla-qwen36-27b-matryoshka). The pipeline and the
 sampling recipe are the ones empirically validated in
 experiments/qwen3.6-27b-evalsuite (suite_common.py):
 
@@ -10,14 +10,13 @@ Pipeline per click (a dedicated GPU keeps all three roles resident):
                text; the layer-42 block output at the clicked token is the
                activation vector v (EasyNLA datagen convention: hidden_states
                [LAYER+1], last token of the causal prefix).
-  2. VERBALIZE the AV actor (base + av_sft_lora + av_rl_lora_step400, both LoRA
-               adapters active — numerically the merge+load recipe, but keeping
-               the raw base for extraction) samples the explanation at T=1. The
+  2. VERBALIZE the AV actor (raw Qwen3.6-27B base + rl_av_lora_iter400, the
+               matryoshka RL LoRA; the adapter is disabled for extraction)
+               samples a salience-ordered list of feature lines at T=1. The
                activation is injected by EasyNLA's karvonen add-norm-matched
                hook at the layer-1 residual (direction-only; no injection_scale).
-               Prompt: trained tail (pre-closed <think></think>) + an
-               '<explanation>\\n' prefill; decoding STOPS at </explanation> and
-               the explanation is the newline-split text between the tags.
+               Prompt: trained tail (pre-closed <think></think>), no prefill;
+               decoding stops after N_LINES lines (the policy rarely EOSes).
   3. RECONSTRUCT the co-trained critic (rl_critic_step400, NLACriticModel) reads
                cumulative line prefixes (1..k) and predicts v̂_k; FVE_k =
                1 − ||n(v̂_k)−n(v)||² / ||n(v)−μ||², μ = mean of normalized
@@ -77,19 +76,20 @@ import torch
 import yaml
 from huggingface_hub import snapshot_download
 from peft import PeftModel
-from transformers import (AutoModelForCausalLM, AutoTokenizer,
-                          TextIteratorStreamer)
+from transformers import (AutoModelForCausalLM, AutoTokenizer, StoppingCriteria,
+                          StoppingCriteriaList, TextIteratorStreamer)
 
 from nla.config import load_nla_config
 from nla.models import NLACriticModel
 from nla.utils import build_prompt_text, critic_predict, register_karvonen_hook
 from nla.utils.arch_adapters import resolve_decoder_layers
 
-# ── checkpoints ──────────────────────────────────────────────────────────────
-MODEL_REPO = "ceselder/qwen3.6-27b-nla-L42"
+# ── checkpoints (matryoshka NLA — the ordering-trained model that front-loads
+#    by salience, which is what the FVE-per-line viz shows) ─────────────────────
+MODEL_REPO = "ceselder/nla-qwen36-27b-matryoshka"
 BASE_ID = "Qwen/Qwen3.6-27B"          # text-only weights load via AutoModelForCausalLM
-SFT_SUBDIR = "av_sft_lora"            # warmstart LoRA (also carries the tokenizer)
-RL_SUBDIR = "av_rl_lora_step400"      # RL LoRA — trained on top of the merged SFT
+RL_SUBDIR = "rl_av_lora_iter400"      # single RL LoRA on the RAW text base (no SFT merge)
+TOK_SUBDIR = "warmstart_av_lora"      # carries the tokenizer + the bullet-format sidecar
 CRITIC_SUBDIR = "rl_critic_step400"   # co-trained reconstructor
 
 N_LINES = 10          # cap the explanation lines the viz plots
@@ -101,28 +101,27 @@ LAYER = 42            # extraction layer (block output = hidden_states[LAYER+1])
 # Trained generation tail: the chat template opens `<think>\n`; the 27B NLAs
 # were trained with enable_thinking=False (pre-closed think pair). The template
 # default (open think) is off-distribution — outputs ramble and rarely
-# terminate. PREFILL="<explanation>\n" opens the trained tagged format: the model
-# writes the explanation then reliably emits </explanation>. It was never trained
-# past the close (text after it is garbage and EOS may never come), so
-# generation STOPS at </explanation> (STOP_STR) and the explanation is the text
-# between the tags.
+# terminate. The matryoshka RL model natively opens straight into a salience-
+# ordered list of feature lines (no <explanation> tags, no prefill — a prefill
+# hurts it), and almost never emits EOS, so decoding is bounded by a
+# stop-after-N-lines criterion + the max_new cap.
 THINK_OPEN = "<think>\n"
 PRECLOSED = "<think>\n\n</think>\n\n"
-PREFILL = "<explanation>\n"
-STOP_STR = "</explanation>"
+PREFILL = ""
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CJK_RE = re.compile(r"[　-ヿ㐀-䶿一-鿿＀-￯]")
 
 # ── sidecar config + tokenizer ───────────────────────────────────────────────
 root = snapshot_download(MODEL_REPO)
-SFT_DIR = f"{root}/{SFT_SUBDIR}"
 RL_DIR = f"{root}/{RL_SUBDIR}"
+TOK_DIR = f"{root}/{TOK_SUBDIR}"
 CRITIC_DIR = f"{root}/{CRITIC_SUBDIR}"
 
-tok = AutoTokenizer.from_pretrained(SFT_DIR)
-# load_nla_config reads ./nla_meta.yaml (the held-out av_eval sidecar shipped
-# alongside this app) and asserts marker id + neighbors against `tok`.
+tok = AutoTokenizer.from_pretrained(TOK_DIR)
+# load_nla_config reads ./nla_meta.yaml (the matryoshka warmstart_av_lora
+# bullet-format sidecar shipped alongside this app) and asserts marker id +
+# neighbors against `tok`.
 cfg = load_nla_config(HERE, tok)
 INJ_CHAR = cfg.injection_char
 MSE_SCALE = float(cfg.mse_scale)
@@ -148,10 +147,9 @@ print(f"[prompt] len={PROMPT_LEN} tail={_ptxt[-40:]!r}", flush=True)
 # (bnb 8-bit fit the size but quantizing 27B at ZeroGPU startup blew the 30-min
 # launch timeout; bf16 loads fast.)
 #
-# ONE base instance serves both roles: extraction disables the adapters (raw
-# base, the datagen convention), generation activates both. Both LoRA adapters
-# active = base + ΔW_sft + ΔW_rl (numerically "merge SFT, load RL"), sharing the
-# one base — avoiding a second 27B copy just for extraction.
+# ONE base instance serves both roles: the matryoshka RL LoRA sits directly on
+# the RAW text base (no SFT merge), so generation runs with the adapter active
+# and extraction disables it (disable_adapter ⇒ raw base, the datagen convention).
 print("[load] base Qwen3.6-27B (bf16, RAM)…", flush=True)
 _base = AutoModelForCausalLM.from_pretrained(
     BASE_ID, torch_dtype=torch.bfloat16, attn_implementation="sdpa",
@@ -160,9 +158,7 @@ _base = AutoModelForCausalLM.from_pretrained(
 # CUDA device (peft's infer_device sees the emulated is_available()=True), which
 # fails at module level. Load to CPU, then actor.to("cuda") moves the stack onto
 # the emulated GPU (which the emulation supports for bf16).
-actor = PeftModel.from_pretrained(_base, SFT_DIR, adapter_name="sft", torch_device="cpu")
-actor.load_adapter(RL_DIR, adapter_name="rl", torch_device="cpu")
-actor.base_model.set_adapter(["sft", "rl"])  # BaseTuner takes a list in 0.19.1
+actor = PeftModel.from_pretrained(_base, RL_DIR, torch_device="cpu")
 actor.to("cuda").eval()
 
 vref = [None]  # karvonen hook reads vref[0]; None ⇒ no-op (extraction/decode)
@@ -228,24 +224,35 @@ def _normalize(v: torch.Tensor, scale: float) -> torch.Tensor:
     return v / v.norm().clamp_min(1e-12) * scale
 
 
-def _explanation_body(text: str) -> tuple[str, bool]:
-    """(content between <explanation>…</explanation>, closed?). Before the close
-    tag streams in, return everything after <explanation>. `text` includes the
-    PREFILL '<explanation>\\n', so the open tag is always present."""
-    after = text.split("<explanation>", 1)[-1]
-    if STOP_STR in after:
-        return after.split(STOP_STR, 1)[0], True
-    return after, False
+_BULLET_RE = re.compile(r"^\s*(?:[-*•]|\d+[.)])\s+")
 
 
-def _body_lines(text: str, streaming: bool) -> list[str]:
-    """Non-empty lines of the explanation body. While streaming and the close
-    tag hasn't arrived, drop the trailing partial line; once closed, keep all."""
-    body, closed = _explanation_body(text)
-    parts = body.split("\n")
-    if streaming and not closed:
+def _feature_lines(text: str, streaming: bool) -> list[str]:
+    """Salience-ordered feature lines. Split on newlines, strip a leading bullet/
+    number marker (the model writes its own), drop empties. While streaming, drop
+    the trailing partial (not yet newline-terminated) line."""
+    parts = text.split("\n")
+    if streaming:
         parts = parts[:-1]
-    return [ln.strip() for ln in parts if ln.strip()]
+    out = []
+    for ln in parts:
+        ln = _BULLET_RE.sub("", ln).strip()
+        if ln:
+            out.append(ln)
+    return out
+
+
+class _StopAfterLines(StoppingCriteria):
+    """End decoding once N_LINES complete (newline-terminated) feature lines have
+    been generated — the matryoshka policy rarely emits EOS, so this bounds it.
+    input_ids is [prompt + generated]; count only the generated tail."""
+
+    def __init__(self, prompt_len: int):
+        self.prompt_len = prompt_len
+
+    def __call__(self, input_ids, scores, **kwargs) -> bool:
+        gen = tok.decode(input_ids[0, self.prompt_len:], skip_special_tokens=True)
+        return len(_feature_lines(gen, streaming=True)) >= N_LINES
 
 
 @torch.inference_mode()
@@ -305,17 +312,17 @@ def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
         # generation_config.json can never silently reshape the sampling.
         max_new_tokens=MAX_NEW, do_sample=True, temperature=1.0, top_p=1.0,
         top_k=0, pad_token_id=tok.eos_token_id,
-        # stop at </explanation>, NOT EOS — the model reliably emits the close
-        # but was never trained past it (EOS may never come; text after = junk).
-        stop_strings=[STOP_STR], tokenizer=tok,
+        # stop once N_LINES feature lines exist (the matryoshka rarely EOSes) —
+        # bounds latency instead of always decoding the full max_new budget.
+        stopping_criteria=StoppingCriteriaList([_StopAfterLines(PROMPT_LEN)]),
         streamer=streamer,
     ))
     try:
         gen.start()
-        text, shown = PREFILL, 0   # PREFILL='<explanation>\n'; body parsed from it
+        text, shown = PREFILL, 0   # PREFILL='' ⇒ streamed text is generation-only
         for piece in streamer:
             text += piece
-            done = _body_lines(text, streaming=True)
+            done = _feature_lines(text, streaming=True)
             if len(done) > shown:
                 shown = len(done)
                 yield {"lines": done[:N_LINES], "fve": None}
@@ -323,7 +330,7 @@ def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
     finally:
         vref[0] = None
 
-    lines = _body_lines(text, streaming=False)[:N_LINES]
+    lines = _feature_lines(text, streaming=False)[:N_LINES]
     if not lines:
         yield {"lines": [], "fve": [], "cos": []}
         return
@@ -662,8 +669,9 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
         "and the *actor* verbalizes its activation into a salience-ordered list of lines, while "
         "the *critic* reconstructs the vector from each line-prefix — the bars show how much of "
         "the vector (**FVE**, fraction of variance explained) the first *k* lines recover. "
-        f"[Checkpoints](https://huggingface.co/{MODEL_REPO}) — `av_sft_lora` + `av_rl_lora_step400` "
-        "verbalizer, co-trained `rl_critic_step400` reconstructor.",
+        f"[Checkpoints](https://huggingface.co/{MODEL_REPO}) — the matryoshka `rl_av_lora_iter400` "
+        "verbalizer (ordering-trained to front-load by salience), co-trained `rl_critic_step400` "
+        "reconstructor.",
         elem_id="nla-header",
     )
     tok_state = gr.State(None)

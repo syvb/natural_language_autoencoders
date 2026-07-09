@@ -9,7 +9,7 @@ app_file: app.py
 license: apache-2.0
 short_description: Read Qwen3.6-27B's activations in plain English
 models:
-  - ceselder/qwen3.6-27b-nla-L42
+  - ceselder/nla-qwen36-27b-matryoshka
   - Qwen/Qwen3.6-27B
 ---
 
@@ -19,8 +19,9 @@ Interactive demo of a **natural-language autoencoder** (NLA) for **Qwen3.6-27B**
 layer-42 activations. Same explorer as the [v3 (Qwen2.5-7B) Space](https://huggingface.co/spaces/syvb/nla-v3-explorer),
 retargeted to the released 27B checkpoints:
 
-- **AV (actor)** — Qwen3.6-27B + `av_sft_lora` + `av_rl_lora_step400`, verbalizes
-  an injected activation into a salience-ordered list of short descriptions.
+- **AV (actor)** — Qwen3.6-27B + the matryoshka `rl_av_lora_iter400` (ordering-
+  trained to front-load by salience), verbalizes an injected activation into a
+  salience-ordered list of feature lines.
 - **AR (critic)** — the co-trained `rl_critic_step400` (43-layer truncated
   Qwen3.6-27B + linear head) reconstructs the activation from text.
 
@@ -29,7 +30,7 @@ that position (from the raw base, adapters disabled), verbalizes it, then
 reconstructs the vector from cumulative line prefixes and plots **FVE** (fraction
 of variance explained) per line — marginal or cumulative.
 
-Checkpoints: [ceselder/qwen3.6-27b-nla-L42](https://huggingface.co/ceselder/qwen3.6-27b-nla-L42).
+Checkpoints: [ceselder/nla-qwen36-27b-matryoshka](https://huggingface.co/ceselder/nla-qwen36-27b-matryoshka).
 NLA training code: [EasyNLA](https://github.com/asherps/EasyNLA) (the runtime
 subset is vendored under `./nla`).
 
@@ -37,19 +38,20 @@ subset is vendored under `./nla`).
 
 - **Stack**: transformers 5.5.4, peft 0.19.1 (the `qwen3_5` hybrid
   linear-attention arch). No torchao; fla not needed for the forward.
-- **Actor**: base + `av_sft_lora` + `av_rl_lora_step400`. Both LoRA adapters are
-  loaded and kept *active* (numerically the "merge SFT, load RL on top" recipe),
-  so a single 27B instance also serves extraction with the adapters disabled.
+- **Actor**: raw base + the matryoshka `rl_av_lora_iter400` (a single LoRA on the
+  raw text base — no SFT merge). Extraction disables the adapter for the raw-base
+  activation; generation runs with it active.
 - **Prompt**: the trained tail — chat template with `enable_thinking=False`
-  (pre-closed `<think>\n\n</think>\n\n`) + a `- ` prefill (bypasses the RL
-  first-token drift onto `<`). The open-think template default is
-  off-distribution (rambles, rarely terminates).
+  (pre-closed `<think>\n\n</think>\n\n`), **no prefill**: the matryoshka natively
+  opens straight into feature lines (a prefill hurts it). The open-think template
+  default is off-distribution (rambles, rarely terminates).
 - **Injection**: EasyNLA's karvonen add-norm-matched hook at the layer-1
   residual — `h' = h + ‖h‖·v̂`, direction only (no `injection_scale`), marker
   `㈜` (id 158983) with the left/right neighbor check.
 - **Generation**: `do_sample=True, temperature=1.0, top_p=1.0, top_k=0,
-  max_new_tokens=256`. No `<explanation>` tags in this run's format — the raw
-  newline-separated lines are the output.
+  max_new_tokens=256`, bounded by a stop-after-N-lines criterion (the matryoshka
+  policy almost never emits EOS). Output = the newline feature lines, leading
+  bullet/number markers stripped.
 - **Reconstruction**: the model's own `rl_critic_step400` via
   `NLACriticModel` + suffix-anchored `critic_predict`, critic prompt
   `Summary of the following text: <text>{expl}</text> <summary>`, both sides
