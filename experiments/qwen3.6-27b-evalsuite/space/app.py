@@ -15,7 +15,7 @@ Pipeline per click (a dedicated GPU keeps all three roles resident):
                the raw base for extraction) samples a bullet list at T=1. The
                activation is injected by EasyNLA's karvonen add-norm-matched
                hook at the layer-1 residual (direction-only; no injection_scale).
-               Prompt: trained tail (pre-closed <think></think>) + "- " prefill.
+               Prompt: trained tail (pre-closed <think></think>), no prefill.
   3. RECONSTRUCT the co-trained critic (rl_critic_step400, NLACriticModel) reads
                cumulative line prefixes (1..k) and predicts v̂_k; FVE_k =
                1 − ||n(v̂_k)−n(v)||² / ||n(v)−μ||², μ = mean of normalized
@@ -99,10 +99,12 @@ LAYER = 42            # extraction layer (block output = hidden_states[LAYER+1])
 # Trained generation tail: the chat template opens `<think>\n`; the 27B NLAs
 # were trained with enable_thinking=False (pre-closed think pair). The template
 # default (open think) is off-distribution — outputs ramble and rarely
-# terminate. The "- " prefill bypasses the RL first-token drift onto "<".
+# terminate. PREFILL="" ⇒ no leading "- " is fed to the model; it opens straight
+# into its own first token (a "- " prefill would bypass the RL first-token drift
+# onto "<", but that's cosmetic and was dropped by request).
 THINK_OPEN = "<think>\n"
 PRECLOSED = "<think>\n\n</think>\n\n"
-PREFILL = "- "
+PREFILL = ""
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CJK_RE = re.compile(r"[　-ヿ㐀-䶿一-鿿＀-￯]")
@@ -300,7 +302,7 @@ def gpu_analyze(token_ids: list[int], idx: int, steer: str | None = None,
     ))
     try:
         gen.start()
-        text, shown = PREFILL, 0   # the prefill is part of line 1 (skip_prompt)
+        text, shown = PREFILL, 0   # PREFILL="" ⇒ streamed text is generation-only
         for piece in streamer:
             text += piece
             done = _complete_lines(text)
