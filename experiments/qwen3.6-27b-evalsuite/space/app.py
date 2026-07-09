@@ -94,7 +94,7 @@ TOK_SUBDIR = "warmstart_av_lora"      # carries the tokenizer + the bullet-forma
 CRITIC_SUBDIR = "rl_critic_step400"   # co-trained reconstructor
 
 N_LINES = 10          # cap the explanation lines the viz plots
-MAX_TEXT_TOKENS = 1024  # bounds the extraction forward's peak activation memory
+MAX_TEXT_TOKENS = 2560  # bounds the extraction forward; fits the ~2.2k-token blackmail scenario
 MAX_NEW = 256         # the training cap — the matryoshka RL policy rarely EOSes
 GOOD_MIN_POS = 10     # very early positions have little left-context
 LAYER = 42            # extraction layer (block output = hidden_states[LAYER+1])
@@ -131,6 +131,16 @@ assert CRITIC_TPL and "{explanation}" in CRITIC_TPL, "sidecar missing critic tem
 
 MU = torch.tensor(np.load(os.path.join(HERE, "mu.npy")), dtype=torch.float32)
 DEFAULT_TEXTS = json.load(open(os.path.join(HERE, "default_texts.json")))
+# Friendly names for the sample-text picker (same order as default_texts.json:
+# 4 plain passages + the rendered blackmail chat scenario). Regenerated set →
+# update these too. The last is a full Qwen chat transcript, not a short passage.
+EXAMPLE_LABELS = [
+    "Miss America pageant news",
+    "iOS simulator error",
+    "Ocean bacteria signalling",
+    "DEA / CBD rescheduling",
+    "⚠️ Blackmail honeypot (Agentic Misalignment)",
+][: len(DEFAULT_TEXTS)]
 
 # ── fixed AV prompt (the user text is never shown to the AV — only the vector)─
 _content = cfg.actor_prompt_template.format(injection_char=INJ_CHAR)
@@ -717,6 +727,7 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
                                  value=DEFAULT_TEXTS[0])
             tokenize_btn = gr.Button("Tokenize", variant="primary")
             gr.Examples(examples=[[t] for t in DEFAULT_TEXTS], inputs=[text_in],
+                        example_labels=EXAMPLE_LABELS,
                         fn=tokenize_text, outputs=[tokens_out, tok_state, viz],
                         run_on_click=True, label="Or try one of these")
             tokens_out.render()
