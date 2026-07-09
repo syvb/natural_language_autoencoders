@@ -54,10 +54,14 @@ flat), the standard 27B model ALSO orders by ratio (slopes +1.63/+1.53/+1.45)
 cleanly where the standard flattens mid-curve, but the separation is much
 smaller than at 7B. Plausible reading: a stronger base model spontaneously
 verbalizes the dominant component of a mixture first; ordering training
-sharpens rather than creates the capability. Granularity caveat: the standard
-model emits ~5 long lines vs the matryoshka's ~12 short ones, so its
-line-level order readout is coarser (v3 handled this with a word-chunk
-control, not yet rerun here).
+sharpens rather than creates the capability. The v3 word-chunk control (re-judging every
+generation as 10 equal word chunks — identical order resolution for both
+models) CONFIRMS and sharpens this: slopes rise for both (mat +1.94/+2.50/+2.66,
+std +1.88/+1.77/+1.98), so the standard model's ordering is real and the
+line-based readout was noise-penalizing it. Matryoshka training adds a
+moderate slope advantage (~+0.5-0.7 at R≥0.9) rather than the capability.
+
+![ratio chunk control](results/fig27_ratio_chunks.png)
 
 ## Marginal FVE per token / per line
 
