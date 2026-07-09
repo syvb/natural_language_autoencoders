@@ -112,6 +112,14 @@ full-length FVE 0.662, confirming a proper decomposition. (Outputs run ~12
 lines each since the model rarely emits EOS, so lines 1–10 have 98–100%
 coverage regardless; the fix matters only for the near-zero tail.) Data: `results/clean_{fve_by_line.json,token_fve.csv,lines_fve.csv}`.
 
+Same clean held-out data binned by token groups instead of lines (aggregate
+population marginal; sums to full-length FVE 0.662):
+
+![marginal per 10-token group](results/clean_mat_marginal_fve_10tok.png)
+![marginal per 20-token group](results/clean_mat_marginal_fve_20tok.png)
+
+(log-y variants: `clean_mat_marginal_fve_{10,20}tok_LOGY.png`.)
+
 ## KL vs reconstruction contribution during RL
 
 ![KL vs reconstruction](results/fig27_kl_vs_recon.png)
