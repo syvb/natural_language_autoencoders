@@ -23,17 +23,17 @@ was measured harmless for both RL policies' full-length reconstruction but
 depressed the matryoshka model's short-prefix FVE (0.17 → 0.48 at 10 tokens
 after correction) by displacing its trained completion-first opener.
 
-## FVE vs explanation truncation
+## FVE vs explanation truncation (clean held-out)
 
-![FVE vs truncation](results/fig27_fve.png)
+![FVE vs truncation, clean](results/fig27_fve_clean.png)
 
-100 held-out distinct-doc samples. The matryoshka model is FVE-positive by
-token 2, hits **0.48 at 10 tokens** and 0.57 at 20 (above its model card's
-0.43/0.52), first line alone 0.51, plateau 0.657 — its 10-token prefix carries
-~73% of full-explanation FVE. The standard reference is *negative* (worse than
-the mean predictor) until ~70 tokens, then plateaus higher (0.74): the classic
-matryoshka trade — frontloading bought with some full-length ceiling. Curves:
-`results/{token,lines}_fve_{mat,std}.csv`.
+100 clean held-out docs (Ultra-FineWeb idx 300000+, fresh L42 extraction —
+provably outside the 0–100k training range). Matryoshka: FVE-positive by
+token 2, 0.443 within the first 10 tokens, 0.526 within 20, plateau 0.662;
+first line alone 0.471. The standard model's clean curve is being computed
+(its contaminated-set curve was negative until ~70 tokens with plateau 0.74;
+the contamination effect measured on the matryoshka model was small,
+0.657→0.662). Curves: `results/clean_{token,lines}_fve.csv`.
 
 ## Two-concept ratio test (causal ordering)
 
@@ -62,31 +62,6 @@ line-based readout was noise-penalizing it. Matryoshka training adds a
 moderate slope advantage (~+0.5-0.7 at R≥0.9) rather than the capability.
 
 ![ratio chunk control](results/fig27_ratio_chunks.png)
-
-## Marginal FVE per token / per line
-
-![marginal FVE](results/fig27_marginal_fve.png)
-
-Linear-x version of the per-token panel:
-
-![marginal FVE per token, linear](results/fig27_marginal_fve_token_linear.png)
-
-Differences of the cumulative truncation curves. The matryoshka model's first
-~5 tokens each buy 0.08–0.15 FVE, nearly spent by ~40 tokens; the standard
-model's information arrives late and diffusely (small marginals persisting
-past 100 tokens; its line 1 is *negative*, corrected by lines 2–3).
-
-v3-style per-line bar charts, matryoshka only (line 1 carries 0.508 ΔFVE ≈
-77% of recoverable variance, vs 0.334/≈50% for the 7B v3 model):
-
-![marginal per line](results/mat_marginal_fve_per_line.png)
-![marginal per line log](results/mat_marginal_fve_per_line_LOGY.png)
-
-Per-example version with ±SEM over 100 held-out activations (line 1 =
-0.508 ± 0.023 ΔFVE):
-
-![marginal per line SEM](results/mat_marginal_fve_per_line_SEM.png)
-![marginal per line SEM log](results/mat_marginal_fve_per_line_SEM_LOGY.png)
 
 ## Clean held-out marginal FVE (contamination fix)
 
@@ -136,8 +111,10 @@ are group-normalized). The policy moved most at the *start* of the response
 training pays. Under every plausible coefficient (tapered 0.02·0.5^(t/40),
 flat β=0.01, flat β=0.2) the KL term stays below the PG term at essentially
 every position: reconstruction dominated the run's gradient (KL share of loss
-magnitude ≈1.2% / 1.7% / 26% respectively). Caveat: converged-policy
-measurement; the true β/taper lives in the training fork.
+magnitude ≈1.2% / 1.7% / 26% respectively). Caveats: converged-policy
+measurement; the true β/taper lives in the training fork; rollouts use
+training-range activations — appropriate here, since the quantity measured is
+training-time policy divergence.
 
 ## Frontloading under single-trait steering
 
@@ -147,7 +124,11 @@ Spearman): standard model ≈ 0 (+0.25 yellow / +0.39 neuroticism / +0.03
 sycophancy — no frontloading); matryoshka dash-era showed −0.49…−0.57 and its
 corrected rerun completes shortly.
 
-## Sample sets (same 12 held-out rows throughout)
+## Sample sets (same 12 rows throughout; av_eval — training-range docs)
+
+Note: sample rows come from `av_eval` (Ultra-FineWeb 0–100k, the training
+range), so quoted per-sample MSEs are training-adjacent; treat these files as
+qualitative. All quantitative FVE figures above use the clean held-out set.
 
 - `matryoshka_samples.md` / `matryoshka_samples_fve.md` — the model of
   interest, with per-sample FVE, source-text tails, and standard-model
