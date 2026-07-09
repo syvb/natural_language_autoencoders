@@ -38,7 +38,7 @@ RL_SUBDIR = "rl_av_lora_iter400"
 TOK_SUBDIR = "warmstart_av_lora"
 CRITIC_SUBDIR = "rl_critic_step400"
 N_LINES = 10
-MAX_TEXT_TOKENS = 2560  # KEEP IN SYNC with app.py + build_default_texts.py
+MAX_TEXT_TOKENS = 5120  # KEEP IN SYNC with app.py + build_default_texts.py
 MAX_NEW = 256
 LAYER = 42
 THINK_OPEN = "<think>\n"
@@ -58,7 +58,10 @@ def _lines(text):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--texts", default=str(HERE / "default_texts.json"))
+    # default: precache_texts.json if present (the dedup'd list — the scenario-only
+    # honeypot is a token-prefix of the with-response one, so we skip it), else
+    # default_texts.json. Its keys still cover every default_texts.json click.
+    ap.add_argument("--texts", default=None)
     ap.add_argument("--mu", default=str(HERE / "mu.npy"))
     ap.add_argument("--out", default=str(HERE / "precache.json"))
     ap.add_argument("--av-batch", type=int, default=16)
@@ -76,7 +79,11 @@ def main():
     mse_scale = float(cfg.mse_scale)
     critic_tpl = cfg.critic_prompt_template
     mu = torch.tensor(np.load(args.mu), dtype=torch.float32)
-    texts = json.load(open(args.texts))
+    texts_path = args.texts or (str(HERE / "precache_texts.json")
+                                if (HERE / "precache_texts.json").exists()
+                                else str(HERE / "default_texts.json"))
+    print(f"[texts] {texts_path}", flush=True)
+    texts = json.load(open(texts_path))
     inj_char = cfg.injection_char
 
     # fixed prompt (matches app.py) — no prefill

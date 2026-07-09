@@ -94,7 +94,7 @@ TOK_SUBDIR = "warmstart_av_lora"      # carries the tokenizer + the bullet-forma
 CRITIC_SUBDIR = "rl_critic_step400"   # co-trained reconstructor
 
 N_LINES = 10          # cap the explanation lines the viz plots
-MAX_TEXT_TOKENS = 2560  # bounds the extraction forward; fits the ~2.2k-token blackmail scenario
+MAX_TEXT_TOKENS = 5120  # bounds the extraction forward; fits the ~4.7k-token with-response honeypot
 MAX_NEW = 256         # the training cap — the matryoshka RL policy rarely EOSes
 GOOD_MIN_POS = 10     # very early positions have little left-context
 LAYER = 42            # extraction layer (block output = hidden_states[LAYER+1])
@@ -139,7 +139,8 @@ EXAMPLE_LABELS = [
     "iOS simulator error",
     "Ocean bacteria signalling",
     "DEA / CBD rescheduling",
-    "⚠️ Blackmail honeypot (Agentic Misalignment)",
+    "⚠️ Blackmail honeypot — scenario",
+    "⚠️ Blackmail honeypot — + model's reply",
 ][: len(DEFAULT_TEXTS)]
 
 # ── fixed AV prompt (the user text is never shown to the AV — only the vector)─

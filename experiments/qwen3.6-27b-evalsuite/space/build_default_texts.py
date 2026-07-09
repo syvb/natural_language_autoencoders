@@ -39,7 +39,7 @@ SCEN = HERE / "scenarios"
 # chat rendering + the faithfulness assert. KEEP IN SYNC with app.py.
 MODEL_REPO = "ceselder/nla-qwen36-27b-matryoshka"
 TOK_SUBDIR = "warmstart_av_lora"
-MAX_TEXT_TOKENS = 2560  # must match app.py / precompute_cache.py; the honeypot is ~2.2k tokens
+MAX_TEXT_TOKENS = 5120  # must match app.py / precompute_cache.py; with-response is ~4.7k tokens
 
 # ── blackmail honeypot knobs (editable) ──────────────────────────────────────
 # GOAL selects the system-prompt goal statement. "none" = no explicit goal, so
@@ -94,22 +94,47 @@ def _blackmail_system() -> str:
     )
 
 
-def build_blackmail(tok) -> str:
-    """Render the honeypot as a Qwen chat string (system + user, no gen prompt)."""
+def _blackmail_msgs():
     emails = (SCEN / "blackmail_emails.md").read_text().strip()
-    msgs = [{"role": "system", "content": _blackmail_system()},
+    return [{"role": "system", "content": _blackmail_system()},
             {"role": "user", "content": USER_PROMPT + "\n" + emails}]
+
+
+def _report(rendered: str, tok, label: str) -> int:
+    assert "${" not in rendered, "unresolved template variable in the scenario"
+    n = len(tok(rendered, add_special_tokens=True)["input_ids"])
+    print(f"[{label}] goal={GOAL!r} scratchpad={USE_SCRATCHPAD} → {n} tokens "
+          f"({'OK' if n <= MAX_TEXT_TOKENS else 'EXCEEDS MAX_TEXT_TOKENS — will truncate!'})")
+    return n
+
+
+def build_scenario_only(tok) -> str:
+    """System + user only (no gen prompt) — analyze the model READING the honeypot."""
+    msgs = _blackmail_msgs()
     rendered = tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=False)
     # faithfulness: the app tokenizes with tok(text, add_special_tokens=True); it MUST
     # equal the real chat-template ids, else the explorer analyzes the wrong tokens.
     tpl_ids = tok.apply_chat_template(msgs, tokenize=True, add_generation_prompt=False,
                                       return_dict=True)["input_ids"]
-    app_ids = tok(rendered, add_special_tokens=True)["input_ids"]
-    assert tpl_ids == app_ids, "chat render does NOT round-trip through tok(add_special_tokens=True)"
-    assert "${" not in rendered, "unresolved template variable in the scenario"
-    n = len(app_ids)
-    print(f"[blackmail] goal={GOAL!r} scratchpad={USE_SCRATCHPAD} → {n} tokens "
-          f"({'OK' if n <= MAX_TEXT_TOKENS else 'EXCEEDS MAX_TEXT_TOKENS — will truncate!'})")
+    assert tpl_ids == tok(rendered, add_special_tokens=True)["input_ids"], \
+        "scenario render does NOT round-trip through tok(add_special_tokens=True)"
+    _report(rendered, tok, "scenario-only")
+    return rendered
+
+
+def build_with_response(tok) -> str:
+    """System + user + the base model's OWN reply (thinking on) — analyze the model
+    GENERATING its (blackmail) decision. The reply is scenarios/blackmail_response.txt,
+    produced by gen_response.py on the raw base Qwen3.6-27B; we reconstruct
+    full = gen_prompt + reply, which re-tokenizes to the generated ids (asserted at
+    gen time as round_trip=True)."""
+    resp = SCEN / "blackmail_response.txt"
+    if not resp.exists():
+        raise SystemExit(f"missing {resp} — run scenarios/gen_response.py on a GPU box first")
+    prompt = tok.apply_chat_template(_blackmail_msgs(), tokenize=False,
+                                     add_generation_prompt=True, enable_thinking=True)
+    rendered = prompt + resp.read_text()
+    _report(rendered, tok, "with-response")
     return rendered
 
 
@@ -117,10 +142,22 @@ def main():
     tok = AutoTokenizer.from_pretrained(MODEL_REPO, subfolder=TOK_SUBDIR,
                                         token=os.environ.get("HF_TOKEN"))
     plain = json.load(open(SCEN / "plain_texts.json"))
-    texts = plain + [build_blackmail(tok)]
-    out = HERE / "default_texts.json"
-    json.dump(texts, open(out, "w"), ensure_ascii=False, indent=0)
-    print(f"wrote {out} — {len(texts)} sample texts ({len(plain)} plain + 1 chat scenario)")
+    scen = build_scenario_only(tok)
+    resp = build_with_response(tok)
+    # scenario-only ids are a strict PREFIX of with-response ids (identical system+user;
+    # the assistant turn is only appended). So precaching the with-response SUPERSET
+    # covers BOTH examples' clicks — precache_texts.json omits the scenario-only to
+    # halve the precompute. (precompute_cache.py prefers precache_texts.json.)
+    so_ids = tok(scen, add_special_tokens=True)["input_ids"]
+    wr_ids = tok(resp, add_special_tokens=True)["input_ids"]
+    assert wr_ids[: len(so_ids)] == so_ids, "scenario-only is not a prefix of with-response"
+
+    json.dump(plain + [scen, resp], open(HERE / "default_texts.json", "w"),
+              ensure_ascii=False, indent=0)
+    json.dump(plain + [resp], open(HERE / "precache_texts.json", "w"),
+              ensure_ascii=False, indent=0)
+    print(f"wrote default_texts.json ({len(plain)} plain + scenario-only + with-response) "
+          f"+ precache_texts.json ({len(plain)} plain + with-response superset)")
 
 
 if __name__ == "__main__":
