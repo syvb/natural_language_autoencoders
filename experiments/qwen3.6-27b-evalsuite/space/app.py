@@ -752,7 +752,8 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
             gr.Examples(examples=[[t] for t in DEFAULT_TEXTS], inputs=[text_in],
                         example_labels=EXAMPLE_LABELS,
                         fn=tokenize_text, outputs=[tokens_out, tok_state, viz],
-                        run_on_click=True, label="Or try one of these")
+                        run_on_click=True, cache_examples=False,  # honeypot HTML > csv field cap
+                        label="Or try one of these")
             tokens_out.render()
         with gr.Column(scale=5, elem_classes=["nla-side"]):
             mode = gr.Radio(["marginal", "cumulative"], value="marginal", label="FVE view")
