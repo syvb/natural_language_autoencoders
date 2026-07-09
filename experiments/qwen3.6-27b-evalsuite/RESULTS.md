@@ -78,6 +78,12 @@ v3-style per-line bar charts, matryoshka only (line 1 carries 0.508 ΔFVE ≈
 ![marginal per line](results/mat_marginal_fve_per_line.png)
 ![marginal per line log](results/mat_marginal_fve_per_line_LOGY.png)
 
+Per-example version with ±SEM over 100 held-out activations (line 1 =
+0.508 ± 0.023 ΔFVE):
+
+![marginal per line SEM](results/mat_marginal_fve_per_line_SEM.png)
+![marginal per line SEM log](results/mat_marginal_fve_per_line_SEM_LOGY.png)
+
 ## KL vs reconstruction contribution during RL
 
 ![KL vs reconstruction](results/fig27_kl_vs_recon.png)
