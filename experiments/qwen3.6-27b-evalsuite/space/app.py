@@ -38,21 +38,18 @@ in a mounted HF Bucket (see the HF_HOME override), off the ephemeral limit.
 
 import os
 
-# Storage layout for a 93GB model on ZeroGPU (which evicts the workload past a
-# 150GB ephemeral-storage limit):
-#   - The ~130GB bf16 weight cache goes to an HF Bucket (Xet object storage)
-#     mounted read-write at /bucket (see set_space_volumes) — off the ephemeral
-#     limit. HF_HOME must be set before importing huggingface_hub.
-#   - ZeroGPU packs the ~92GB module-level model to ZEROGPU_OFFLOAD_DIR at
-#     launch via posix_fallocate. The platform default (/data-nvme, 76GB) is
-#     too small and FUSE buckets may not support fallocate, so keep the pack on
-#     the big ephemeral fs (/tmp): 92GB is under 150GB now that the cache lives
-#     in the bucket. Hard-override (the platform pre-sets this) before importing
-#     spaces, which reads it at import.
-os.environ["HF_HOME"] = "/bucket/hf"
+# Storage layout for a 92GB bf16 model on ZeroGPU (evicts past a 150GB
+# ephemeral-storage limit). At demo.launch() ZeroGPU packs the whole module-
+# level model to ZEROGPU_OFFLOAD_DIR (O_DIRECT, must be a real block fs — not a
+# FUSE bucket). The platform default (/data-nvme, 76GB) is too small, so pack on
+# the big ephemeral fs (/tmp). To keep ephemeral under 150GB we (a) load weights
+# into RAM (low_cpu_mem_usage=False) so the pack reads RAM, not an mmap'd cache,
+# and (b) delete the ~92GB download cache before launch — leaving the 92GB pack
+# as the only ephemeral consumer. (A bucket doesn't help here: Xet-FUSE re-caches
+# read weights onto the ephemeral disk, and O_DIRECT can't target FUSE.) Set
+# before importing spaces, which reads this env at import.
 os.environ["ZEROGPU_OFFLOAD_DIR"] = "/tmp/zerogpu-tensors"
-for _d in (os.environ["HF_HOME"], os.environ["ZEROGPU_OFFLOAD_DIR"]):
-    os.makedirs(_d, exist_ok=True)
+os.makedirs(os.environ["ZEROGPU_OFFLOAD_DIR"], exist_ok=True)
 
 import spaces  # must be imported before any CUDA touch
 
@@ -68,9 +65,8 @@ import torch
 import yaml
 from huggingface_hub import snapshot_download
 from peft import PeftModel
-from transformers import (AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig,
-                          StoppingCriteria, StoppingCriteriaList,
-                          TextIteratorStreamer)
+from transformers import (AutoModelForCausalLM, AutoTokenizer, StoppingCriteria,
+                          StoppingCriteriaList, TextIteratorStreamer)
 
 from nla.config import load_nla_config
 from nla.models import NLACriticModel
@@ -128,33 +124,29 @@ PROMPT_IDS = tok.encode(_ptxt, add_special_tokens=False)
 PROMPT_LEN = len(PROMPT_IDS)
 print(f"[prompt] len={PROMPT_LEN} tail={_ptxt[-40:]!r}", flush=True)
 
-# ── models (8-bit; placed on the emulated GPU at module level) ────────────────
-# 8-bit (bitsandbytes) so the model ZeroGPU packs to the ephemeral offload is
-# ~46GB (< the 150GB workload limit) instead of ~92GB in bf16; LLM.int8() is
-# near-lossless. ZeroGPU natively supports bnb (its patch() calls
-# bitsandbytes().patch()). bnb models are placed by device_map and can't be
-# .to()'d afterwards.
+# ── models (bf16, loaded into RAM so ZeroGPU packs from RAM not an mmap) ───────
+# low_cpu_mem_usage=False forces a real RAM copy (not an mmap of the cache
+# files), which lets us delete the cache before ZeroGPU's launch-time pack — so
+# the ~92GB O_DIRECT offload is the only thing on the 150GB-capped ephemeral fs.
+# (bnb 8-bit fit the size but quantizing 27B at ZeroGPU startup blew the 30-min
+# launch timeout; bf16 loads fast.)
 #
 # ONE base instance serves both roles: extraction disables the adapters (raw
 # base, the datagen convention), generation activates both. Both LoRA adapters
-# active = base + ΔW_sft + ΔW_rl (numerically "merge SFT, load RL"); the int8
-# base is shared, avoiding a second 27B copy just for extraction.
-_BNB = BitsAndBytesConfig(load_in_8bit=True)
-print("[load] base Qwen3.6-27B (8-bit)…", flush=True)
+# active = base + ΔW_sft + ΔW_rl (numerically "merge SFT, load RL"), sharing the
+# one base — avoiding a second 27B copy just for extraction.
+print("[load] base Qwen3.6-27B (bf16, RAM)…", flush=True)
 _base = AutoModelForCausalLM.from_pretrained(
-    BASE_ID, quantization_config=_BNB, device_map={"": 0},
-    attn_implementation="sdpa")
-# torch_device="cpu": the adapter safetensors load would otherwise target a
-# real CUDA device (peft's infer_device sees the emulated is_available()=True),
-# which fails at module level. Load to CPU, then move onto the emulated GPU so
-# ZeroGPU tracks + restores the adapters alongside the device_map'd int8 base.
+    BASE_ID, torch_dtype=torch.bfloat16, attn_implementation="sdpa",
+    low_cpu_mem_usage=False)
+# torch_device="cpu": the adapter safetensors load would otherwise target a real
+# CUDA device (peft's infer_device sees the emulated is_available()=True), which
+# fails at module level. Load to CPU, then actor.to("cuda") moves the stack onto
+# the emulated GPU (which the emulation supports for bf16).
 actor = PeftModel.from_pretrained(_base, SFT_DIR, adapter_name="sft", torch_device="cpu")
 actor.load_adapter(RL_DIR, adapter_name="rl", torch_device="cpu")
 actor.base_model.set_adapter(["sft", "rl"])  # BaseTuner takes a list in 0.19.1
-for _p in actor.parameters():
-    if _p.device.type == "cpu":
-        _p.data = _p.data.to("cuda")  # emulated .to ⇒ ZeroGPU-tracked adapter
-actor.eval()
+actor.to("cuda").eval()
 
 vref = [None]  # karvonen hook reads vref[0]; None ⇒ no-op (extraction/decode)
 register_karvonen_hook(actor, vref, cfg.injection_token_id,
@@ -162,36 +154,53 @@ register_karvonen_hook(actor, vref, cfg.injection_token_id,
                        cfg.injection_right_neighbor_id, layer_idx=1)
 BASE_LAYERS = resolve_decoder_layers(actor.get_base_model())
 
-print("[load] critic rl_critic_step400 (NLACriticModel, 8-bit)…", flush=True)
+print("[load] critic rl_critic_step400 (NLACriticModel, bf16, RAM)…", flush=True)
 critic = NLACriticModel.from_pretrained(
-    CRITIC_DIR, quantization_config=_BNB, device_map={"": 0},
-    attn_implementation="sdpa").eval()  # value_head is added post-load, stays fp32
+    CRITIC_DIR, torch_dtype=torch.bfloat16, attn_implementation="sdpa",
+    low_cpu_mem_usage=False)
+critic.to("cuda").eval()
 DEV = "cuda"
 print(f"[ready] d_model={cfg.d_model} mse_scale={MSE_SCALE:.2f} "
       f"marker={INJ_CHAR!r}(id={cfg.injection_token_id}) layer={LAYER}", flush=True)
 
 
-def _prep_offload_dir() -> None:
-    """Create the relocated ZeroGPU offload dir and log per-mount free space.
+def _free_cache_and_report() -> None:
+    """Delete the bf16 download blobs (now copied into RAM) and log RAM + disk.
 
-    Do NOT pre-delete the HF cache blobs: ZeroGPU's pack() autoprunes them
-    itself (ZEROGPU_MMAP_AUTOPRUNE_PATTERN) and lstat()s each one to tally the
-    reclaimed size — deleting them here makes that accounting FileNotFoundError.
-    With the offload dir relocated to the multi-TB main fs there is ample room
-    to keep the cache resident through the pack, so freeing it is unnecessary."""
+    Safe here because low_cpu_mem_usage=False made the weights real RAM tensors,
+    not mmap views of these files — so ZeroGPU's launch-time pack reads RAM, and
+    its autoprune (which lstat()s mmap'd source files) finds none to trip on.
+    Deleting frees the ~92GB cache so the pack's ~92GB O_DIRECT offload is the
+    only thing on the 150GB-capped ephemeral fs."""
+    import glob
     import shutil
     from huggingface_hub.constants import HF_HUB_CACHE
     os.makedirs(os.environ["ZEROGPU_OFFLOAD_DIR"], exist_ok=True)
-    for p in [os.environ["ZEROGPU_OFFLOAD_DIR"], HF_HUB_CACHE, "/bucket",
-              "/data-nvme/zerogpu-offload", "/tmp"]:
+    freed = 0
+    for blob in glob.glob(os.path.join(HF_HUB_CACHE, "models--*", "blobs", "*")):
+        try:
+            freed += os.path.getsize(blob)
+            os.remove(blob)
+        except OSError:
+            pass
+    try:
+        mem = {k: int(v.split()[0]) for k, v in
+               (ln.split(":", 1) for ln in open("/proc/meminfo"))}
+        print(f"[ram] MemTotal={mem['MemTotal']/2**20:.0f}G "
+              f"MemAvailable={mem['MemAvailable']/2**20:.0f}G", flush=True)
+    except OSError:
+        pass
+    for p in [os.environ["ZEROGPU_OFFLOAD_DIR"], HF_HUB_CACHE, "/tmp"]:
         try:
             t, _, f = shutil.disk_usage(p)
             print(f"[disk] {p}: total={t/1e9:.0f}G free={f/1e9:.0f}G", flush=True)
         except OSError:
             pass
+    print(f"[disk] freed {freed/1e9:.1f}GB of bf16 cache blobs before pack",
+          flush=True)
 
 
-_prep_offload_dir()
+_free_cache_and_report()
 
 # Steering is v3-only (needs L42 27B trait directions we don't ship) — the
 # accordion stays hidden and every steer key resolves to a plain analysis.
