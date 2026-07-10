@@ -1,0 +1,347 @@
+"""Build crossout_demo.html — the lay-audience matryoshka-vs-standard demo.
+
+One page, real data, no jargon: (1) an interactive cross-out — both NLAs
+describe the SAME moment (honeypot pos 77, near-identical full recovery);
+click a unit to delete it and watch the recovery meter (values = the measured
+leave-one-out FVE from loo.json, not a simulation); (2) the reading-budget
+chart (mean FVE vs words read across all 5,274 precached positions).
+
+    python build_crossout_demo.py     # → crossout_demo.html
+"""
+import json
+import re
+from pathlib import Path
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+ENTRY, POS = 4, 77
+GRID_STEP = 2
+
+
+def sent_units(line):
+    bounds = []
+    for m in re.finditer(r'[.!?]["”\')\]]*\s+(?=[A-Z"“(\d])', line):
+        if (line[: m.end()].count('"') + line[: m.end()].count('“')
+                + line[: m.end()].count('”')) % 2 == 0:
+            bounds.append(m.end())
+    units, prev = [], 0
+    for b in bounds:
+        units.append(line[prev:b]); prev = b
+    units.append(line[prev:])
+    return [u.strip() for u in units if u.strip()]
+
+
+def curves():
+    grid = np.arange(0, 121)
+    mats, stds = [], []
+    for e in json.load(open(HERE / "space" / "precache.json"))["entries"]:
+        for r in e["results"]:
+            if not r or not r.get("lines"):
+                continue
+            w = np.cumsum([len(ln.split()) for ln in r["lines"]])
+            mats.append(np.interp(grid, np.concatenate([[0], w]),
+                                  np.concatenate([[0], r["fve"]])))
+    for le in json.load(open(HERE / "space_std" / "loo.json"))["entries"]:
+        for u, p in zip(le["units"], le["pfx"]):
+            if u is None:
+                continue
+            w = np.cumsum([len(x.split()) for x in u])
+            stds.append(np.interp(grid, np.concatenate([[0], w]),
+                                  np.concatenate([[0], p])))
+    return (grid[::GRID_STEP].tolist(),
+            np.round(np.mean(mats, axis=0)[::GRID_STEP], 4).tolist(),
+            np.round(np.mean(stds, axis=0)[::GRID_STEP], 4).tolist())
+
+
+def main():
+    mpre = json.load(open(HERE / "space" / "precache.json"))["entries"][ENTRY]
+    mloo = json.load(open(HERE / "space" / "loo.json"))["entries"][ENTRY]
+    sloo = json.load(open(HERE / "space_std" / "loo.json"))["entries"][ENTRY]
+    r = mpre["results"][POS]
+    ctx = "".join(mpre["pieces"][max(0, POS - 44): POS + 1])
+    data = {
+        "context": "…" + ctx[-220:],
+        "mat": {"full": mloo["full"][POS], "units": r["lines"], "loo": mloo["loo"][POS]},
+        "std": {"full": sloo["full"][POS], "units": sloo["units"][POS], "loo": sloo["loo"][POS]},
+    }
+    grid, cm, cs = curves()
+    data["curve"] = {"w": grid, "mat": cm, "std": cs}
+    blob = json.dumps(data).replace("</", "<\\/")
+
+    page = TEMPLATE.replace("__DATA__", blob)
+    out = HERE / "crossout_demo.html"
+    out.write_text(page)
+    print(f"wrote {out} ({out.stat().st_size / 1e3:.0f} kB)")
+
+
+TEMPLATE = r"""<title>Cross out an AI's thought</title>
+<style>
+:root{
+  --paper:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --blue:#2a78d6; --red:#e34948; --wash:rgba(11,11,11,.045);
+  --ring:rgba(11,11,11,.12); --bluewash:rgba(42,120,214,.09); --redwash:rgba(227,73,72,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#161615; --ink:#f4f3f0; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2e2e2b; --blue:#4a90e2; --red:#e66767; --wash:rgba(255,255,255,.05);
+    --ring:rgba(255,255,255,.14); --bluewash:rgba(74,144,226,.12); --redwash:rgba(230,103,103,.10);
+  }
+}
+:root[data-theme=dark]{
+  --paper:#161615; --ink:#f4f3f0; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2e2e2b; --blue:#4a90e2; --red:#e66767; --wash:rgba(255,255,255,.05);
+  --ring:rgba(255,255,255,.14); --bluewash:rgba(74,144,226,.12); --redwash:rgba(230,103,103,.10);
+}
+:root[data-theme=light]{
+  --paper:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --blue:#2a78d6; --red:#e34948; --wash:rgba(11,11,11,.045);
+  --ring:rgba(11,11,11,.12); --bluewash:rgba(42,120,214,.09); --redwash:rgba(227,73,72,.08);
+}
+*{box-sizing:border-box;}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.55;}
+.wrap{max-width:880px; margin:0 auto; padding:40px 20px 56px;}
+.eyebrow{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+  margin-bottom:10px;}
+h1{font-size:clamp(26px,4.6vw,38px); line-height:1.12; margin:0 0 14px; font-weight:750;
+  letter-spacing:-.015em; text-wrap:balance;}
+.lede{font-size:16.5px; color:var(--ink2); max-width:62ch; margin:0 0 8px;}
+.lede b{color:var(--ink);}
+h2{font-size:19px; margin:44px 0 6px; letter-spacing:-.01em;}
+.sub{font-size:13.5px; color:var(--ink2); max-width:64ch; margin:0 0 16px;}
+
+.ctx{border:1px solid var(--ring); border-radius:10px; background:var(--wash);
+  padding:12px 16px; font-size:13px; color:var(--ink2); margin:18px 0 20px;}
+.ctx .cl{font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+  margin-bottom:4px;}
+.ctx em{color:var(--ink); font-style:normal; font-weight:650;}
+
+.duel{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:720px){.duel{grid-template-columns:1fr;}}
+.card{border:1.5px solid var(--ring); border-radius:12px; overflow:hidden;
+  display:flex; flex-direction:column;}
+.card.m{border-color:color-mix(in srgb, var(--blue) 45%, transparent);}
+.card.s{border-color:color-mix(in srgb, var(--red) 40%, transparent);}
+.chead{padding:12px 16px 10px; border-bottom:1px solid var(--grid);}
+.chead .nm{font-weight:700; font-size:14px;}
+.card.m .nm{color:var(--blue);} .card.s .nm{color:var(--red);}
+.chead .ds{font-size:12px; color:var(--ink2); margin-top:1px;}
+.meter{padding:12px 16px; border-bottom:1px solid var(--grid); background:var(--wash);}
+.meter .lab{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  font-size:11px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase;
+  margin-bottom:6px; align-items:baseline;}
+.meter .val{font-variant-numeric:tabular-nums; font-weight:750; font-size:15px; color:var(--ink);
+  letter-spacing:0; text-transform:none;}
+.meter .delta{font-weight:650; font-size:12px; margin-left:6px;}
+.bar{height:10px; border-radius:5px; background:var(--grid); overflow:hidden; position:relative;}
+.bar .fill{height:100%; border-radius:5px; width:0%; transition:width .45s cubic-bezier(.2,.8,.2,1);}
+@media (prefers-reduced-motion: reduce){.bar .fill{transition:none;}}
+.card.m .fill{background:var(--blue);} .card.s .fill{background:var(--red);}
+.bar .ghost{position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--muted); opacity:.75;}
+.units{padding:8px 8px 12px; display:flex; flex-direction:column; gap:2px;}
+.unit{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:11.5px;
+  line-height:1.45; padding:5px 8px; border-radius:6px; cursor:pointer; color:var(--ink);
+  display:flex; gap:8px; align-items:baseline;}
+.unit:hover{background:var(--wash);}
+.unit:focus-visible{outline:2px solid var(--blue); outline-offset:1px;}
+.unit .n{color:var(--muted); font-size:10px; min-width:14px; text-align:right; flex:none;}
+.unit.cut{text-decoration:line-through; text-decoration-thickness:2px; opacity:.45;}
+.card.m .unit.cut{text-decoration-color:var(--blue); background:var(--bluewash);}
+.card.s .unit.cut{text-decoration-color:var(--red); background:var(--redwash);}
+.hint{font-size:12px; color:var(--muted); padding:0 16px 12px;}
+
+.chartbox{border:1px solid var(--ring); border-radius:12px; padding:16px 16px 8px; overflow-x:auto;}
+.legend{display:flex; gap:18px; font-size:12.5px; color:var(--ink2); padding:4px 2px 8px;}
+.legend .k{display:inline-block; width:18px; height:3px; border-radius:2px; vertical-align:middle;
+  margin-right:6px;}
+
+.callouts{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px;}
+@media (max-width:720px){.callouts{grid-template-columns:1fr;}}
+.co{border:1px solid var(--ring); border-radius:12px; padding:16px 18px;}
+.co .big{font-size:26px; font-weight:750; font-variant-numeric:tabular-nums; letter-spacing:-.01em;}
+.co .big .vs{color:var(--muted); font-weight:500; font-size:18px;}
+.co .big .m{color:var(--blue);} .co .big .s{color:var(--red);}
+.co .tx{font-size:13px; color:var(--ink2); margin-top:4px;}
+
+.foot{margin-top:40px; padding-top:14px; border-top:1px solid var(--grid); font-size:12px;
+  color:var(--muted); max-width:70ch;}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Interpretability demo · two ways to translate a model's hidden state</div>
+  <h1>Cross out an AI's thought — see what survives</h1>
+  <p class="lede">Mid-sentence, a language model's internal state at one position is a list of
+  5,120 numbers. A translator network turns those numbers into English, and a second network
+  reads only the English and tries to <b>rebuild the numbers</b>. The rebuild score is the test:
+  it measures how much of the original state the description really carries.</p>
+  <p class="lede">We trained two translators. One writes a <b style="color:var(--blue)">ranked
+  list</b> of short, independent notes — most important first (a “matryoshka” NLA). The other
+  writes a normal <b style="color:var(--red)">paragraph</b>. Below, both describe the
+  <b>same moment</b> — and you can cross out any part of either description.</p>
+
+  <div class="ctx"><div class="cl">The moment being described</div>
+  <span id="ctx"></span></div>
+
+  <div class="duel">
+    <div class="card m">
+      <div class="chead"><div class="nm">Ranked list (matryoshka)</div>
+        <div class="ds">10 independent notes, most important first</div></div>
+      <div class="meter"><div class="lab"><span>state recovered from this description</span>
+        <span class="val"><span id="mval"></span><span class="delta" id="mdelta"></span></span></div>
+        <div class="bar"><div class="ghost" id="mghost"></div><div class="fill" id="mfill"></div></div></div>
+      <div class="units" id="munits"></div>
+      <div class="hint">Click a line to cross it out (click again to restore). Every value is a
+      real measurement, not a simulation.</div>
+    </div>
+    <div class="card s">
+      <div class="chead"><div class="nm">Paragraph (standard)</div>
+        <div class="ds">5 sentences of connected prose</div></div>
+      <div class="meter"><div class="lab"><span>state recovered from this description</span>
+        <span class="val"><span id="sval"></span><span class="delta" id="sdelta"></span></span></div>
+        <div class="bar"><div class="ghost" id="sghost"></div><div class="fill" id="sfill"></div></div></div>
+      <div class="units" id="sunits"></div>
+      <div class="hint">Try crossing out sentence 1 — on its own it lets the rebuilder recover
+      <i>nothing</i> (−63%), yet removing it collapses the whole description.</div>
+    </div>
+  </div>
+
+  <h2>Reading on a budget</h2>
+  <p class="sub">Suppose you only have time to read the first few words of each description
+  (say, an automated safety monitor scanning millions of moments). Averaged over all 5,274
+  described moments: the ranked list gives you most of its value in the first line. A
+  half-read paragraph is <b>worse than reading nothing</b> — the rebuilder is thrown off by
+  the dangling prose.</p>
+  <div class="chartbox">
+    <div class="legend"><span><span class="k" style="background:var(--blue)"></span>ranked list
+    (matryoshka)</span><span><span class="k" style="background:var(--red)"></span>paragraph
+    (standard)</span></div>
+    <svg id="chart" viewBox="0 0 760 320" width="100%" role="img"
+      aria-label="Recovery vs words read: ranked list rises immediately, paragraph goes negative before recovering"></svg>
+  </div>
+
+  <h2>It isn't just this example</h2>
+  <div class="callouts">
+    <div class="co"><div class="big"><span class="m">0.7%</span> <span class="vs">vs</span>
+      <span class="s">19.6%</span></div>
+      <div class="tx">How often deleting a unit that carried <i>no measurable information</i>
+      still destroys a big chunk (&gt;5 points) of the rebuild — across every unit of every
+      described moment. The paragraph's rebuilder falls apart when the prose is disturbed;
+      the ranked list barely notices.</div></div>
+    <div class="co"><div class="big"><span class="m">65%</span> <span class="vs">vs</span>
+      <span class="s">31%</span></div>
+      <div class="tx">Fraction of units you can delete essentially for free (&lt;1 point of
+      recovery lost). Independent notes cover for each other; every sentence of the paragraph
+      is direly needed — including, often, ones that said nothing new.</div></div>
+  </div>
+
+  <p class="foot">Both translators explain Qwen3.6-27B layer-42 states and score ~identically
+  when their full descriptions are used (recovery 0.50 vs 0.53 on average; 0.77 vs 0.79 on the
+  moment above). “Recovery” is the fraction of variance of the state explained by the rebuild
+  (FVE); 0% = knowing nothing, negative = misleading. Cross-out values are precomputed
+  leave-one-out measurements over 5,274 positions (23,573 paragraph sentences, 52,526 list
+  lines). Models: ceselder/nla-qwen36-27b-matryoshka and ceselder/qwen3.6-27b-nla-L42; the
+  moment shown is from an agentic-scenario transcript at the token “independently”.</p>
+</div>
+
+<script>
+"use strict";
+const D = __DATA__;
+document.getElementById("ctx").innerHTML =
+  D.context.replace(/</g, "&lt;").replace(/(working independently)$/, "<em>$1</em>");
+
+function pct(f){ return Math.max(0, Math.min(100, f * 100)); }
+function fmt(f){ return (f * 100).toFixed(0) + "%"; }
+
+function setup(kind, el){
+  const M = D[kind];
+  const units = document.getElementById(el + "units");
+  const fill = document.getElementById(el + "fill");
+  const ghost = document.getElementById(el + "ghost");
+  const val = document.getElementById(el + "val");
+  const delta = document.getElementById(el + "delta");
+  ghost.style.left = pct(M.full) + "%";
+  let cut = -1;
+  function render(){
+    const f = cut < 0 ? M.full : M.loo[cut];
+    fill.style.width = pct(f) + "%";
+    val.textContent = fmt(f);
+    const d = cut < 0 ? 0 : (f - M.full) * 100;
+    delta.textContent = cut < 0 ? "" :
+      (d <= -0.5 ? " ▼" + Math.abs(d).toFixed(0) + " pts" + (f < 0 ? " — worse than nothing" : "")
+       : d >= 0.5 ? " ▲" + d.toFixed(0) + " pts" : " ±0");
+    delta.style.color = d <= -5 ? "var(--red)" : "var(--muted)";
+    units.querySelectorAll(".unit").forEach((u, i) => u.classList.toggle("cut", i === cut));
+  }
+  M.units.forEach((u, i) => {
+    const div = document.createElement("div");
+    div.className = "unit"; div.tabIndex = 0; div.role = "button";
+    div.innerHTML = '<span class="n">' + (i + 1) + "</span><span>" +
+      u.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</span>";
+    div.addEventListener("click", () => { cut = (cut === i ? -1 : i); render(); });
+    div.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); div.click(); } });
+    units.appendChild(div);
+  });
+  render();
+}
+setup("mat", "m");
+setup("std", "s");
+
+// ── chart ────────────────────────────────────────────────────────────────────
+(function(){
+  const svg = document.getElementById("chart");
+  const NS = "http://www.w3.org/2000/svg";
+  const W = 760, H = 320, L = 52, R = 14, T = 16, B = 40;
+  const xmax = 120, ymin = -0.55, ymax = 0.60;
+  const x = (w) => L + (w / xmax) * (W - L - R);
+  const y = (f) => T + (ymax - f) / (ymax - ymin) * (H - T - B);
+  function el(t, a){ const e = document.createElementNS(NS, t);
+    for (const k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; }
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  // negative region wash + gridlines
+  el("rect", {x: L, y: y(0), width: W - L - R, height: y(ymin) - y(0),
+              fill: "currentColor", opacity: 0.05});
+  [-0.4, -0.2, 0.2, 0.4].forEach((g) => {
+    el("line", {x1: L, x2: W - R, y1: y(g), y2: y(g), stroke: "currentColor",
+                opacity: 0.09, "stroke-width": 1});
+    el("text", {x: L - 8, y: y(g) + 4, "text-anchor": "end", "font-size": 11,
+                fill: "currentColor", opacity: 0.55}).textContent = (g * 100) + "%";
+  });
+  el("line", {x1: L, x2: W - R, y1: y(0), y2: y(0), stroke: "currentColor",
+              opacity: 0.45, "stroke-width": 1.2});
+  el("text", {x: L - 8, y: y(0) + 4, "text-anchor": "end", "font-size": 11,
+              fill: "currentColor", opacity: 0.8}).textContent = "0%";
+  [0, 25, 50, 75, 100, 120].forEach((g) => {
+    el("text", {x: x(g), y: H - B + 18, "text-anchor": "middle", "font-size": 11,
+                fill: "currentColor", opacity: 0.55}).textContent = g;
+  });
+  el("text", {x: (L + W - R) / 2, y: H - 4, "text-anchor": "middle", "font-size": 12,
+              fill: "currentColor", opacity: 0.7}).textContent = "words of the description read";
+  function line(ws, fs, color){
+    const pts = ws.map((w, i) => x(w).toFixed(1) + "," + y(fs[i]).toFixed(1)).join(" ");
+    el("polyline", {points: pts, fill: "none", stroke: color, "stroke-width": 2.6,
+                    "stroke-linejoin": "round"});
+  }
+  line(D.curve.w, D.curve.std, css("--red"));
+  line(D.curve.w, D.curve.mat, css("--blue"));
+  // annotation at 25 words
+  const wi = D.curve.w.indexOf(24);
+  const fm = D.curve.mat[wi], fs2 = D.curve.std[wi];
+  el("line", {x1: x(24), x2: x(24), y1: y(fm), y2: y(fs2), stroke: "currentColor",
+              opacity: 0.4, "stroke-dasharray": "3 3"});
+  [[fm, css("--blue")], [fs2, css("--red")]].forEach(([f, c]) => {
+    el("circle", {cx: x(24), cy: y(f), r: 4, fill: c});
+  });
+  el("text", {x: x(24) + 9, y: y(fm) - 8, "font-size": 12.5, "font-weight": 650,
+              fill: css("--blue")}).textContent = "25 words in: " + Math.round(fm * 100) + "% recovered";
+  el("text", {x: x(24) + 9, y: y(fs2) + 18, "font-size": 12.5, "font-weight": 650,
+              fill: css("--red")}).textContent = Math.round(fs2 * 100) + "% — worse than reading nothing";
+})();
+</script>
+"""
+
+
+if __name__ == "__main__":
+    main()
