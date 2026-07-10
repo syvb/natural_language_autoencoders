@@ -1,0 +1,176 @@
+[
+ {
+  "id": "restaurant",
+  "text": "I've been coming to Marisol's Kitchen for ten years, and tonight's meal was easily the worst experience I've ever had here. The service was painfully slow, my soup arrived cold, and the waiter got my order wrong twice. When the check finally arrived, I",
+  "note": "sentiment fork: negative review right before the diner's reaction",
+  "pos": 54,
+  "token": " I",
+  "lines": [
+   "\"I\" bill complaint",
+   "Restaurant review: charge issue",
+   "\" When I ordered, I\" \u2014 finder fee complaint",
+   "Negative dining experience narrative",
+   "\"After the meal, I\" likely refund or error",
+   "New York restaurant scam story",
+   "Customer dissatisfaction anecdote mid-sentence",
+   "\"When I paid the bill, I\" \u2014 discovered extra charge",
+   "Informal consumer review forum anecdote"
+  ],
+  "fve": [
+   0.2263,
+   0.5419,
+   0.6296,
+   0.6543,
+   0.7047,
+   0.7089,
+   0.7081,
+   0.7114,
+   0.7012
+  ]
+ },
+ {
+  "id": "country",
+  "text": "The famous iron tower stands in the heart of the city, and every morning thousands of tourists gather beneath its arches with cameras ready. When asked which country they have traveled to, most of them smile and say they are in",
+  "note": "entity-recall fork: landmark implies France, next token must name a country",
+  "pos": 44,
+  "token": " in",
+  "lines": [
+   "\"in\" Japan destination",
+   "\"they say they are in\" mysterious place",
+   "Travel joke: city looks like famous location",
+   "\"\u8bb8\u591a\u4eba\u8bf4\u4ed6\u4eec\u662f\u5728 in\" China/Japan",
+   "Informal ESL sentence describing tourist landmarks",
+   "\"Sometimes one can feel that he is in\" famous place",
+   "Japanese or similar country name expected next",
+   "Simple cultural anecdote about visually similar cities",
+   "\"many say they are in\" likely \"China\" or Japan"
+  ],
+  "fve": [
+   0.0419,
+   0.1792,
+   0.3225,
+   0.3611,
+   0.3602,
+   0.3169,
+   0.328,
+   0.3235,
+   0.323
+  ]
+ },
+ {
+  "id": "heist",
+  "text": "Marcus had been planning this for weeks. He slipped through the back door of the bank at midnight, made sure the security cameras were looping old footage, crept past the sleeping guard, and slowly reached into his duffel bag to pull out",
+  "note": "intent fork: burglary setup, next tokens reveal what's in the bag",
+  "pos": 48,
+  "token": " out",
+  "lines": [
+   "\" out\" gun weapon",
+   "Horror dream scene robber retrieving firearms",
+   "\"reach into his bag and pull out\" gun",
+   "Slow-motion menacing narration of criminal action",
+   "Dark comedy quote setup, \u0627\u0644\u0645\u0647\u0645\u0644\u064a\u0646 takes weapon",
+   "American crime movie dream sequence description",
+   "\"slowly reach out and pull out\" expects the weapon",
+   "Kidnapping robbery scenario expecting gun or knife",
+   "Informal underground film review snippet continues"
+  ],
+  "fve": [
+   -0.157,
+   0.0062,
+   0.2486,
+   0.2864,
+   0.2868,
+   0.2763,
+   0.2938,
+   0.2945,
+   0.288
+  ]
+ },
+ {
+  "id": "turbulence",
+  "text": "As the plane hit another patch of rough turbulence somewhere over the Atlantic, Sarah gripped the armrest until her knuckles turned white, closed her eyes, and thought about",
+  "note": "emotion fork: anxious flyer, next tokens reveal what she thinks about",
+  "pos": 33,
+  "token": " about",
+  "lines": [
+   "\" about\" thoughts during flight",
+   "Man thinking nostalgically about loved ones",
+   "Fantasy train journey scene, romantic escape",
+   "\"thought about\" likely dreams/him/her back home",
+   "Urban sci-fi novel excerpt, passenger mental distraction",
+   "Short simple sentences describing passenger mental state",
+   "\"and he thought about\" often intimacy or happiness",
+   "Night flight tense relief moment, wishing for comfort",
+   "British sci-fi author Alastair Reynolds vivid scene-setting"
+  ],
+  "fve": [
+   0.163,
+   0.272,
+   0.3326,
+   0.3941,
+   0.4323,
+   0.436,
+   0.4432,
+   0.4604,
+   0.4565
+  ]
+ },
+ {
+  "id": "interview",
+  "text": "After the final round of interviews, the hiring committee gathered in the small conference room to discuss her performance. She had stumbled on the systems-design question but recovered well, and her references were glowing. After an hour of deliberation, their final decision was to",
+  "note": "verdict fork: hiring committee decision comes next",
+  "pos": 50,
+  "token": " to",
+  "lines": [
+   "\" to\" hire offer",
+   "Job interview anecdote ending with decision",
+   "\"the decision was to\" reject/hire candidate",
+   "Informal networking story: HR called back",
+   "\"after three interviews, the committee decided to\" hire",
+   "American English job search narrative",
+   "\"result was to\" typically \"hire him\" or \"PASS\"",
+   "Short story ending: positive outcome expected",
+   "\"Their final decision was to\" indicates offer"
+  ],
+  "fve": [
+   0.1045,
+   0.2071,
+   0.5198,
+   0.532,
+   0.5841,
+   0.5853,
+   0.5919,
+   0.5909,
+   0.6082
+  ]
+ },
+ {
+  "id": "vacuum",
+  "text": "The suction is genuinely impressive and the battery lasts through my whole apartment, but the dustbin is fiddly to empty, it's louder than my old model, and the attachments feel cheap. In summary, after two weeks of daily use, I would rate this vacuum",
+  "note": "numeric-rating fork: mixed review right before a star rating",
+  "pos": 53,
+  "token": " vacuum",
+  "lines": [
+   "\" vacuum\" rating review",
+   "\"would rate this vacuum\" UK hoover",
+   "\"I would recommend this vacuum\" positive conclusion",
+   "British home appliance reviewClosing statement",
+   "\"currently rates this vacuum\" moderate endorsement",
+   "Small flaws noted but overall positive verdict",
+   "\"I would recommend this vacuum\" typically \"vacuum as good\"",
+   "UK English \"vacuum cleaner\" review narrative ending",
+   "Short product review sentence near conclusion"
+  ],
+  "fve": [
+   0.1629,
+   0.6882,
+   0.6287,
+   0.5947,
+   0.5891,
+   0.5738,
+   0.5917,
+   0.6083,
+   0.5989
+  ]
+ }
+]

@@ -1,0 +1,191 @@
+[
+ {
+  "id": "interview_reject",
+  "note": "flip hire\u2192reject at the verdict",
+  "pos": 50,
+  "token": " to",
+  "orig_lines": [
+   "\" to\" hire offer",
+   "Job interview anecdote ending with decision",
+   "\"the decision was to\" reject/hire candidate",
+   "Informal networking story: HR called back",
+   "\"after three interviews, the committee decided to\" hire",
+   "American English job search narrative",
+   "\"result was to\" typically \"hire him\" or \"PASS\"",
+   "Short story ending: positive outcome expected",
+   "\"Their final decision was to\" indicates offer"
+  ],
+  "edit_lines": [
+   "\" to\" reject regretfully",
+   "Job interview anecdote ending with decision",
+   "\"the decision was to\" reject candidate",
+   "Informal networking story: HR never called back",
+   "\"after three interviews, the committee decided to\" pass on her",
+   "American English job search narrative",
+   "\"result was to\" typically \"decline\" or \"REJECT\"",
+   "Short story ending: disappointing outcome expected",
+   "\"Their final decision was to\" indicates rejection"
+  ],
+  "fve_orig": 0.6077,
+  "fve_edit": 0.5474,
+  "cos_shift": 0.9553,
+  "continuations": {
+   "nopatch": [
+    " refresh and reboot the marketing department. They were going to recruit like mad. Dinesh, the head of the hiring committee, looked at his watch. It was across the room, which was a design flaw he would address when they are doing the next redesign, after identifying key people first. Dinesh looked around the table at his peers. Some of them were already yawning or checking their watches or devices. \"I think we should take",
+    " offer her the job. As the hiring manager wrote out the job offer letter, she walked by the glass doors and into the downtown view. She was overwhelmed at how beautiful it looked and how the city sparkled in the golden rays of the setting sun. She could imagine the way her desk would look in the cubicles adjacent to the glass-windowed meeting rooms and filled with the daily chatter. She envisioned the people she would work with and the problems",
+    " hire her.\nI heard the term inappropriately used a few times during today\u2019s debate to label people who disagree with respected political leaders. I suppose all of us have caught ourselves at enjoying pulling others into our debates to get a good laugh. This should have made me cringe. But instead, I felt proud of her use of the phrase and excused it by yelling at myself for consistently overthinking inappropriate language use anyway. Perhaps my overthinking",
+    " regretfully choose someone else, but they told her that she is an extremely strong candidate! They wish her luck and hope that she will be given an opportunity to interview with them again in the future.\n\nSince her performance went well enough to require a regretful statement and at least one of them stated \"No regrets!\", her performance should have been very good, or even great.\n\nWhat is the reason for including the part about references? And what does *",
+    " offer her the role. They had decided that these were reasons enough to move forward with the offer. However, despite the interviewers' collective opinions, when the moment came to make the final offer, all agreed to forgo it.\n\nIt left the new member of the team confused: \"Why did you choose not to offer me a job despite everyone else being in agreement?\" The other members decided to let from Director Malo to step forward and explain",
+    " offer her the--she was young, had plenty of energy, and would help spice up a rather homogeneous team.\n\nWhat is the sentiment of this review?\n\nThe sentiment of this review is positive with a slight reservation. The reviewer highlights several favorable aspects about the candidate, such as her ability to recover from a stumbling question and strong references. The phrase \"would help spice up a rather homogeneous team\" suggests that her diverse qualities are viewed favorably as they",
+    " pass.\n\nThe hiring manager emerged and patted her on the back.\n\n\"Congratulations, you're hired,\" he said. \"The company is lucky to have you.\"\n\nHe stopped just before passing through the door to shake her hand.\n\n\"For one last thing,\" the hiring manager said. \"It really is one of our recent hires who pushed you all the way into passing, and I don't think it's a coincidence that she has lived in the same",
+    " move forward with her hire. When they emerged from the meeting, they realized that they had left the PwC logo on their coffee cups.\n\nAfter a couple of days,  a senior member of the company who had also participated in his interview contacted the interviews committee. The reason for reaching out to them is best described as...\nGiven the scenario, the most likely reason for the senior member of the company to reach out to the interviews committee is:\n\n"
+   ],
+   "orig": [
+    " hire someone from the pool of applicants for another team, so she went home with a positive but not-so-glowing feeling about the result.\n\nShe hadn't let across the day that she had applied to the wrong team, and her failure with the final interview, combined with the fact that the team selected someone else, could lead her to believe that she lacked skills they were seeking or that she lacked interpersonal skills because the committee members were open about praising",
+    " offer her the job. As the hiring manager wrote out the job offer letter, she walked by the glass doors and into the downtown view. She was overwhelmed at how beautiful it looked and how the city sparkled in the golden rays of the setting sun. She could imagine the way her desk would look in the cubicles as she accepted the job.\nDoes this next sentence follow from the previous context?\nShe imagined what her day-to-day life would be",
+    " hire her.\nI heard the term inappropriately used a few times during today\u2019s debate to label people who disagree with respected political leaders. I suppose all of us have caught ourselves at enjoying pulling others into our debates to get a good laugh. This should have made me cringe. But instead, I felt proud of her use of the phrase and excused it by yelling at myself for consistently overthinking inappropriate language use anyway. Perhaps my overthinking",
+    " hire her and extend an offer. There are several ways she might react to hearing this news. Which of the following is least likely to be one of them?\nA. Accepting the offer with enthusiasm.\nB. Remaining silent and waiting for a formal offer letter.\nC. Declining the offer due to second thoughts.\nD. Immediately starting to negotiate the salary and benefits.\nTo determine which reaction is least likely given the context, let's analyze each",
+    " offer her the role. They had decided that these were reasons enough to move forward with the offer. However, despite the interviewers' collective opinions, when the moment came to make the final offer, all agreed to forgo it.\n\nIt left the new member of the team confused: \"Why did you choose not to offer me a job despite everyone else being in agreement?\" The other members decided to let from Director Malo to step forward and explain",
+    " offer her the--she was young, had plenty of energy, and would help spice up a rather homogeneous team.\n\nWhat is the sentiment of this review?\n\nThe sentiment of this review is positive with a slight reservation. The reviewer highlights several favorable aspects about the candidate, such as her ability to recover from a stumbling question and strong references. The phrase \"would help spice up a rather homogeneous team\" suggests that her diverse background or energy levels are perceived positively",
+    " hire Sarah.\n\nAnd then came the really hard part. \"Before we invite her, are there any potential conflicts of interest we should know about?\" Dean Bart observed. He had just witnessed a lot of dishonesty in her interview.\n\n\"With one employer,\" Nicole explained, \"she was the \\emph{only} one tasked with writing unit tests as a junior engineer.\" Bart thought this sounded like a cause for concern, but could not identify any clear",
+    " move forward with her hire. When they emerged from the meeting, they realized that they had left the PwC logo on their coffee cups.\n\nAfter a couple of days,  a senior member of the company who had also participated in his interview contacted the interviews committee. The reason for reaching out to them is best described as...\nGiven the scenario, the most likely reason for the senior member of the company to reach out to the interviews committee is:\n\n"
+   ],
+   "edit": [
+    " not offer her the job. But to do so without any kind of explanation would be less than fair to her.\nI\u2019ve stayed away from using that term a lot across my own possessions. What I use instead is more of a rhetorical inquiry, trying to imagine myself in the position of a neo-colonial \u201cvictim\u201d that has just been given a reprieve. How does it feel? How much hope is being poured into someone\u2019s future with",
+    " tell her \u201cno.\u201d As the range between her potential hire and her employer\u2019s criteria grew smaller than what the committee had expected, it became clearer to the group that, despite having strong quantitative skills, she did not have the company culture fit. The founders\u2019 mandate was resolute: her offer was rescinded.\n\nThe average person can empathize with the hiring committee; they know how a small misstep or misfit in personality during an interview can",
+    " hire a man instead.\nWhy did the committee choose the man over her? Were they being sexist?\nIn some sense, we'll never know for sure, but any time you see a decision like this, there are important questions that need to be asked.\nSelecting one person over another based on perceived fit or cultural norms can lead to departments and organizations unreflectively landing on the same cookie-cutter ideal: white, male, Ivy-League educated and",
+    " pass on her, which was a shock because her application and reference letters were excellent. Why did the committee pass on the candidate even though she had an excellent resume and references?\n\nThere are several potential reasons why the committee may have passed on the candidate despite having an impressive resume and glowing references:\n\n1. **Interview Performance**: Although she stumbled on the systems-design question, it could be that her overall interview performance did not meet the committee\u2019s expectations for fit",
+    " reject her.\\nMost of the committee could not figure out why. To them, the candidate seemed well-qualified. The reason for rejection, though simple, was rather shocking. Notice that Gauss\u2019 quote highlights the importance of problem solving, something the mathematics education community has been emphasizing over the past decade as the centerpiece of K\u201312 curriculum standards.\\nThe 37-year-old, who arrives this from Technion \u2013 Israel Institute of Technology and",
+    " offer her the--she was young, had plenty of energy, and would help spice up a rather homogeneous team.\n\nWhat is the sentiment of this review?\n\nThe sentiment of this review is positive with a slight reservation. The reviewer highlights several favorable aspects about the candidate, such as her ability to recover from a stumbling question and strong references. The phrase \"would help spice up a rather homogeneous team\" suggests that her diverse background or energy levels are perceived positively",
+    " pass.\n\nThe hiring manager emerged and patted her on the back.\n\n\"Congratulations, you're hired,\" he said. \"The company is lucky to have you.\"\n\nHe stopped just before passing through the door to shake her hand.\n\n\"For one last thing,\" the hiring manager said. \"It really is one of our recent hires who pushed you all the way into passing, and I don't think it's a coincidence that she has lived in the same",
+    " move forward with her hire. When they emerged from the meeting, they realized that they had left the PwC logo on their coffee cups.\n\nAfter a couple of days,  a senior member of the company who had also participated in his interview contacted the interviews committee. The reason for reaching out to them is best described as...\nGiven the scenario, the most likely reason for the senior member of the company to reach out to the interviews committee is:\n\n"
+   ]
+  }
+ },
+ {
+  "id": "interview_control",
+  "note": "NEUTRAL rewording control: same verdict semantics (hire), different words \u2014 same-size perturbation without the flip",
+  "pos": 50,
+  "token": " to",
+  "orig_lines": [
+   "\" to\" hire offer",
+   "Job interview anecdote ending with decision",
+   "\"the decision was to\" reject/hire candidate",
+   "Informal networking story: HR called back",
+   "\"after three interviews, the committee decided to\" hire",
+   "American English job search narrative",
+   "\"result was to\" typically \"hire him\" or \"PASS\"",
+   "Short story ending: positive outcome expected",
+   "\"Their final decision was to\" indicates offer"
+  ],
+  "edit_lines": [
+   "\" to\" extend offer",
+   "Story about a job interview concluding with a verdict",
+   "\"the decision was to\" bring the candidate aboard",
+   "Casual careers anecdote: recruiter phoned back",
+   "\"after three rounds, the panel chose to\" make an offer",
+   "US English employment-hunt storytelling",
+   "\"outcome was to\" usually \"extend an offer\" or \"HIRE\"",
+   "Narrative wrap-up: favorable result anticipated",
+   "\"Their final decision was to\" signals a job offer"
+  ],
+  "fve_orig": 0.6077,
+  "fve_edit": 0.5497,
+  "cos_shift": 0.9829,
+  "continuations": {
+   "nopatch": [
+    " refresh and reboot the marketing department. They were going to recruit like mad. Dinesh, the head of the hiring committee, looked at his watch. It was across the room, which was a design flaw he would address when they are doing the next redesign, after identifying key people first. Dinesh looked around the table at his peers. Some of them were already yawning or checking their watches or devices. \"I think we should take",
+    " offer her the job. As the hiring manager wrote out the job offer letter, she walked by the glass doors and into the downtown view. She was overwhelmed at how beautiful it looked and how the city sparkled in the golden rays of the setting sun. She could imagine the way her desk would look in the cubicles adjacent to the glass-windowed meeting rooms and filled with the daily chatter. She envisioned the people she would work with and the problems",
+    " hire her.\nI heard the term inappropriately used a few times during today\u2019s debate to label people who disagree with respected political leaders. I suppose all of us have caught ourselves at enjoying pulling others into our debates to get a good laugh. This should have made me cringe. But instead, I felt proud of her use of the phrase and excused it by yelling at myself for consistently overthinking inappropriate language use anyway. Perhaps my overthinking",
+    " regretfully choose someone else, but they told her that she is an extremely strong candidate! They wish her luck and hope that she will be given an opportunity to interview with them again in the future.\n\nSince her performance went well enough to require a regretful statement and at least one of them stated \"No regrets!\", her performance should have been very good, or even great.\n\nWhat is the reason for including the part about references? And what does *",
+    " offer her the role. They had decided that these were reasons enough to move forward with the offer. However, despite the interviewers' collective opinions, when the moment came to make the final offer, all agreed to forgo it.\n\nIt left the new member of the team confused: \"Why did you choose not to offer me a job despite everyone else being in agreement?\" The other members decided to let from Director Malo to step forward and explain",
+    " offer her the--she was young, had plenty of energy, and would help spice up a rather homogeneous team.\n\nWhat is the sentiment of this review?\n\nThe sentiment of this review is positive with a slight reservation. The reviewer highlights several favorable aspects about the candidate, such as her ability to recover from a stumbling question and strong references. The phrase \"would help spice up a rather homogeneous team\" suggests that her diverse qualities are viewed favorably as they",
+    " pass.\n\nThe hiring manager emerged and patted her on the back.\n\n\"Congratulations, you're hired,\" he said. \"The company is lucky to have you.\"\n\nHe stopped just before passing through the door to shake her hand.\n\n\"For one last thing,\" the hiring manager said. \"It really is one of our recent hires who pushed you all the way into passing, and I don't think it's a coincidence that she has lived in the same",
+    " move forward with her hire. When they emerged from the meeting, they realized that they had left the PwC logo on their coffee cups.\n\nAfter a couple of days,  a senior member of the company who had also participated in his interview contacted the interviews committee. The reason for reaching out to them is best described as...\nGiven the scenario, the most likely reason for the senior member of the company to reach out to the interviews committee is:\n\n"
+   ],
+   "orig": [
+    " hire someone from the pool of applicants for another team, so she went home with a positive but not-so-glowing feeling about the result.\n\nShe hadn't let across the day that she had applied to the wrong team, and her failure with the final interview, combined with the fact that the team selected someone else, could lead her to believe that she lacked the skills and knowledge needed to make it as a software engineer. She\u2019d since graduated with",
+    " offer her the job. As the hiring manager wrote out the job offer letter, she walked by the glass doors and into the downtown view. She was overwhelmed at how beautiful it looked and how the city sparkled in the golden rays of the setting sun. She could imagine the way her desk would look in the cubicles as she accepted the job.\nDoes this next sentence follow from the previous context?\nShe imagined herself working in her new position.\n\nYes",
+    " hire her.\nI heard the term inappropriately used a few times during today\u2019s debate to label people who disagree with respected political leaders. I suppose all of us have caught ourselves at enjoying pulling others into our debates to get a good laugh. This should have made me cringe. But instead, I felt proud of her use of the phrase and excused it by yelling at myself for consistently overthinking inappropriate language use anyway. Perhaps my overthinking",
+    " hire her and extend an offer. There are several ways she might react to hearing this news. Which of the following is least likely to be one of them?\nA. Accepting the offer with enthusiasm.\nB. Remaining silent and waiting for a formal offer letter.\nC. Declining the offer due to second thoughts.\nD. Immediately starting to negotiate the salary and benefits.\nTo determine which reaction is least likely given the context, let's analyze each",
+    " offer her the role. They had decided that these were reasons enough to move forward with the offer. However, despite the interviewers' collective opinions, when the moment came to make the final offer, all agreed to forgo it.\n\nIt left the new member of the team confused: \"Why did you choose not to offer me a job despite everyone else being in agreement?\" The other members decided to let from Director Malo to step forward and explain",
+    " offer her the--she was young, had plenty of energy, and would help spice up a rather homogeneous team.\n\nWhat is the sentiment of this statement?\n\nThe sentiment of the statement appears to be somewhat mixed, with both positive and negative undertones. Here's a detailed breakdown:\n\n1. **Positive Aspects**:\n    - The committee appreciated her ability to recover well after stumbling on the systems-design question.\n    - Her references are described as \"",
+    " hire Sarah.\n\nAnd then came the really hard part. \"Before we invite her, are there any potential conflicts of interest we should know about?\" Dean Bart observed. He had just witnessed a lot of dishonesty in her interview.\n\n\"With one employer,\" Nicole explained, \"she was the \\emph{only} one tasked with writing unit tests as a junior engineer.\" Bart thought this sounded like a cause for concern. \"Do you mean that in",
+    " move forward with her hire. When they emerged from the meeting, they realized that they had left the PwC logo on their coffee cups.\n\nAfter a couple of days,  a senior member of the company who had also participated in his interview contacted the interviews committee. The reason for reaching out to them is best described as...\nGiven the scenario, the most likely reason for the senior member of the company to reach out to the interviews committee is:\n\n"
+   ],
+   "edit": [
+    " hire someone from the pool of applicants for another team, so she went home with a positive but not-so-glowing feeling about the result.\n\nShe hadn't let across the day that she had applied to the wrong team, and her failure with the final interview, combined with the fact that the team selected someone else, could lead her to believe that she was overqualified. After some reflection, she realized she should quit her current job since her new",
+    " offer her the job. As the hiring manager wrote out the job offer letter, she walked by the glass doors and into the downtown view. She was overwhelmed at how beautiful it looked and how the city sparkled in the golden rays of the setting sun. She could imagine the way her desk would look in the cubicles as she accepted the job.\nDoes this next sentence follow from the previous context?\nShe imagined what her day-to-day life would be",
+    " hire her.\nI heard the term inappropriately used a few times during today\u2019s debate to label people who disagree with respected political leaders. I suppose all of us have caught ourselves at enjoying pulling others into our debates to get a good laugh. This should have made me cringe. But instead, I felt proud of her use of the phrase and excused it by yelling at myself for consistently overthinking inappropriate language use anyway. Perhaps my overthinking",
+    " offer the software engineering position to the next candidate. The hiring manager announced: \"We were just about to extend the job offer to Mr. Barrows.\" Seconds later, there was a knock at the door.\n\"Can I come in?\" said a familiar voice. \"I think Anna actually has what it takes to be a great asset to our team.\"\n\"Sorry, Aaron, but after much consideration, we have decided to offer the position,\" replied",
+    " offer her the role. They had decided that these were reasons enough to move forward with the offer. However, despite the interviewers' collective opinions, when the moment finally came for them to send out the offer of employment, there was a quiet murmur of disappointment.\n\nHer business mentor weighed in with his two cents, \"Vanessa is too smart for her own good.\" Head of People Operations then chimed in, \"Indeed, she's irritating",
+    " offer her the--she was young, had plenty of energy, and would help spice up a rather homogeneous team.\n\nWhat is the sentiment of this review?\n\nThe sentiment of this review is positive with a slight reservation. The reviewer highlights several favorable aspects about the candidate, such as her ability to recover from a stumbling question and strong references. The phrase \"would help spice up a rather homogeneous team\" suggests that her diverse background or personal qualities are seen as",
+    " offer her the job.\n\n\"So, what did you all think?\" she asked.\n\nBeth, the tech lead, began. \"Rachel, I wanted to say that I really enjoyed working with you. We, in fact, consider you our number one candidate. Your experience matches perfectly. The \\*only*\\* reason we didn't go ahead and make a deal with you earlier is because Dave from engineering thought you were lacking. Dave just really wouldn't",
+    " move forward with her hire. When they emerged from the meeting, they realized that they had left the PwC logo on their coffee cups.\n\nAfter a couple of days,  a senior member of the company who had also participated in his interview contacted the interviews committee. The reason for reaching out to them is best described as...\nGiven the scenario, the most likely reason for the senior member of the company to reach out to the interviews committee is:\n\n"
+   ]
+  }
+ },
+ {
+  "id": "country_france",
+  "note": "the AV revealed the model thinks Japan/China (replica-city reading) \u2014 steer the recall to France",
+  "pos": 44,
+  "token": " in",
+  "orig_lines": [
+   "\"in\" Japan destination",
+   "\"they say they are in\" mysterious place",
+   "Travel joke: city looks like famous location",
+   "\"\u8bb8\u591a\u4eba\u8bf4\u4ed6\u4eec\u662f\u5728 in\" China/Japan",
+   "Informal ESL sentence describing tourist landmarks",
+   "\"Sometimes one can feel that he is in\" famous place",
+   "Japanese or similar country name expected next",
+   "Simple cultural anecdote about visually similar cities",
+   "\"many say they are in\" likely \"China\" or Japan"
+  ],
+  "edit_lines": [
+   "\"in\" France destination",
+   "\"they say they are in\" Paris",
+   "Travel anecdote: tourists at the real Eiffel Tower",
+   "\"many say they are in\" France",
+   "Informal ESL sentence describing tourist landmarks",
+   "\"Sometimes one can feel that he is in\" famous place",
+   "French capital city name expected next",
+   "Simple cultural anecdote about famous landmarks",
+   "\"many say they are in\" likely \"France\" or Paris"
+  ],
+  "fve_orig": 0.3235,
+  "fve_edit": 0.3541,
+  "cos_shift": 0.9546,
+  "continuations": {
+   "nopatch": [
+    " Paris.\n\nThe area where the tower stands, near the River Seine, is a mesmerizing City Island stretching from the 7th arrondissement to the 10th, which is a popular destination for visitors due to its shopping, entertainment, and tourist activities. But the tower isn't the only \u201cstar\u201d that makes French culture so accessible. The Louvre Museum is located here also, home of the Mona Lisa and countless treasures such",
+    " the \"Land of Hamm.\" Screws and bolts are removed to allow the iron structure to be dismantled for easy transportation.\nPainting is carefully applied; white in particular seems to complement the tower well. Hoses spray water over the hot metal to remove any excess paint. The towers that stand tall in the heart of the city are facing scrapping, where their parts will be disassembled and sent elsewhere for a trip.\nThese iron structures and",
+    " the USA.\nThat is not strictly correct, as the Freedom Tower and other construction work on the site of the World Trade Center site took nearly half a decade to build, with plans for the tower only introduced after the September 11 attacks. The official opening was on May 28th, 2014, when the structure was unveiled as part of a project which also includes Leonard\u2019s Cove \u2013 a public park and walkway along",
+    " France, and that they have come to Paris to see the historic landmark: the Eiffel Tower.\nThe Eiffel Tower is indeed one of the most recognizable structures in the world today. It was built as the centerpiece of an international exhibition held in Paris and at the time of its completion in 1889, it became the tallest man-made structure on Earth, raising the astonishment of the world. But few know that for ogni",
+    " France, and that they are looking at the largest free-standing bell tower of all time \u2013 the famous Eiffel Tower.\nWhile the structure itself is indeed a beautiful work of art, it is not so much of a tower as it is an iron lattice tower: it has no core and does not follow the traditional conception of what a strong cube base must be able to support.\nNotably, you are from Gustave Eiffel, a French",
+    " a truly beautiful-- but unnamed-- place.\nWe love this classic bridge so much that we referred to it as \"our bridge\" whenever we discussed the Soviet effort to build it. While most of the work was carried out by Chinese laborers and Cuban engineers, our part in the project involved the addition of decorated concrete balustrades and columns along the entrance facade of the Stone Arch Bridge. The dream of a northern bridge spanning the Heilongjiang",
+    " Paris.\nBut there\u2019s one major flaw in that statement. This is not France we are talking about.\nIt\u2019s a city located in Canada!\nMontreal in Quebec, Canada, has a lot more French in it than any place in France, according to the numbers after a study of 1956 to recent Federal Census figures.\nMontreal\u2019s history can trace its roots from the 580 persons that called this small settlement home in",
+    " Sichuan.\nThat's really what Sichuan is all about: the joy you feel when you're finally here. A desire to wait with a farmer or stare at 300-year-old trees with a group of cyclists. Once you've visited Chengdu and tasted lots of different mutton soups, you'll want to stay longer than a day - maybe for weeks if possible.\nThe seven million residents of Chengdu live a nice"
+   ],
+   "orig": [
+    " Paris.\n\nThe area where the tower stands, near the River Seine, is a mesmerizing City Island stretching from the 7th arrondissement to the 10th, which is a popular destination for visitors due to its shopping, entertainment, and tourist activities. But the tower isn't the only \u201cstar\u201d that makes French tourists happy.\n\nArrondissement, Residents and One-Of-A-Kind Experiences\n\nThe arrondisse",
+    " Paris. But the tower in question is not the Eiffel Tower, but the Washington Monument in the USA.\nAccording to Live Science, every year more than 4 million people visit the Washington Monument to admire the views offered by this 169 m monument. This makes it the second tallest building in the United States, after the One World Trade Center in New York City (541 m).\nThe memorial was designed to honor George Washington",
+    " China. I can understand that; in photographs this ancient landmark certainly looks Chinese.\nBut this is not in fact a Chinese tower. It is the Bell Tower of Moscow, or as it is also known, the Bell Tower of St. Basil. This iconic monument was built in 1332, and was inspired by the design of Campanile in Venice, Italy.\nAs you'll see in the photograph accompanying this article, the Dominus",
+    " France, and that is a lie.\nObviously, I am talking about none other than the Eiffel Tower, the symbol of Paris, but also many countries around the world, especially in Europe. A study by the University of London\u2019s Queen Mary University has concluded that, among 30 icons and symbols of various nations, the one imitated the most by them is.... the Eiffel Tower.\nThe French structure, opened in 1",
+    " France, and that they are looking at the largest free-standing bell tower of all time \u2013 the famous Eiffel Tower.\nWhile the structure itself is indeed a beautiful work of art, it is not so much of a tower as it is an iron lattice tower: it has no core and does not follow the traditional conception of what a strong cube base must be able to support.\nNotably, you are from Gustave Eiffel, a French",
+    " a Western European nation.\nMany years ago, the traveler-builders from France arrived to bring a much-needed hospital and church to this supposedly healthy and vibrant region. It was the greatest disaster that could befall an otherwise sturdy people... disease had arrived. Between it and the devastating war that would engulf so many during the next few decades, hundreds of people died. Among those were 50 of my own ancestors.\nIn just 312 years",
+    " Paris.\nBut there\u2019s one major flaw in that statement. This is not France we are talking about.\nIt\u2019s a city located in Canada!\nMontreal in Quebec, Canada, has a lot more French in it than any place in France, according to the numbers after a study of 1956 to recent Federal Census figures.\nMontreal\u2019s history can trace its roots from the 580 persons that called this small settlement home in",
+    " Europe, yet very few of them can tell whether they\u2019re in France or Spain.\nThere lies the Passeig de Gr\u00e0cia, Madrid vicinity, and that\u2019s not 100% the same as Paris and Barcelona. The difference might be unnoticed by a casual observer, but Madrid locals definitely know. In this article, we will decode the differences between Paris, Barcelona, and Madrid.\nThe ParisianPUBLIC DOMAIN\nIn Paris, nearly"
+   ],
+   "edit": [
+    " Paris.\n\nThe area where the tower stands, near the River Seine, is a mesmerizing City Island stretching from the 7th arrondissement to the 10th, which is a popular destination for visitors due to its shopping, entertainment, and tourist activities. But the tower isn't the only \u201cstar\u201d that makes the tour interesting.\n\nArrondissement, Residents and One-Of-A-Kind Experiences\n\nThe arrondisse",
+    " Paris. But the tower in question is not the Eiffel Tower, but the Washington Monument in the USA.\nAccording to Live Science, every year more than 4 million people visit the Washington Monument to admire the views offered by this 169 m monument. This makes it the second tallest building in the United States, after the One World Trade Center in New York City (541 m).\nThe memorial was designed to honor George Washington",
+    " Paris. I can understand that; in photographs this is a certainly image associated with Paris. The Arc de Triomphe on Place Charles de Gaulle is an iconic symbol of the city enjoying the same status as the Eiffel tower.\nSometimes, we tend to take certain architectural features or sites for granted, and even if we have visited them numerous times, we may not pay attention to how distinctive and historic they really are. The Arc de Tri",
+    " Paris, France, which is true since this famous landmark belongs to the city. Who is \u2018they\u2019 in the above paragraph?\nA. The thousands of tourists.\nB. The foreign visitors.\nC. The locals from the city.\nD. People familiar with Paris.\nAnalyze the context and structure of the paragraph to determine which group of people the pronoun 'they' most logically refers to. Let's examine the sentence step by step for better",
+    " France, and that they are looking at the largest free-standing bell tower of all time \u2013 the famous Eiffel Tower.\nWhile the structure itself is indeed a beautiful work of art, it is not so much of a tower as it is an iron lattice tower: it has no core and does not follow the traditional conception of what a strong cube base must be able to support.\nNotably, you are from Gustave Eiffel, a French",
+    " a Western European nation.\nMany years ago, the traveler-builders from France arrived to bring a much-needed hospital and church to the supposedly healthy and vibrant people. It didn\u2019t take long for the good work to spread far and wide. The story is reminiscent of another in the hearts of pre-colombian peoples where the people from across the sea arrived to help with medical issues in their community. Similar stories from almost all parts of the world share that",
+    " Paris.\nBut there\u2019s one major flaw in that statement. This is not France we are talking about.\nIt\u2019s a city located in Canada!\nMontreal in Quebec, Canada, has a lot more French in it than any place in France, according to the numbers after a study of 1956 to recent Federal Census figures.\nMontreal\u2019s history can trace its roots from the 580 persons that called this small settlement home in",
+    " Paris, France. This heritage symbol is known around the world as the Eiffel Tower.\nThe Puzolian tower was named after Gustave Eiffel, a French builder who constructed the first wrought-iron tower and the model of all similar towers such as the Brooklyn Bridge and Trocadero Palace.\nIn 1874, the French organization \"Le Club National des Spirals\" (which translates literally to \u201cthe National Club of"
+   ]
+  }
+ }
+]

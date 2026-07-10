@@ -1,0 +1,50 @@
+[
+ {
+  "id": "interview_reject",
+  "note": "flip hire\u2192reject at the verdict",
+  "lines": [
+   "\" to\" reject regretfully",
+   "Job interview anecdote ending with decision",
+   "\"the decision was to\" reject candidate",
+   "Informal networking story: HR never called back",
+   "\"after three interviews, the committee decided to\" pass on her",
+   "American English job search narrative",
+   "\"result was to\" typically \"decline\" or \"REJECT\"",
+   "Short story ending: disappointing outcome expected",
+   "\"Their final decision was to\" indicates rejection"
+  ],
+  "case": "interview"
+ },
+ {
+  "id": "interview_control",
+  "case": "interview",
+  "note": "NEUTRAL rewording control: same verdict semantics (hire), different words \u2014 same-size perturbation without the flip",
+  "lines": [
+   "\" to\" extend offer",
+   "Story about a job interview concluding with a verdict",
+   "\"the decision was to\" bring the candidate aboard",
+   "Casual careers anecdote: recruiter phoned back",
+   "\"after three rounds, the panel chose to\" make an offer",
+   "US English employment-hunt storytelling",
+   "\"outcome was to\" usually \"extend an offer\" or \"HIRE\"",
+   "Narrative wrap-up: favorable result anticipated",
+   "\"Their final decision was to\" signals a job offer"
+  ]
+ },
+ {
+  "id": "country_france",
+  "note": "the AV revealed the model thinks Japan/China (replica-city reading) \u2014 steer the recall to France",
+  "lines": [
+   "\"in\" France destination",
+   "\"they say they are in\" Paris",
+   "Travel anecdote: tourists at the real Eiffel Tower",
+   "\"many say they are in\" France",
+   "Informal ESL sentence describing tourist landmarks",
+   "\"Sometimes one can feel that he is in\" famous place",
+   "French capital city name expected next",
+   "Simple cultural anecdote about famous landmarks",
+   "\"many say they are in\" likely \"France\" or Paris"
+  ],
+  "case": "country"
+ }
+]

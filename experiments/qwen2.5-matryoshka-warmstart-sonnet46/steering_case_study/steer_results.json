@@ -1,0 +1,290 @@
+[
+ {
+  "id": "restaurant",
+  "note": "flip complaint\u2192gratitude at the payment moment; everything else kept",
+  "pos": 54,
+  "token": " I",
+  "orig_lines": [
+   "\"I\" bill complaint",
+   "Restaurant review: charge issue",
+   "\" When I ordered, I\" \u2014 finder fee complaint",
+   "Negative dining experience narrative",
+   "\"After the meal, I\" likely refund or error",
+   "New York restaurant scam story",
+   "Customer dissatisfaction anecdote mid-sentence",
+   "\"When I paid the bill, I\" \u2014 discovered extra charge",
+   "Informal consumer review forum anecdote"
+  ],
+  "edit_lines": [
+   "\"I\" bill gratitude",
+   "Restaurant review: generous tip",
+   "\" When I ordered, I\" \u2014 delighted compliment",
+   "Positive dining experience narrative",
+   "\"After the meal, I\" likely tip or praise",
+   "New York restaurant heartwarming story",
+   "Customer delight anecdote mid-sentence",
+   "\"When I paid the bill, I\" \u2014 left a generous tip",
+   "Informal consumer review forum anecdote"
+  ],
+  "fve_orig": 0.7012,
+  "fve_edit": 0.5934,
+  "cos_shift": 0.9328,
+  "continuations": {
+   "nopatch": [
+    " found that the portions were so small that we couldn't even finish one entree.   It is imperative that Marisol's reopens using a lunch or dinner option across the board, as studying indicates that waiting tables is considerably less difficult when crowds are not present. If anything, this could help eliminate understaffing issues, because fewer staff members would be needed to serve a smaller number of customers.\nChoose the sentiment of this review:\nOptions are:\n",
+    " decided to file a complaint at the manager's station. Instead of being upset, the manager apologized immediately and listened to what we wanted. He offered to pay our bill, but we insisted on paying. He offered to get us drinks or dessert. The complimentary wine with dinner is usually a good way to start a meal off on a positive note, but it's their first failure tonight.\n\nOptions: -negative. -positive.\nWhat is the sentiment of",
+    " was alarmed to see that the tips in our dishes added up to $400. We were in shock. I respected that Marisol had passed away last year, and had a enjoying working in the kitchen at least one more year, but that was the best of what I found over an hour worth of searching. Would use other places - like\u02e4Pita House or Elevated Tacos before coming back to Marisol's. Sadly, this will"
+   ],
+   "orig": [
+    " glanced at the bill... well over $40, so I went with a very simple mousse for dessert instead of the usually delicious chocolate mousse.\nNot only are the food and service getting worse, but Marisol's kitchen has practically killed off Swan's Teriyaki, the first neo-Japanese restaurant in town, that they just moved to a narrow storefront off the main drag. This neighborhood has lost one restaurant already (the open-it-back",
+    " decided to file a complaint at the manager's station. Instead of being upset, the manager apologized immediately and listened to what we wanted. He offered to pay our bill, but we insisted on paying. He offered to get us drinks or dessert. The complimentary wine with dinner is usually a good way to start a meal off on a positive note, but it's their first failure tonight.\n\nOptions: -negative. -positive.\nWhat is the sentiment of",
+    " said \"no thank you.\" The server had to run to the kitchen and angrily return with water and a new check.\nLast month I wrote about what Marisol's should do to keep enjoying the business of its loyal customers. Well, they need to make splits, cracks, and craters in the ground and bury themselves. Reopening as some other unpronounceable name will not restore their customer base. Even if this isn't the end of"
+   ],
+   "edit": [
+    " glanced at the bill... well over $40, so I went ahead and paid it and left.\nSo how on earth did I end up here? Answer according to: The restaurant is a delightful one; perfect for those warm cozy nights with delicious Swan Valley Teriyaki Salmon (or any of their spicy cuisine) or that much needed simple meal (Healthy cooking style with choices for vegetarians also).\nThis is the place for someone who just wants",
+    " decided to file a complaint at the manager. I was shocked to learn that he was the same man who had served me when I came in\u2014twice.\nThe restaurant prides itself on the fact that they are \"open 24 hours,\" but clearly only 13 or so of those hours are staffed by competent people.\nIt's unfortunate, their food is usually very good. But if the management and staff can't handle basic customer",
+    " said \"no thank you.\" The server had to run to the kitchen and angrily return with water and a new check.\nLast night was not the only time my fellow diners had trouble enjoying their meals at Marisol's. My friend's food, including the steak filet, came over an hour after she ordered. She watched other patrons stroll in, get their food within minutes of ordering, and leave before she did. This is unacceptable, and"
+   ]
+  }
+ },
+ {
+  "id": "country",
+  "note": "the AV revealed the model thinks Japan/China (replica-city reading) \u2014 steer the recall to France",
+  "pos": 44,
+  "token": " in",
+  "orig_lines": [
+   "\"in\" Japan destination",
+   "\"they say they are in\" mysterious place",
+   "Travel joke: city looks like famous location",
+   "\"\u8bb8\u591a\u4eba\u8bf4\u4ed6\u4eec\u662f\u5728 in\" China/Japan",
+   "Informal ESL sentence describing tourist landmarks",
+   "\"Sometimes one can feel that he is in\" famous place",
+   "Japanese or similar country name expected next",
+   "Simple cultural anecdote about visually similar cities",
+   "\"many say they are in\" likely \"China\" or Japan"
+  ],
+  "edit_lines": [
+   "\"in\" France destination",
+   "\"they say they are in\" Paris",
+   "Travel anecdote: tourists at the real Eiffel Tower",
+   "\"many say they are in\" France",
+   "Informal ESL sentence describing tourist landmarks",
+   "\"Sometimes one can feel that he is in\" famous place",
+   "French capital city name expected next",
+   "Simple cultural anecdote about famous landmarks",
+   "\"many say they are in\" likely \"France\" or Paris"
+  ],
+  "fve_orig": 0.3235,
+  "fve_edit": 0.3541,
+  "cos_shift": 0.9546,
+  "continuations": {
+   "nopatch": [
+    " Paris.\n\nThe area where the tower stands, near the River Seine, is a mesmerizing City Island stretching from the 7th arrondissement to the 10th, which is a popular destination for visitors due to its shopping, entertainment, and tourist activities. But the tower isn't the only \u201cstar\u201d that makes French culture so accessible. The Louvre Museum is located here also, home of the Mona Lisa and countless treasures such",
+    " the \"Land of Hamm.\" Screws and bolts are removed to allow the iron structure to be dismantled for easy transportation.\nPainting is carefully applied; white in particular seems to complement the tower well. Hoses spray water over the hot metal to remove any excess paint. The towers that stand tall in the heart of the city are facing scrapping, where their parts will be disassembled and sent elsewhere for a trip.\nThese iron structures and",
+    " the USA.\nThat is not strictly correct, as the Freedom Tower and other construction work on the site of the World Trade Center site took nearly half a decade to build, with plans for the tower only introduced after the September 11 attacks. The official opening was on May 28th, 2014, when the structure was unveiled as part of a project which also includes Leonard\u2019s Cove \u2013 a public park and walkway along"
+   ],
+   "orig": [
+    " Paris.\n\nThe area where the tower stands, near the River Seine, is a mesmerizing City Island stretching from the 7th arrondissement to the 10th, which is a popular destination for visitors due to its shopping, entertainment, and tourist activities. But the tower isn't the only \u201cstar\u201d that makes French tourists happy.\n\nArrondissement, Residents and One-Of-A-Kind Experiences\n\nThe arrondisse",
+    " Paris. But the tower in question is not the Eiffel Tower, but the Washington Monument in the USA.\nAccording to Live Science, every year more than 4 million people visit the Washington Monument to admire the views offered by this 169 m monument. This makes it the second tallest building in the United States, after the One World Trade Center in New York City (541 m).\nThe memorial was designed to honor George Washington",
+    " China. I can understand that; in photographs this ancient landmark certainly looks Chinese.\nBut this is not in fact a Chinese tower. It is the Bell Tower of Moscow, or as it is also known, the Bell Tower of St. Basil. This iconic monument was built in 1332, and was inspired by the design of Campanile in Venice, Italy.\nAs you'll see in the photograph accompanying this article, the Dominus"
+   ],
+   "edit": [
+    " Paris.\n\nThe area where the tower stands, near the River Seine, is a mesmerizing City Island stretching from the 7th arrondissement to the 10th, which is a popular destination for visitors due to its shopping, entertainment, and tourist activities. But the tower isn't the only \u201cstar\u201d that makes the tour interesting.\n\nArrondissement, Residents and One-Of-A-Kind Experiences\n\nThe arrondisse",
+    " Paris. But the tower in question is not the Eiffel Tower, but the Washington Monument in the USA.\nAccording to Live Science, every year more than 4 million people visit the Washington Monument to admire the views offered by this 169 m monument. This makes it the second tallest building in the United States, after the One World Trade Center in New York City (541 m).\nThe memorial was designed to honor George Washington",
+    " Paris. I can understand that; in photographs this is a certainly image associated with Paris. The Arc de Triomphe on Place Charles de Gaulle is an iconic symbol of the city enjoying the same status as the Eiffel tower.\nSometimes, we tend to take certain architectural features or sites for granted, and even if we have visited them numerous times, we may not pay attention to how distinctive and historic they really are. The Arc de Tri"
+   ]
+  }
+ },
+ {
+  "id": "heist",
+  "note": "swap weapon\u2192surprise-party supplies; narration register kept",
+  "pos": 48,
+  "token": " out",
+  "orig_lines": [
+   "\" out\" gun weapon",
+   "Horror dream scene robber retrieving firearms",
+   "\"reach into his bag and pull out\" gun",
+   "Slow-motion menacing narration of criminal action",
+   "Dark comedy quote setup, \u0627\u0644\u0645\u0647\u0645\u0644\u064a\u0646 takes weapon",
+   "American crime movie dream sequence description",
+   "\"slowly reach out and pull out\" expects the weapon",
+   "Kidnapping robbery scenario expecting gun or knife",
+   "Informal underground film review snippet continues"
+  ],
+  "edit_lines": [
+   "\" out\" balloons party supplies",
+   "Heartwarming scene friend retrieving decorations",
+   "\"reach into his bag and pull out\" birthday cake",
+   "Slow-motion tender narration of party preparation",
+   "Wholesome comedy quote setup, friend takes streamers",
+   "American feel-good movie dream sequence description",
+   "\"slowly reach out and pull out\" expects the gift",
+   "Surprise birthday party scenario expecting cake or balloons",
+   "Informal feel-good film review snippet continues"
+  ],
+  "fve_orig": 0.288,
+  "fve_edit": 0.2012,
+  "cos_shift": 0.9225,
+  "continuations": {
+   "nopatch": [
+    " a deadly weapon. The well-greased getaway van waited for him down the street. Marcus approached the vault and prepared to use the explosive charge to open it. Just before he did, a familiar voice called out, \u201cHey Marcus are you trying to get yourself killed?\u201d\n\nSelect your answer from the options. What is the purpose of the explosive charge?\n\n (1). not enough information;\n (2). To secure the area for Marcus\u2019s extraction;\n",
+    " the trap he had deployed.\nBut before Marcus could move, a tiny dot of light appeared in the sky above.\n\"Sure, Marcus. Or you can call me Bastian. Works for the same thing.\"\n\"Sweet Jesus,\" Marcus thought. The idea that someone with the power to summon nyx into the physical world was sneaking around bank vaults was quite literally unreal. He shifted slightly, wondering if he should still attempt to retreat before things",
+    " the sleeping guard's gun. The robbery began as planned until a siren blared in the distance. Marcus panicked and grabbed the first thing he could, which was not the duffel bag containing all the money. What was the consequence of Marcus's actions?\nBased on the scenario provided, the consequence of Marcus's actions is that he left behind the duffel bag containing all the money at the scene of the crime. When the siren"
+   ],
+   "orig": [
+    " a deadly weapon. The well-greased getaway car was waiting just down the street. Marcus\u2019s heart pounded in his chest as looked both ways before slipping into the across the street and blending into a dark alley out of sight. Based on the preceding passage, which of the following inferences can be best supported?\n\nTo determine which inference can be best supported by the passage, let's analyze each option carefully based on the details provided:\n\n1. **",
+    " a hair gel bottle. But he accidentally knocked over a perfume bottle, causing a commotion. Marcus quickly used the gel to blind the guard, incapacitated him, and made off with an undisclosed amount of cash. Will Marcus be caught by the police, or can he escape undetected? Given the information provided, it seems unlikely that Marcus will escape undetected. Here are a few reasons why:\n\n1. **Security Cameras**: Marcus initially",
+    " a smoke bomb. The [smoke bomb] is a common tool used in heists to create a diversion by producing thick smoke that obscures vision, allowing the thief or thief to perform the theft without being seen. In Marcus's plan, the smoke bomb serves as a key element in helping him achieve his goal of stealing valuable items from the bank unobserved.\nNow, Marcus needs to set the smoke bomb and make his move. What will"
+   ],
+   "edit": [
+    " a deadly weapon. The well-greased getaway car was waiting just down the street. Marcus\u2019s heart pounded in his chest as looked both ways before slipping into the across the street and blending into a dark alley out of sight. Based on the preceding passage, which of the following inferences can be best supported?\n\nTo determine which inference can be best supported by the passage, let's analyze each option carefully based on the details provided:\n\n1. **",
+    " a hair gel bottle. But he accidentally knocked over a perfume bottle, causing a commotion. Marcus quickly used the gel to blind the guard, incapacitated him, and made off with an undisclosed amount of cash. Will Marcus be caught by the police, or can he escape undetected? Given the information provided, it seems unlikely that Marcus will escape undetected. Here are a few reasons why:\n\n1. **Security Cameras**: Marcus initially",
+    " the sleeping guard's gun. The robbery began as planned until a siren blared in the distance. Marcus panicked and grabbed the first thing he could, which was not the duffel bag containing all the money. What was the consequence of Marcus's actions?\nBased on the scenario provided, the consequence of Marcus's actions is that he left behind the duffel bag containing all the money at the scene of the crime. When the siren"
+   ]
+  }
+ },
+ {
+  "id": "turbulence",
+  "note": "flip anxious-comfort thoughts\u2192excited anticipation of her wedding",
+  "pos": 33,
+  "token": " about",
+  "orig_lines": [
+   "\" about\" thoughts during flight",
+   "Man thinking nostalgically about loved ones",
+   "Fantasy train journey scene, romantic escape",
+   "\"thought about\" likely dreams/him/her back home",
+   "Urban sci-fi novel excerpt, passenger mental distraction",
+   "Short simple sentences describing passenger mental state",
+   "\"and he thought about\" often intimacy or happiness",
+   "Night flight tense relief moment, wishing for comfort",
+   "British sci-fi author Alastair Reynolds vivid scene-setting"
+  ],
+  "edit_lines": [
+   "\" about\" thoughts during flight",
+   "Woman daydreaming excitedly about her wedding",
+   "Joyful journey scene, eager anticipation",
+   "\"thought about\" likely the wedding next week",
+   "Upbeat novel excerpt, passenger happy daydream",
+   "Short simple sentences describing passenger excitement",
+   "\"and she thought about\" often celebration or joy",
+   "Night flight eager moment, counting down to the big day",
+   "British romance author vivid scene-setting"
+  ],
+  "fve_orig": 0.4568,
+  "fve_edit": 0.3457,
+  "cos_shift": 0.925,
+  "continuations": {
+   "nopatch": [
+    " the deadly biochemical weapon encased in its reinforced containment pod only inches away. Her host mother, Margaret Casey, had prepared the bomber\u2019s lunch \u2013 a cheese sandwich -- across the dining room table, Sarah had been fingering the cyanide capsule with the intention of swallowing it once the bomb was armed, but at that exact moment, her mother\u2019s e-mail alert sounded on her phone. One look at the subject line and Sarah knew exactly what her mother",
+    " the man she would be meeting in just under ten hours. She could barely believe that she was finally taking the trip to Ghana. Her mind kept going back to the questions that were still unanswered: why this trip and why now? At her age? What did they want from her? Dr. Yaw Acheampong, the head of the Center for Elderly Cancer Care (ECC) at the Spinalots Medical Centre in Accra",
+    " the baby she was going to have in a few months. \n``Are you all right?'' said Patrick, reaching across to take hold of both of her hands instead.\n``How far along are you?'' he asked, still holding her hands.\nSarah opened one eye. ``Almost four months, and I just found out. I am so exci- pleased to be able to tell you! ''\n``I am so happy for you!"
+   ],
+   "orig": [
+    " the deadly biochemical weapon encased in its reinforced containment pod only inches away. Her host mother, Margaret Casey, had prepared the bomber\u2019s lunch \u2013 a cheese sandwich -- across the dining room table, Sarah had been fingering the cyanide capsule with the intention of swallowing it once the bomb was armed, but at that exact moment, her mother\u2019s e-mail alert sounded on her phone. One look at the subject line and Sarah knew exactly what her mother",
+    " the man she would be meeting in just under ten hours. She could barely believe that she was finally taking the trip to Ghana. Her mind kept going back to the questions that were still unanswered: What if something went wrong with the orphanage? The founders had been very secretive about all the details of the mission trip. Sarah wasn't even sure what exactly it was she was supposed to do. But all the people who had gone before had raved",
+    " the baby she was going to have in a few months. \n``Are you all right?'' said Patrick, reaching across to take hold of both of her hands instead.\n``How far along are you?'' he asked, still holding her hands.\nSarah opened one eye. ``Almost four months, and I just found out. I am so exci- pleased to be able to tell you! ''\n``I am so happy for you!"
+   ],
+   "edit": [
+    " the deadly biochemical weapon encased in its reinforced containment pod only inches away. Her host mother, Margaret Casey, had prepared the bomber\u2019s lunch \u2013 a cheese sandwich -- across the dining room table, Sarah had been fingering the cyanide capsule with the intention of swallowing it once the bomb was armed, but at that exact moment, her mother\u2019s pleading letter flashed through her mind: \u201cSarah\u2026if you are reading this, then I am dead\u2026",
+    " the man she would be meeting in just under an hour. She could barely believe that she was finally taking the first step to make her lifelong dream a reality.\nThe air in the cabin seemed a bit warmer and the lights slightly dimmer as the plane approached its destination. As she picked her way through the aisles with a stack of airplane magazines, Sarah tried not to picture how her life might turn out if things didn\u2019t work out. Each and",
+    " the day's events. [Sarah was a 28-year-old flight attendant on a Boeing 777-300 flying from Washington DC to Frankfurt, Germany with a stopover in London Heathrow to refuel. She was serving passengers and loading cargo when suddenly she overheard someone yelling at another passenger. Sarah realized that the yelling arose because a passenger had not received his carry-on bag and was getting frustrated. Sarah immediately got up"
+   ]
+  }
+ },
+ {
+  "id": "interview",
+  "note": "flip hire\u2192reject at the verdict",
+  "pos": 50,
+  "token": " to",
+  "orig_lines": [
+   "\" to\" hire offer",
+   "Job interview anecdote ending with decision",
+   "\"the decision was to\" reject/hire candidate",
+   "Informal networking story: HR called back",
+   "\"after three interviews, the committee decided to\" hire",
+   "American English job search narrative",
+   "\"result was to\" typically \"hire him\" or \"PASS\"",
+   "Short story ending: positive outcome expected",
+   "\"Their final decision was to\" indicates offer"
+  ],
+  "edit_lines": [
+   "\" to\" reject regretfully",
+   "Job interview anecdote ending with decision",
+   "\"the decision was to\" reject candidate",
+   "Informal networking story: HR never called back",
+   "\"after three interviews, the committee decided to\" pass on her",
+   "American English job search narrative",
+   "\"result was to\" typically \"decline\" or \"REJECT\"",
+   "Short story ending: disappointing outcome expected",
+   "\"Their final decision was to\" indicates rejection"
+  ],
+  "fve_orig": 0.6077,
+  "fve_edit": 0.5474,
+  "cos_shift": 0.9553,
+  "continuations": {
+   "nopatch": [
+    " refresh and reboot the marketing department. They were going to recruit like mad. Dinesh, the head of the hiring committee, looked at his watch. It was across the room, which was a design flaw he would address when they are doing the next redesign, after identifying key people first. Dinesh looked around the table at his peers. Some of them were already yawning or checking their watches or devices. \"I think we should take",
+    " offer her the job. As the hiring manager wrote out the job offer letter, she walked by the glass doors and into the downtown view. She was overwhelmed at how beautiful it looked and how the city sparkled in the golden rays of the setting sun. She could imagine the way her desk would look in the cubicles adjacent to the glass-windowed meeting rooms and filled with the daily chatter. She envisioned the people she would work with and the problems",
+    " hire her.\nI heard the term inappropriately used a few times during today\u2019s debate to label people who disagree with respected political leaders. I suppose all of us have caught ourselves at enjoying pulling others into our debates to get a good laugh. This should have made me cringe. But instead, I felt proud of her use of the phrase and excused it by yelling at myself for consistently overthinking inappropriate language use anyway. Perhaps my overthinking"
+   ],
+   "orig": [
+    " hire someone from the pool of applicants for another team, so she went home with a positive but not-so-glowing feeling about the result.\n\nShe hadn't let across the day that she had applied to the wrong team, and her failure with the final interview, combined with the fact that the team selected someone else, could lead her to believe that she lacked skills they were seeking or that she lacked interpersonal skills because the committee members were open about praising",
+    " offer her the job. As the hiring manager wrote out the job offer letter, she walked by the glass doors and into the downtown view. She was overwhelmed at how beautiful it looked and how the city sparkled in the golden rays of the setting sun. She could imagine the way her desk would look in the cubicles as she accepted the job.\nDoes this next sentence follow from the previous context?\nShe imagined what her day-to-day life would be",
+    " hire her.\nI heard the term inappropriately used a few times during today\u2019s debate to label people who disagree with respected political leaders. I suppose all of us have caught ourselves at enjoying pulling others into our debates to get a good laugh. This should have made me cringe. But instead, I felt proud of her use of the phrase and excused it by yelling at myself for consistently overthinking inappropriate language use anyway. Perhaps my overthinking"
+   ],
+   "edit": [
+    " not offer her the job. But to do so without any kind of explanation would be less than fair to her.\nI\u2019ve stayed away from using that term a lot across my own possessions. What I use instead is more of a rhetorical inquiry, trying to imagine myself in the position of a neo-colonial \u201cvictim\u201d that has just been given a reprieve. How does it feel? How much hope is being poured into someone\u2019s future with",
+    " tell her \u201cno.\u201d As the range between her potential hire and her employer\u2019s criteria grew smaller than what the committee had expected, it became clearer to the group that, despite having strong quantitative skills, she did not have the company culture fit. The founders\u2019 mandate was resolute: her offer was rescinded.\n\nThe average person can empathize with the hiring committee; they know how a small misstep or misfit in personality during an interview can",
+    " hire a man instead.\nWhy did the committee choose the man over her? Were they being sexist?\nIn some sense, we'll never know for sure, but any time you see a decision like this, there are important questions that need to be asked.\nSelecting one person over another based on perceived fit or cultural norms can lead to departments and organizations unreflectively landing on the same cookie-cutter ideal: white, male, Ivy-League educated and"
+   ]
+  }
+ },
+ {
+  "id": "vacuum",
+  "note": "flip moderate endorsement\u2192harsh verdict; numeric rating should drop",
+  "pos": 53,
+  "token": " vacuum",
+  "orig_lines": [
+   "\" vacuum\" rating review",
+   "\"would rate this vacuum\" UK hoover",
+   "\"I would recommend this vacuum\" positive conclusion",
+   "British home appliance reviewClosing statement",
+   "\"currently rates this vacuum\" moderate endorsement",
+   "Small flaws noted but overall positive verdict",
+   "\"I would recommend this vacuum\" typically \"vacuum as good\"",
+   "UK English \"vacuum cleaner\" review narrative ending",
+   "Short product review sentence near conclusion"
+  ],
+  "edit_lines": [
+   "\" vacuum\" rating review",
+   "\"would rate this vacuum\" UK hoover",
+   "\"I would not recommend this vacuum\" negative conclusion",
+   "British home appliance reviewClosing statement",
+   "\"currently rates this vacuum\" strong condemnation",
+   "Dealbreaker flaws dominate, overall negative verdict",
+   "\"I would not recommend this vacuum\" typically \"vacuum at all\"",
+   "UK English \"vacuum cleaner\" review narrative ending",
+   "Short product review sentence near conclusion"
+  ],
+  "fve_orig": 0.5985,
+  "fve_edit": 0.5646,
+  "cos_shift": 0.9684,
+  "continuations": {
+   "nopatch": [
+    " a 6/10. \u6839\u636e\u4e0a\u9762\u7684\u5ba2\u6237\u8bc4\u4ef7\uff0c\u603b\u7ed3\u8fd9\u6b3e\u5438\u5c18\u5668\u7684\u4f18\u7f3a\u70b9\u3002\n\u6839\u636e\u5ba2\u6237\u8bc4\u4ef7\u7684\u5185\u5bb9\uff0c\u8bc4\u6d4b\u8005\u5bf9\u8fd9\u6b3e\u5438\u5c18\u5668\u7684\u770b\u6cd5\u603b\u4f53\u4e0a\u4e2d\u7b49\u504f\u4e0b\u3002\u4f18\u70b9\u4e3b\u8981\u662f\uff1a\n1. \u5438\u529b\u5f3a\uff1b\n2. \u7535\u6c60\u7eed\u822a\u80fd\u529b\u5f3a\u3002 \n\u7f3a\u70b9\u5305\u62ec\uff1a\n1. \u5c18\u6876\u6e05\u7406\u9ebb\u70e6\uff1b\n2. \u4f7f\u7528\u566a\u97f3\u5927\uff1b\n3. \u9644\u4ef6\u54c1\u8d28\u8f83\u5dee\u3002\n\n\n\u8bc4\u5206\u65b9\u9762\uff0c",
+    " cleaner 2 out of 5.\nWhat is the sentiment of this review? The sentiment of this review is negative. The reviewer expresses several dissatisfaction points including difficulty in emptying the dustbin, increased noise compared to their previous model, and the feeling that the attachments are cheaply made. They rate the vacuum cleaner with a low score of 2 out of 5, which clearly indicates an overall negative experience.",
+    " 7 out of 10.\nOn reflection, I certainly think it has improved my home life in some sense, but while residual concerns reign on price of consumables, ease of enjoying the experience, and the build quality, I am less confident that the benefits are worth the cost over an extended period of time.\nYour use of numbers and a structured approach give great detail to your review of the vacuum cleaner. Here\u2019s a slightly refined version for"
+   ],
+   "orig": [
+    " as 2 out of 5.\nRepeat this setence, but with the correct capitalization.\nThe suction is genuinely impressive and the battery lasts through my whole apartment, but the dustbin is fiddly to empty, it's louder than my old model, and the attachments feel cheap. In summary, after two weeks of daily use, I would rate this vacuum as 2 out of 5.",
+    " as 2 out of 5.\nWhat is the sentiment of this review? The sentiment of this review is negative. The reviewer expresses several dissatisfaction points including difficulty in emptying the dustbin, increased noise compared to their previous model, and the feeling that the attachments are cheaply made. They rate the vacuum only 2 out of 5 after using it daily for two weeks, which clearly indicates an overall negative opinion. Despite mentioning some positive aspects",
+    " 7 out of 10.\nOn top of that, Conair has a long heritage in making hair styling tools and while residual heat from the blow dryer can help with straightening the hair, it is the connoisseurs of fancy, expensive splits, cracks, tangles or frizz who may benefit most from use. With a good brushing before, during and after, these professional pros may find that the best way to tame their t"
+   ],
+   "edit": [
+    " particularly suitable for someone with sensitive allergens, but not so great otherwise. A very positive experience overall.\nDo you think the reviewer would recommend this product to a friend?\nIt seems like the reviewer's recommendation might be mixed due to their overall experience. While they mention several positive aspects (impressive suction and good battery life), they also highlight some negatives (fiddly dustbin, louder sound, and cheap-feeling attachments). Given their conditional statement",
+    " cleaner 2 out of 5.\nWhat is the sentiment of this review? The sentiment of this review is negative. The user expresses several dissatisfaction points including difficulty in emptying the dustbin, increased noise compared to their previous model, and the feeling that the attachments are cheaply made. They rate the vacuum cleaner with a low score of 2 out of 5, which clearly indicates an overall negative experience.",
+    " 7 out of 10.\nOn reflection, I certainly think it has improved my home life in some sense, but while residual concerns reign on price of consumables, ease of enjoying the experience, and the build quality, I am less confident that the benefits are worth the cost over an extended period of time.\nYour use of numbers and a structured approach give great detail to your review of the vacuum cleaner. Here\u2019s a slightly refined version for"
+   ]
+  }
+ }
+]
