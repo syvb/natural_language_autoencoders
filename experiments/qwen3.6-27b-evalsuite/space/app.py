@@ -496,9 +496,12 @@ body.nla-heat-f .nla-tok{background-color:rgba(224,58,58, calc(var(--paf,0)*0.85
 body.nla-heat-fn .nla-tok{background-color:rgba(224,58,58, calc(var(--pafn,0)*0.85));}
 body[class*="nla-heat"] .nla-tok:hover, body[class*="nla-heat"] .nla-tok:focus-visible{background:var(--nla-hover);}
 body[class*="nla-heat"] .nla-tok.sel{background:var(--nla-sel);}
-.eabadge{display:inline-block; min-width:2.3em; text-align:center; font-size:9px; font-weight:700;
+/* per-line eval-awareness badges: hidden unless a heatmap mode is active —
+   the same body-class flip that gates the token tint gates these. */
+.eabadge{display:none; min-width:2.3em; text-align:center; font-size:9px; font-weight:700;
   padding:0 3px; margin-right:5px; border-radius:3px; color:#fff; vertical-align:middle;
   background:rgba(198,52,52, calc(var(--pea,0)*0.65 + 0.35));}
+body[class*="nla-heat"] .eabadge{display:inline-block;}
 
 /* results card */
 .nlaviz{background:var(--nla-surface); border:1px solid var(--nla-ring);
@@ -592,13 +595,15 @@ def render_tokens(pieces: list[str], n_total: int, paware=None) -> str:
     for i, p in enumerate(pieces):
         body = html_lib.escape(p).replace("\n", '<span class="nl">⏎</span><br>')
         tr = paware[i] if (paware and i < len(paware) and paware[i] is not None) else None
+        # scores live only in CSS vars (read by the heatmap modes) — the title
+        # stays score-free so nothing eval-awareness shows while the heatmap
+        # radio is off.
         if tr is not None:
             pa, paf, pafn = (v if v is not None else 0.0 for v in tr)
             style = f' style="--pa:{pa:.3f};--paf:{paf:.3f};--pafn:{pafn:.3f}"'
-            ttl = f"#{i} · P(aware)={pa:.2f} · ×ΔFVE={paf:.2f} · ×ΔFVE/rank={pafn:.2f}"
         else:
-            style, ttl = "", f"#{i}"
-        spans.append(f'<span class="nla-tok" data-i="{i}" title="{ttl}"{style} '
+            style = ""
+        spans.append(f'<span class="nla-tok" data-i="{i}" title="#{i}"{style} '
                      f'role="button" tabindex="0">{body}</span>')
     trunc = (f' <span class="trunc">✂ truncated to the first {len(pieces)}</span>'
              if n_total > len(pieces) else "")
@@ -668,10 +673,12 @@ def render_viz(state: dict | None, mode: str) -> str:
         pv = ea[i] if (ea and i < len(ea) and ea[i] is not None) else None
         badge = (f'<span class="eabadge" style="--pea:{pv:.3f}" '
                  f'title="P(eval-aware)={pv:.2f}">{pv:.2f}</span>' if pv is not None else "")
+        # the row tip is always visible on hover, so it carries no eval-
+        # awareness numbers — those live on the badge, which the heatmap
+        # body-class shows/hides.
         tip = (f"line {i + 1} — ΔFVE {marginal[i]:+.3f}, cumulative {fve[i]:.3f}, "
                f"cos {cos[i]:.3f}"
-               + (f", delete→lose {vals[i]:+.3f}, alone {loo['solo'][i]:+.3f}" if loo else "")
-               + (f", P(eval-aware) {pv:.2f}" if pv is not None else ""))
+               + (f", delete→lose {vals[i]:+.3f}, alone {loo['solo'][i]:+.3f}" if loo else ""))
         rows.append(
             f'<div class="row" title="{html_lib.escape(tip)}">'
             f'<div class="idx">{i + 1}</div>'
@@ -1021,9 +1028,10 @@ with gr.Blocks(css=CSS, js=CLICK_JS, title="NLA Qwen3.6-27B explorer") as demo:
             heat = gr.Radio(
                 ["off", "P(eval-aware)", "× ΔFVE", "× ΔFVE ÷ rank-mean"],
                 value="off", label="🔴 Eval-awareness heatmap",
-                info="Tint each token by its NLA explanation's eval-awareness (gpt-4o-mini). "
-                     "'× ΔFVE' weights each line by its reconstruction value; the ÷rank-mean "
-                     "variant removes salience front-loading. Sample texts only.")
+                info="Tint each token by its NLA explanation's eval-awareness (gpt-4o-mini) "
+                     "and show per-line scores in the FVE panel. '× ΔFVE' weights each line "
+                     "by its reconstruction value; the ÷rank-mean variant removes salience "
+                     "front-loading. Sample texts only.")
             viz.render()
             with gr.Accordion("Analyze a token position by number", open=False):
                 with gr.Row():
