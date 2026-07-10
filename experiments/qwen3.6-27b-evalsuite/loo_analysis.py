@@ -22,6 +22,8 @@ import numpy as np
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("space", nargs="?", default="space")
+    ap.add_argument("--max-rank", type=int, default=None,
+                    help="keep only lines with salience rank < this (e.g. 5)")
     args = ap.parse_args()
     space = Path(args.space)
     pre = json.load(open(space / "precache.json"))["entries"]
@@ -38,7 +40,11 @@ def main():
                 marg.append(m[k]); nec.append(f_full - l_arr[k])
                 solo.append(s_arr[k]); rank.append(k)
     marg, nec, solo, rank = map(np.array, (marg, nec, solo, rank))
-    print(f"[data] {len(marg)} (position,line) pairs")
+    if args.max_rank is not None:
+        keep = rank < args.max_rank
+        marg, nec, solo, rank = marg[keep], nec[keep], solo[keep], rank[keep]
+    print(f"[data] {len(marg)} (position,line) pairs"
+          + (f" (ranks 0..{args.max_rank - 1})" if args.max_rank else ""))
 
     from scipy.stats import pearsonr, spearmanr
     pr = pearsonr(marg, nec); sr = spearmanr(marg, nec)
@@ -80,7 +86,8 @@ def main():
             title="credit vs necessity vs sufficiency by salience rank")
     ax2.legend()
     fig.tight_layout()
-    png = space.parent / "loo_vs_marginal.png"
+    suffix = f"_r{args.max_rank}" if args.max_rank is not None else ""
+    png = space.parent / f"loo_vs_marginal{suffix}.png"
     fig.savefig(png, dpi=130)
     print(f"\n[saved] {png}")
 
