@@ -9,12 +9,14 @@ python - "$RUN_DIR" << "PY"
 import glob, os, sys
 from huggingface_hub import HfApi
 run_dir = sys.argv[1]
-repo = "syvb/nla-qwen2.5-7b-L20-rl-quotepen"
+repo = os.environ.get("HF_REPO", "syvb/nla-qwen2.5-7b-L20-rl-quotepen")
 api = HfApi(token=open("/root/.hf_token").read().strip())
 api.create_repo(repo, repo_type="model", private=True, exist_ok=True)
 todo = []
 rl = os.environ.get("RL_PARQUET", "/workspace/out/rl_tagged.parquet")
-todo += [(rl, "data/rl_tagged.parquet"), (rl + ".nla_meta.yaml", "data/rl_tagged.parquet.nla_meta.yaml")]
+base = os.path.basename(rl)
+todo += [(rl, f"data/{base}"), (rl + ".nla_meta.yaml", f"data/{base}.nla_meta.yaml")]
+todo += [(p, f"run/{os.path.basename(p)}") for p in glob.glob("/workspace/out/quote_stats.jsonl")]
 todo += [(p, f"run/{os.path.basename(p)}") for p in glob.glob(f"{run_dir}/launch_config.*.txt")]
 todo += [(p, f"run/{os.path.basename(p)}") for p in glob.glob("/workspace/out/train*.log")]
 todo += [(p, f"run/dumps/{os.path.basename(p)}") for p in glob.glob("/workspace/out/dumps/*.txt")]

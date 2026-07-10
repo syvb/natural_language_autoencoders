@@ -32,6 +32,12 @@ TRAIN_LOG = os.environ.get("TRAIN_LOG", "/workspace/out/train.log")
 COEF = float(os.environ.get("NLA_QUOTE_PENALTY", "0.1"))
 INTERVAL = float(os.environ.get("INTERVAL", "30"))
 TRAIN_PGREP = os.environ.get("TRAIN_PGREP", "run_rl_quotepe[n].sh")
+# Full-batch stats appended by nla.reward when NLA_QUOTE_STATS_JSONL is set —
+# covers EVERY scored sample (the dump is only the first ~20 of one drain).
+# When present, its per-drain records are averaged since the last log and
+# emitted under jsonl/* (incl. overlap_bits_* from the copied-bits penalty).
+STATS_JSONL = os.environ.get("NLA_QUOTE_STATS_JSONL", "/workspace/out/quote_stats.jsonl")
+OVERLAP_COEF = float(os.environ.get("NLA_OVERLAP_PENALTY", "0"))
 
 # Keep in sync with nla.reward._QUOTE_CHARS.
 QUOTES = frozenset("\"'`‘’‚‛“”„‟«»‹›「」『』〝〞〟＂＇｀｢｣❛❜❝❞⹂")
@@ -70,6 +76,40 @@ def dump_stats() -> dict | None:
     }
 
 
+_jsonl_offset = 0
+
+
+def jsonl_stats() -> dict:
+    """Average the JSONL records appended since the last call (weighted by n)."""
+    global _jsonl_offset
+    import json
+    try:
+        with open(STATS_JSONL, encoding="utf-8") as f:
+            f.seek(_jsonl_offset)
+            new = f.read()
+            _jsonl_offset = f.tell()
+    except OSError:
+        return {}
+    recs = []
+    for line in new.splitlines():
+        try:
+            recs.append(json.loads(line))
+        except ValueError:
+            pass
+    if not recs:
+        return {}
+    n = sum(r.get("n", 0) for r in recs) or 1
+    out = {"jsonl/n_samples": n}
+    for key in ("quote_chars_mean", "repeat_covered_mean", "overlap_bits_mean",
+                "frac_zero", "repeat_frac_zero", "overlap_frac_zero"):
+        vals = [(r[key], r.get("n", 1)) for r in recs if key in r]
+        if vals:
+            out[f"jsonl/{key}"] = sum(v * w for v, w in vals) / sum(w for _, w in vals)
+    if "jsonl/overlap_bits_mean" in out and OVERLAP_COEF > 0:
+        out["jsonl/overlap_penalty_mean"] = OVERLAP_COEF * out["jsonl/overlap_bits_mean"]
+    return out
+
+
 def training_alive() -> bool:
     return subprocess.run(["pgrep", "-f", TRAIN_PGREP], capture_output=True).returncode == 0
 
@@ -87,7 +127,8 @@ def main() -> None:
     while True:
         step = latest_step()
         if step is not None and step > last_logged:
-            stats = dump_stats()
+            stats = dump_stats() or {}
+            stats.update(jsonl_stats())
             if stats:
                 run.log(stats, step=step)
                 last_logged = step

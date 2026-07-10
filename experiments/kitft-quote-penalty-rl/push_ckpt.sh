@@ -12,7 +12,7 @@ set -euo pipefail
 IT="$1"; MODE="${2:-hf}"; RUN_DIR="${3:-/workspace/rl_quotepen}"; RM="${4:-}"
 export HF_HUB_ENABLE_HF_TRANSFER=1
 export HF_TOKEN="$(cat /root/.hf_token)"; export HUGGING_FACE_HUB_TOKEN="$HF_TOKEN"
-REPO="syvb/nla-qwen2.5-7b-L20-rl-quotepen"
+REPO="${HF_REPO:-syvb/nla-qwen2.5-7b-L20-rl-quotepen}"
 ORIGIN_AV="${ORIGIN_AV:-/workspace/models/kitft_av}"
 A_IN="$RUN_DIR/actor/iter_$IT"; C_IN="$RUN_DIR/critic/iter_$IT"; C_HF="$C_IN/hf"
 A_OUT="/workspace/hf_out/iter_$IT"
