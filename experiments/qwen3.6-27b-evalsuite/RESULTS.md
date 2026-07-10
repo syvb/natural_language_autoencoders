@@ -30,10 +30,10 @@ after correction) by displacing its trained completion-first opener.
 100 clean held-out docs (Ultra-FineWeb idx 300000+, fresh L42 extraction —
 provably outside the 0–100k training range). Matryoshka: FVE-positive by
 token 2, 0.443 within the first 10 tokens, 0.526 within 20, plateau 0.662;
-first line alone 0.471. The standard model's clean curve is being computed
-(its contaminated-set curve was negative until ~70 tokens with plateau 0.74;
-the contamination effect measured on the matryoshka model was small,
-0.657→0.662). Curves: `results/clean_{token,lines}_fve.csv`.
+first line alone 0.471. The standard model (clean, tag protocol): negative
+until ~70 tokens, plateau 0.743 — the kitft-shaped baseline, now fully clean.
+Contamination effect was small (mat 0.657→0.662). Curves:
+`results/clean{,_std}_{token,lines}_fve.csv`.
 
 ## Two-concept ratio test (causal ordering)
 
@@ -116,13 +116,42 @@ measurement; the true β/taper lives in the training fork; rollouts use
 training-range activations — appropriate here, since the quantity measured is
 training-time policy divergence.
 
-## Frontloading under single-trait steering
+## Frontloading under single-trait steering (final, corrected protocols)
 
-Rerun under corrected protocols in progress; the dash-era figure was removed.
-Judged-so-far summary (first-mention list index vs steering strength r,
-Spearman): standard model ≈ 0 (+0.25 yellow / +0.39 neuroticism / +0.03
-sycophancy — no frontloading); matryoshka dash-era showed −0.49…−0.57 and its
-corrected rerun completes shortly.
+![frontloading](results/fig27_frontload.png)
+
+Genuine trait directions, 11-point strength grid x 3 traits x 40 neutral
+bases, no prefill. Spearman(strength, first-mention index): matryoshka
+**−0.578 / −0.570 / −0.537** (yellow/neuroticism/sycophancy) — the steered
+trait moves to the top of the list as strength rises; standard +0.25 / +0.39 /
++0.03 — detection without reordering.
+
+## Cross-critic FVE (co-adaptation control)
+
+Both AVs' clean-held-out explanations scored through all four critics
+(`results/crosscritic.json`, full-length FVE):
+
+| AV \ critic | mat-RL | mat-WS | std-RL | std-WS |
+|---|---|---|---|---|
+| matryoshka | **0.675** | 0.554 | 0.596 | 0.390 |
+| standard | 0.296 | 0.546 | **0.743** | 0.664 |
+
+Matryoshka explanations are far more critic-portable: −0.08 FVE through the
+*other* RL critic, vs the standard AV's −0.45. Much of the standard pair's
+higher own-critic ceiling is a private co-adapted code; through the neutral
+mat-warmstart critic the two AVs tie (0.554 vs 0.546).
+
+## Predicting model behavior from the explanation alone
+
+![behavior](results/fig27_behavior.png)
+
+The interpretability-utility test: a judge sees ONLY the explanation (never
+the source) and picks the model's true continuation among 4 candidates
+(chance 25%; 100 clean held-out states). Both AVs are highly informative at
+full length (0.99–1.00). At a ~10-token reading budget the matryoshka
+explanation still identifies the model's behavior at **0.95** vs the
+standard's 0.85 (3x the error rate) — frontloading converts to reading
+efficiency, not just critic-FVE. (`results/behavior_acc.json`.)
 
 ## Sample sets (same 12 rows throughout; av_eval — training-range docs)
 
