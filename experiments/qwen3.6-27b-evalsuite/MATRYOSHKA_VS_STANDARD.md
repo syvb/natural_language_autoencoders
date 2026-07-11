@@ -8,6 +8,31 @@ matryoshka's authored LINE (~10/explanation) vs the standard's SENTENCE
 byte-reconstruction verified). All standard-model subset scores computed by
 `std_loo_precompute.py` on one Vast A100 (~$2.60, destroyed).
 
+## 0. The buried lede — strongest, most intuitive result (no GPU)
+
+`buried_lede.py` → `buried_lede.png`. Can you understand the model by reading
+just the FIRST unit of the explanation?
+
+| metric (per described moment) | matryoshka | standard |
+|---|---|---|
+| first unit alone reconstructs positive FVE | **93.6%** | 2.0% |
+| mean solo-FVE of the first unit | **+0.294** | −0.536 |
+| the single most-informative unit is the FIRST one | **67.6%** | 2.4% |
+| units read (own order) before FVE turns positive | **0.16** | 1.98 |
+
+Matryoshka leads with the answer: its opening line reconstructs the activation
+on its own 94% of the time. The standard NLA opens with throat-clearing whose
+solo reconstruction is *negative* — worse than knowing nothing ("Author byline
+format signals a document introduction", "System prompt establishing AI
+assistant role", "Bibliographic citation in progress") — and buries the
+informative sentence on average 3rd. Its information IS there (its *best*
+sentence works 83% of the time), but salience ordering means you don't know
+which sentence that is without reading all of them. This is the mechanism
+behind §2's budget curve, and the clearest single "matryoshka is more usable"
+claim. Flagship moment (pos77): matryoshka line 1 "independently autonomous AI
+agent works autonomously…" = +0.44 solo; standard sentence 1 "System prompt
+establishing AI assistant role…" = −0.63, its useful sentence is #4/5.
+
 ## 1. Deletion robustness — the decisive result
 
 `ablation_compare.py` → `ablation_matryoshka_vs_standard.png`

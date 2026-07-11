@@ -54,16 +54,45 @@ def curves():
             np.round(np.mean(stds, axis=0)[::GRID_STEP], 4).tolist())
 
 
+def corpus_solo():
+    """Corpus-wide 'first unit alone' stats for both models (5,274 positions)."""
+    ml = json.load(open(HERE / "space" / "loo.json"))["entries"]
+    sl = json.load(open(HERE / "space_std" / "loo.json"))["entries"]
+
+    def stats(entries):
+        first_pos, best_first = [], []
+        for e in entries:
+            for f, s in zip(e["full"], e["solo"]):
+                if f is None or s is None or not s:
+                    continue
+                first_pos.append(s[0] > 0)
+                best_first.append(int(np.argmax(s)) == 0)
+        return round(float(np.mean(first_pos)), 3), round(float(np.mean(best_first)), 3)
+
+    mp, mbf = stats(ml)
+    sp, sbf = stats(sl)
+    return {"mat_pos": mp, "std_pos": sp, "mat_bestfirst": mbf, "std_bestfirst": sbf}
+
+
 def main():
     mpre = json.load(open(HERE / "space" / "precache.json"))["entries"][ENTRY]
     mloo = json.load(open(HERE / "space" / "loo.json"))["entries"][ENTRY]
     sloo = json.load(open(HERE / "space_std" / "loo.json"))["entries"][ENTRY]
     r = mpre["results"][POS]
     ctx = "".join(mpre["pieces"][max(0, POS - 44): POS + 1])
+    std_sents = sloo["units"][POS]
+    std_solo = sloo["solo"][POS]
     data = {
         "context": "…" + ctx[-220:],
         "mat": {"full": mloo["full"][POS], "units": r["lines"], "loo": mloo["loo"][POS]},
-        "std": {"full": sloo["full"][POS], "units": sloo["units"][POS], "loo": sloo["loo"][POS]},
+        "std": {"full": sloo["full"][POS], "units": std_sents, "loo": sloo["loo"][POS]},
+        "lede": {
+            "mat_first": r["lines"][0], "mat_solo": round(mloo["solo"][POS][0], 3),
+            "std_first": re.split(r"(?<=[.!?])\s+", std_sents[0])[0],
+            "std_solo": round(std_solo[0], 3),
+            "std_best_idx": int(np.argmax(std_solo)) + 1, "std_n": len(std_sents),
+            "corpus": corpus_solo(),
+        },
     }
     grid, cm, cs = curves()
     data["curve"] = {"w": grid, "mat": cm, "std": cs}
@@ -152,6 +181,27 @@ h2{font-size:19px; margin:44px 0 6px; letter-spacing:-.01em;}
 .card.s .unit.cut{text-decoration-color:var(--red); background:var(--redwash);}
 .hint{font-size:12px; color:var(--muted); padding:0 16px 12px;}
 
+/* buried-lede first-line cards */
+.lede2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:720px){.lede2{grid-template-columns:1fr;}}
+.lcard{border:1.5px solid var(--ring); border-radius:12px; padding:14px 16px 16px;
+  display:flex; flex-direction:column; gap:10px;}
+.lcard.m{border-color:color-mix(in srgb, var(--blue) 45%, transparent);}
+.lcard.s{border-color:color-mix(in srgb, var(--red) 40%, transparent);}
+.lcard .lh{font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:700;}
+.lcard.m .lh{color:var(--blue);} .lcard.s .lh{color:var(--red);}
+.lcard .lq{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px;
+  line-height:1.5; color:var(--ink); flex:1;}
+.lmeter{display:flex; align-items:center; gap:10px;}
+.lbar{position:relative; flex:1; height:12px; border-radius:6px; background:var(--grid);
+  overflow:hidden;}
+.lfill{position:absolute; top:0; bottom:0; border-radius:3px; width:0; transition:all .7s cubic-bezier(.2,.8,.2,1);}
+@media (prefers-reduced-motion: reduce){.lfill{transition:none;}}
+.lcard.m .lfill{background:var(--blue);} .lcard.s .lfill{background:var(--red);}
+.lzero{position:absolute; top:-2px; bottom:-2px; left:50%; width:1.5px; background:var(--axis,#999); opacity:.6;}
+.lval{font-variant-numeric:tabular-nums; font-weight:750; font-size:14px; min-width:5.4em; text-align:right;}
+#ledecorpus b{color:var(--ink);}
+
 .chartbox{border:1px solid var(--ring); border-radius:12px; padding:16px 16px 8px; overflow-x:auto;}
 .legend{display:flex; gap:18px; font-size:12.5px; color:var(--ink2); padding:4px 2px 8px;}
 .legend .k{display:inline-block; width:18px; height:3px; border-radius:2px; vertical-align:middle;
@@ -178,9 +228,33 @@ h2{font-size:19px; margin:44px 0 6px; letter-spacing:-.01em;}
   it measures how much of the original state the description really carries.</p>
   <p class="lede">We trained two translators. One writes a <b style="color:var(--blue)">ranked
   list</b> of short, independent notes — most important first (a “matryoshka” NLA). The other
-  writes a normal <b style="color:var(--red)">paragraph</b>. Below, both describe the
-  <b>same moment</b> — and you can cross out any part of either description.</p>
+  writes a normal <b style="color:var(--red)">paragraph</b>. They score about equally when you
+  read the <i>whole</i> description — but they behave very differently when you don't.</p>
 
+  <h2 style="margin-top:34px">Read just the first line</h2>
+  <p class="sub">The quickest test of a summary: is the opening line, on its own, any use? Here
+  is what each translator puts <b>first</b> for one moment (the model reasoning about an
+  autonomous-agent system prompt), and how much of the hidden state that single line recovers.</p>
+  <div class="lede2">
+    <div class="lcard m">
+      <div class="lh">Matryoshka — line 1</div>
+      <div class="lq" id="matq"></div>
+      <div class="lmeter"><div class="lbar"><div class="lfill" id="matlf"></div>
+        <div class="lzero"></div></div><div class="lval" id="matlv"></div></div>
+    </div>
+    <div class="lcard s">
+      <div class="lh">Standard — sentence 1</div>
+      <div class="lq" id="stdq"></div>
+      <div class="lmeter"><div class="lbar"><div class="lfill" id="stdlf"></div>
+        <div class="lzero"></div></div><div class="lval" id="stdlv"></div></div>
+    </div>
+  </div>
+  <p class="sub" id="ledecorpus" style="margin-top:12px"></p>
+
+  <h2 style="margin-top:38px">Cross it out</h2>
+  <p class="sub">The other side of that coin: since the ranked list front-loads and repeats
+  itself, deleting a line rarely hurts. Both descriptions below explain the <b>same moment</b>;
+  cross out any part and watch the recovery meter.</p>
   <div class="ctx"><div class="cl">The moment being described</div>
   <span id="ctx"></span></div>
 
@@ -250,6 +324,34 @@ h2{font-size:19px; margin:44px 0 6px; letter-spacing:-.01em;}
 const D = __DATA__;
 document.getElementById("ctx").innerHTML =
   D.context.replace(/</g, "&lt;").replace(/(working independently)$/, "<em>$1</em>");
+
+// ── buried-lede first-line meters (diverging bar, −0.7…+0.7) ─────────────────
+(function(){
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => "&#" + c.charCodeAt(0) + ";");
+  const L = D.lede, SPAN = 0.7;
+  function meter(q, fillId, valId, text, solo){
+    document.getElementById(q).innerHTML = "“" + esc(text) + "”";
+    const f = document.getElementById(fillId), v = document.getElementById(valId);
+    const frac = Math.max(-1, Math.min(1, solo / SPAN)) * 50; // % of half-width
+    if (solo >= 0){ f.style.left = "50%"; f.style.width = frac + "%"; }
+    else { f.style.left = (50 + frac) + "%"; f.style.width = (-frac) + "%"; }
+    v.textContent = (solo >= 0 ? "+" : "") + Math.round(solo * 100) + "%";
+    v.style.color = solo < 0 ? "var(--red)" : "var(--blue)";
+  }
+  meter("matq", "matlf", "matlv", L.mat_first, L.mat_solo);
+  meter("stdq", "stdlf", "stdlv", L.std_first, L.std_solo);
+  const c = L.corpus;
+  document.getElementById("ledecorpus").innerHTML =
+    "The matryoshka's line 1 recovers <b>+" + Math.round(L.mat_solo * 100) +
+    "%</b> on its own; the standard's opening sentence scores <b>" + Math.round(L.std_solo * 100) +
+    "%</b> — literally worse than reading nothing (its actually-useful sentence is #" + L.std_best_idx +
+    " of " + L.std_n + "). This holds across all 5,274 moments: the matryoshka's first line is useful " +
+    "on its own <b>" + Math.round(c.mat_pos * 100) + "%</b> of the time and is the single most " +
+    "informative line <b>" + Math.round(c.mat_bestfirst * 100) + "%</b> of the time; the standard's " +
+    "first sentence is useful alone just <b>" + Math.round(c.std_pos * 100) + "%</b> of the time — it " +
+    "opens with throat-clearing (“Author byline format…”, “System prompt establishing…”) and buries " +
+    "the real content mid-paragraph.";
+})();
 
 function pct(f){ return Math.max(0, Math.min(100, f * 100)); }
 function fmt(f){ return (f * 100).toFixed(0) + "%"; }
