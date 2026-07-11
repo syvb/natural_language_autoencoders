@@ -55,3 +55,33 @@ comparison numbers in `../kitft-quote-penalty-rl/eval/`.
 - `run_rl_overlappen.sh` — box launcher (wraps `configs/rl.sh`).
 - Push/monitor helpers reused from `../kitft-quote-penalty-rl/` with
   `HF_REPO=syvb/nla-qwen2.5-7b-L20-rl-overlappen`.
+
+## Results (2026-07-11, 100 steps, ~$70 all-in on 8×H100 @ 45.5 s/step)
+
+**λ=0.01 was right; the penalty removed the copying and only the copying.**
+
+| | pre-RL kitft | overlap iter-100 |
+|---|---|---|
+| charged copied bits (16 held-out, mean / median / nonzero) | 19.6 / 20.2 / 14x16 | **2.4 / 0.0 / 5x16** |
+| input-tail echo, last 2 words / 3+ words | 9x16 / 5x16 | **1x16 / 0x16** |
+| final-token (1-word) echo — free by design | 15/16 | 15/16 (preserved) |
+| quote chars/sample | 15.25 | 14.12 (untouched) |
+| round-trip FVE (300 held-out) | 0.751 | **0.724** (−0.028) |
+| critic `fve_nrm` (train) | 0.744 | dip→0.66, recovered 0.72 |
+
+- Training curve: `overlap_bits_mean` ~27 → ~5 by step 100 (wandb
+  `nla-rl-overlap-penalty`, `jsonl/*`). Reward −0.25, no instability.
+- The exact mirror of the quote-penalty run: content copying eliminated,
+  punctuation untouched (quote-pen: marks 15.25→0.06, content unchanged).
+- FVE cost less than HALF the quote penalty's (−0.028 vs −0.061), and the
+  critic barely dipped — the multi-word echo was cheap to re-route.
+- Qualitative: the model still formats "quotes" and still names the final
+  token (the free 1-word echo), but quoted content is now deliberately
+  non-verbatim pastiche — e.g. input "...consisting mainly of" is rendered
+  "largely comprised, largely consisting including" (no charged span).
+- One watch-item: FVE@60-token prefix dropped (0.24 → −0.04) while @130/full
+  held — content ordering shifted later; worth a look if front-loading matters.
+
+Artifacts: `syvb/nla-qwen2.5-7b-L20-rl-overlappen` — `hf/iter_{25,50,75,100}`,
+`raw/iter_0000100` (exact-resume), `data/`, `run/` (incl. full-batch
+quote_stats.jsonl), `eval/`.
