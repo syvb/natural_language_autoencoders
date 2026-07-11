@@ -194,6 +194,94 @@ def _quote_penalty(expl: str) -> float:
     return -_QUOTE_PENALTY * n
 
 
+# Copied-bits penalty (anti-verbatim-repetition, the principled successor to the
+# quote-mark penalty): charge the actor per BIT of input text reproduced
+# verbatim, beyond what chance phrase collision explains:
+#   reward -= NLA_OVERLAP_PENALTY * Σ_spans max(0, bits(span) - B0)
+# where spans are maximal runs of >= NLA_OVERLAP_MIN_SPAN consecutive words
+# (lowercase \w+, punctuation-blind) shared between the explanation and the
+# sample's input context (metadata["detokenized_text_truncated"], carried by
+# building the RL parquet with --keep-debug-metadata), and
+# bits(span) = Σ -log2 p(word) under corpus unigram counts (NLA_OVERLAP_UNIGRAMS,
+# JSON built by the experiment's parquet-build script). B0 defaults to 15 bits
+# ~= log2(context_words × generation_words), the birthday bound at which a
+# span's occurrence in both texts stops being explainable by chance — so common
+# phrases are free and charged bits are log-likelihood evidence of copying.
+# Single-word matches are always free (min span 2): naming input content is the
+# AV's job; the one-word final-token echo is legitimate activation content.
+# Off by default (coefficient 0).
+_OVERLAP_PENALTY = float(os.environ.get("NLA_OVERLAP_PENALTY", "0"))
+_OVERLAP_DEDUCTIBLE = float(os.environ.get("NLA_OVERLAP_DEDUCTIBLE", "15"))
+_OVERLAP_MIN_SPAN = int(os.environ.get("NLA_OVERLAP_MIN_SPAN", "2"))
+_OVERLAP_UNIGRAMS_PATH = os.environ.get("NLA_OVERLAP_UNIGRAMS")
+_WORD_RE = re.compile(r"\w+")
+_UNIGRAMS: dict | None = None
+
+
+def _load_unigrams() -> dict:
+    global _UNIGRAMS
+    if _UNIGRAMS is None:
+        import json
+        assert _OVERLAP_UNIGRAMS_PATH, (
+            "NLA_OVERLAP_PENALTY > 0 requires NLA_OVERLAP_UNIGRAMS (JSON with "
+            "__total__/__vocab__/counts, built by the experiment's parquet-build script)"
+        )
+        with open(_OVERLAP_UNIGRAMS_PATH) as f:
+            d = json.load(f)
+        _UNIGRAMS = {
+            "counts": d["counts"],
+            # add-1 smoothing over the FULL vocab (incl. pruned singletons) so
+            # unseen words price at the ceiling, not at count=1.
+            "denom": d["__total__"] + d["__vocab__"],
+        }
+    return _UNIGRAMS
+
+
+def _surprisal(word: str) -> float:
+    u = _load_unigrams()
+    return -math.log2((u["counts"].get(word, 0) + 1) / u["denom"])
+
+
+def _copied_bits(expl: str, ctx: str) -> float:
+    """Charged bits: Σ_spans max(0, span_bits - B0) over maximal shared word
+    runs of length >= _OVERLAP_MIN_SPAN. Greedy maximal-fragment decomposition
+    (Grusky et al. 2018)."""
+    gen = _WORD_RE.findall(expl.lower())
+    src = _WORD_RE.findall(ctx.lower())
+    if not gen or not src:
+        return 0.0
+    pos: dict[str, list[int]] = {}
+    for j, w in enumerate(src):
+        pos.setdefault(w, []).append(j)
+    charged, i = 0.0, 0
+    while i < len(gen):
+        best = 0
+        for j in pos.get(gen[i], ()):
+            k = 0
+            while i + k < len(gen) and j + k < len(src) and gen[i + k] == src[j + k]:
+                k += 1
+            best = max(best, k)
+        if best >= max(_OVERLAP_MIN_SPAN, 1):
+            span_bits = sum(_surprisal(w) for w in gen[i:i + best])
+            charged += max(0.0, span_bits - _OVERLAP_DEDUCTIBLE)
+        i += best if best else 1
+    return charged
+
+
+def _overlap_penalty(expl: str, ctx: str | None) -> float:
+    """Reward shaping: -coef * charged copied bits. 0 when off. Fails loud if
+    enabled but the sample carries no context text (RL parquet built without
+    --keep-debug-metadata)."""
+    if _OVERLAP_PENALTY <= 0:
+        return 0.0
+    assert ctx, (
+        "NLA_OVERLAP_PENALTY > 0 but sample metadata has no "
+        "detokenized_text_truncated — rebuild the RL parquet with "
+        "--keep-debug-metadata"
+    )
+    return -_OVERLAP_PENALTY * _copied_bits(expl, ctx)
+
+
 # Full-batch quote metrics, appended per reward drain as JSON lines. Unlike the
 # NLA_ROLLOUT_TEXT_DUMP (first 20 samples, overwritten), this covers EVERY
 # scored sample — the source of truth for quote-usage curves. A sidecar
@@ -219,6 +307,14 @@ def _dump_quote_stats(explanations: list[str], contexts: list | None = None) -> 
             "repeat_covered_mean": sum(cov) / len(cov),
             "repeat_covered_max": max(cov),
             "repeat_frac_zero": sum(1 for c in cov if c == 0) / len(cov),
+        })
+    if _OVERLAP_PENALTY > 0 and contexts:
+        bits = [_copied_bits(e, c) if c else 0.0
+                for e, c in zip(explanations, contexts, strict=True)]
+        rec.update({
+            "overlap_bits_mean": sum(bits) / len(bits),
+            "overlap_bits_max": max(bits),
+            "overlap_frac_zero": sum(1 for b in bits if b < 0.5) / len(bits),
         })
     with open(_QUOTE_STATS_JSONL, "a") as f:
         f.write(json.dumps(rec) + "\n")
@@ -263,6 +359,7 @@ def _prep_batch(samples: list[Sample]):
                 _item_length_penalty(split_into_items(expl))
                 + _quote_penalty(expl)
                 + _repeat_penalty(expl, ctx)
+                + _overlap_penalty(expl, ctx)
             )
     if not prompts:
         return None, [], []
