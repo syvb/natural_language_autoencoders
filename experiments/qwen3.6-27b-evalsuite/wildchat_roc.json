@@ -1,0 +1,11 @@
+{
+ "matryoshka RL|full": 0.6969,
+ "matryoshka warm|full": 0.5216,
+ "standard RL|full": 0.6601,
+ "matryoshka RL|first 40 tok": 0.7205,
+ "matryoshka warm|first 40 tok": 0.5414,
+ "standard RL|first 40 tok": 0.6666,
+ "matryoshka RL|first 20 tok": 0.6891,
+ "matryoshka warm|first 20 tok": 0.55,
+ "standard RL|first 20 tok": 0.6106
+}
