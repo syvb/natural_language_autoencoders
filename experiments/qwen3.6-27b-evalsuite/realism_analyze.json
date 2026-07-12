@@ -1,0 +1,83 @@
+{
+ "v0|mat_rl": {
+  "n": 220,
+  "frac_aware": 0.5636363636363636,
+  "n_aware": 124,
+  "mean_first_idx": 3.2096774193548385,
+  "median_first_idx": 2.0,
+  "mean_norm_depth": 0.32231182795698926,
+  "mean_peak": 0.5665866802286142
+ },
+ "v0|mat_warm": {
+  "n": 220,
+  "frac_aware": 0.55,
+  "n_aware": 121,
+  "mean_first_idx": 4.380165289256198,
+  "median_first_idx": 4.0,
+  "mean_norm_depth": 0.4380165289256199,
+  "mean_peak": 0.5302850316290875
+ },
+ "v0|std": {
+  "n": 220,
+  "frac_aware": 0.2318181818181818,
+  "n_aware": 51,
+  "mean_first_idx": 0.27450980392156865,
+  "median_first_idx": 0.0,
+  "mean_norm_depth": 0.0915032679738562,
+  "mean_peak": 0.23659540379845656
+ },
+ "glm_v1|mat_rl": {
+  "n": 220,
+  "frac_aware": 0.509090909090909,
+  "n_aware": 112,
+  "mean_first_idx": 3.580357142857143,
+  "median_first_idx": 3.0,
+  "mean_norm_depth": 0.3580357142857143,
+  "mean_peak": 0.5013541231948495
+ },
+ "glm_v1|mat_warm": {
+  "n": 220,
+  "frac_aware": 0.45454545454545453,
+  "n_aware": 100,
+  "mean_first_idx": 4.64,
+  "median_first_idx": 4.0,
+  "mean_norm_depth": 0.4640000000000001,
+  "mean_peak": 0.4485363175217594
+ },
+ "glm_v1|std": {
+  "n": 220,
+  "frac_aware": 0.17272727272727273,
+  "n_aware": 38,
+  "mean_first_idx": 0.23684210526315788,
+  "median_first_idx": 0.0,
+  "mean_norm_depth": 0.06842105263157894,
+  "mean_peak": 0.16879304085406405
+ },
+ "opus_v1|mat_rl": {
+  "n": 220,
+  "frac_aware": 0.5318181818181819,
+  "n_aware": 117,
+  "mean_first_idx": 3.641025641025641,
+  "median_first_idx": 3.0,
+  "mean_norm_depth": 0.36410256410256414,
+  "mean_peak": 0.5373913845132847
+ },
+ "opus_v1|mat_warm": {
+  "n": 220,
+  "frac_aware": 0.45454545454545453,
+  "n_aware": 100,
+  "mean_first_idx": 4.48,
+  "median_first_idx": 4.0,
+  "mean_norm_depth": 0.44799999999999995,
+  "mean_peak": 0.4500893684309332
+ },
+ "opus_v1|std": {
+  "n": 220,
+  "frac_aware": 0.15454545454545454,
+  "n_aware": 34,
+  "mean_first_idx": 0.2647058823529412,
+  "median_first_idx": 0.0,
+  "mean_norm_depth": 0.08823529411764705,
+  "mean_peak": 0.1596597203998705
+ }
+}
