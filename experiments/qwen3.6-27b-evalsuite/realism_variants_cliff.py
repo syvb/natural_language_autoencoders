@@ -25,8 +25,8 @@ b2,a2=np.polyfit(x,y,1); xr2=np.array([x.min(),x.max()]); ax.plot(xr2,b2*xr2+a2,
 r_all,p_all=pearsonr(x,y); r_lo,p_lo=pearsonr(x[lo],y[lo])
 ax.set_xlabel("evaliness of the prompt  (0 = realistic deployment → 100 = obviously an eval)")
 ax.set_ylabel("where the NLA first says \"this is a test\"\n(mean salience-rank of first eval-aware bullet; lower = more prominent; 10 = never)")
-ax.set_title("The NLA reports eval-awareness prominently only for prompts explicitly\nlabelled as tests — not as prompts get gradually less realistic",fontsize=11.5)
-ax.text(0.03,0.03,f"all (n=100):  r={r_all:+.2f} (p={p_all:.0e})\nexcluding the >85 cliff (n={lo.sum()}):  r={r_lo:+.2f} (n.s.)",
+ax.set_title("Where the NLA first flags eval-awareness vs. prompt evaliness",fontsize=12.5)
+ax.text(0.03,0.03,f"all (n=100):  r={r_all:+.2f} (p={p_all:.0e})\nevaliness ≤ 85 only (n={lo.sum()}):  r={r_lo:+.2f} (n.s.)",
         transform=ax.transAxes,fontsize=9.5,va="bottom",bbox=dict(boxstyle="round",fc="white",ec="#ccc",alpha=0.95))
 ax.legend(loc="upper right",fontsize=9)
 fig.tight_layout(); fig.savefig("realism_variants_cliff.png",dpi=150)
