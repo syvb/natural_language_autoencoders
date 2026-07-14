@@ -19,6 +19,7 @@ mean_first_idx and POSITIVELY with frac_flag.
 
     OPENROUTER_API_KEY=$(cat ~/.openrouter_key) python3 realism_variants_correlate.py
 """
+import argparse
 import asyncio
 import json
 import os
@@ -32,18 +33,31 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import eval_awareness as ea  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
-VERB = HERE / "realism_variants_verb.json"
 CACHE = HERE / "realism_variants_line_scores.json"
 THR = 0.5
 
 
-async def get_scores(variants):
+def units_of(lines, mode):
+    """Split one position's explanation into scored UNITS.
+    - lines:     the NLA's own lines (matryoshka bullets; standard sentences).
+    - chunks10:  join the whole explanation and split into 10 ~equal word-chunks,
+                 giving the standard NLA a 10-unit 'where' scale like matryoshka's."""
+    clean = [l.strip() for l in lines if l and l.strip()]
+    if mode == "lines":
+        return clean
+    words = " ".join(clean).split()
+    if not words:
+        return [""] * 10
+    return [" ".join(g) for g in np.array_split(np.array(words, dtype=object), 10)]
+
+
+async def get_scores(variants, mode):
     need = set()
     for v in variants:
         for pos in v["lines"]:
-            for ln in pos:
-                if ln.strip():
-                    need.add(ln.strip())
+            for u in units_of(pos, mode):
+                if u.strip():
+                    need.add(u.strip())
     cache = json.load(open(CACHE)) if CACHE.exists() else {}
     todo = [s for s in need if s not in cache]
     print(f"{len(need)} unique lines, {len(todo)} to judge (~${len(todo)*150/1e6*0.15:.2f})", flush=True)
@@ -62,14 +76,15 @@ async def get_scores(variants):
     return cache
 
 
-def variant_metrics(v, cache):
+def variant_metrics(v, cache, mode):
     first_censored, flags, first_present = [], [], []
     for pos in v["lines"]:
-        n = len(pos)
+        units = units_of(pos, mode)
+        n = len(units)
         if n == 0:
             continue
-        aware = [i for i, ln in enumerate(pos)
-                 if (cache.get(ln.strip()) is not None and cache[ln.strip()] >= THR)]
+        aware = [i for i, u in enumerate(units)
+                 if (cache.get(u.strip()) is not None and cache[u.strip()] >= THR)]
         if aware:
             flags.append(1); first_censored.append(aware[0]); first_present.append(aware[0])
         else:
@@ -94,12 +109,17 @@ def corr(x, y):
 
 
 async def main():
-    variants = json.load(open(VERB))["variants"]
-    cache = await get_scores(variants)
-    rows = [variant_metrics(v, cache) for v in variants]
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--model", default="mat_rl")
+    ap.add_argument("--unit", default="lines", choices=["lines", "chunks10"])
+    args = ap.parse_args()
+    tag = args.model if args.unit == "lines" else f"{args.model}_{args.unit}"
+    variants = json.load(open(HERE / f"realism_variants_verb_{args.model}.json"))["variants"]
+    cache = await get_scores(variants, args.unit)
+    rows = [variant_metrics(v, cache, args.unit) for v in variants]
     es = [r["eval_score"] for r in rows]
 
-    print("\n=== correlation of eval-y score with the NLA 'where' metrics (n=%d) ===" % len(rows))
+    print(f"\n=== [{tag}] correlation of eval-y score with NLA 'where' metrics (n=%d) ===" % len(rows))
     for metric, lbl in [("mean_first_idx", "mean first-flag line idx (absent=n_lines)"),
                         ("frac_flag", "fraction of positions flagging"),
                         ("mean_idx_present", "mean first-flag idx | flagged")]:
@@ -107,7 +127,8 @@ async def main():
         n, pr, pp, sr, sp = corr(es, vals)
         print(f"  {lbl:42s}  Pearson r={pr:+.3f} (p={pp:.1e})  Spearman rho={sr:+.3f} (p={sp:.1e})  n={n}")
 
-    json.dump({"rows": rows}, open(HERE / "realism_variants_correlate.json", "w"), indent=1)
+    json.dump({"model": args.model, "unit": args.unit, "rows": rows},
+              open(HERE / f"realism_variants_correlate_{tag}.json", "w"), indent=1)
 
     # scatter figures
     import matplotlib
@@ -130,9 +151,10 @@ async def main():
         a.text(0.03, 0.03, f"Pearson r={pr:+.3f} (p={pp:.1e})\nSpearman ρ={sr:+.3f}",
                transform=a.transAxes, fontsize=10, va="bottom",
                bbox=dict(boxstyle="round", fc="white", ec="#ccc", alpha=0.9))
+    fig.suptitle(f"NLA = {args.model} (unit: {args.unit})", y=1.02, fontsize=11)
     fig.tight_layout()
-    fig.savefig(HERE / "realism_variants_corr.png", dpi=140)
-    print("[saved] realism_variants_corr.png + realism_variants_correlate.json")
+    fig.savefig(HERE / f"realism_variants_corr_{tag}.png", dpi=140, bbox_inches="tight")
+    print(f"[saved] realism_variants_corr_{tag}.png + realism_variants_correlate_{tag}.json")
 
 
 if __name__ == "__main__":

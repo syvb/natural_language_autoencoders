@@ -72,23 +72,28 @@ def main():
     parse = CG.bullet_lines if C["mode"] == "bullet" else CG.expl_lines
 
     variants = json.load(open(SCORED))
-    out = []
+
+    # ---- phase 1: extract activations for every (variation, position) ----
+    # one adapters-disabled forward per variation (cheap); accumulate a FLAT list of
+    # independent activation vectors so verbalization can batch across variations.
+    grabbed = {}
+
+    def grab(m, i, o):
+        grabbed["h"] = (o[0] if isinstance(o, tuple) else o).detach()
+
+    meta = []           # per variation: {id, eval_score, ntok, positions}
+    flat_acts = []      # flat activation vectors, aligned to (var_idx, k)
+    flat_owner = []     # (var_idx) for each flat act
+    head, tail = "<|im_start|>system\n", "<|im_end|>\n"
+    n_head = len(render_tok.encode(head, add_special_tokens=False))
+    n_tail = len(render_tok.encode(tail, add_special_tokens=False))
     for vi, v in enumerate(variants):
-        # format the system block manually (the chat template rejects a system-only
-        # message; a manual block isolates the system-prompt reading, no dummy user turn)
-        text = "<|im_start|>system\n" + v["text"].strip() + "<|im_end|>\n"
+        text = head + v["text"].strip() + tail
         ids = render_tok.encode(text, add_special_tokens=False)
-        hi = len(ids) - 1
-        lo = min(50, max(10, len(ids) // 3))
-        n = max(1, min(args.n_pos, hi - lo))
+        lo = n_head                       # first token of the variation content (skip only the wrapper)
+        hi = len(ids) - 1 - n_tail        # last content token (skip trailing <|im_end|>)
+        n = max(1, min(args.n_pos, hi - lo + 1))
         positions = sorted(set(np.linspace(lo, hi, n).astype(int).tolist()))
-
-        # extract all sampled positions in one adapters-disabled forward
-        grabbed = {}
-
-        def grab(m, i, o):
-            grabbed["h"] = (o[0] if isinstance(o, tuple) else o).detach()
-
         h = layers[CG.LAYER].register_forward_hook(grab)
         try:
             with torch.inference_mode(), actor.disable_adapter():
@@ -96,30 +101,36 @@ def main():
         finally:
             h.remove()
         acts = grabbed["h"][0].float().cpu().numpy()[positions]
+        meta.append({"id": v["id"], "eval_score": v["eval_score"], "ntok": len(ids),
+                     "positions": positions, "lines": [None] * len(positions)})
+        for k in range(len(positions)):
+            flat_acts.append(acts[k]); flat_owner.append((vi, k))
+    print(f"[extract] {len(flat_acts)} activations from {len(variants)} variations", flush=True)
 
-        lines = []
-        torch.manual_seed(0)
-        with torch.inference_mode():
-            for s in range(0, len(acts), args.av_batch):
-                chunk = acts[s: s + args.av_batch]
-                pt = base_pt.repeat(len(chunk), 1)
-                vref[0] = torch.tensor(np.stack(chunk), dtype=torch.float32).cuda()
-                try:
-                    gen = actor.generate(input_ids=pt, attention_mask=torch.ones_like(pt),
-                                         max_new_tokens=CG.MAX_NEW, do_sample=True, temperature=1.0,
-                                         top_p=1.0, top_k=0, pad_token_id=tok.eos_token_id)
-                finally:
-                    vref[0] = None
-                for o in gen:
-                    txt = C["prefill"] + tok.decode(o[pt.shape[1]:], skip_special_tokens=True)
-                    lines.append(parse(txt))
-        out.append({"id": v["id"], "eval_score": v["eval_score"], "ntok": len(ids),
-                    "positions": positions, "lines": lines})
-        if vi % 5 == 0 or vi == len(variants) - 1:
-            print(f"  variation {vi+1}/{len(variants)}  ({len(positions)} pos)", flush=True)
+    # ---- phase 2: verbalize the flat list in large cross-variation batches ----
+    torch.manual_seed(0)
+    with torch.inference_mode():
+        for s in range(0, len(flat_acts), args.av_batch):
+            chunk = flat_acts[s: s + args.av_batch]
+            owners = flat_owner[s: s + args.av_batch]
+            pt = base_pt.repeat(len(chunk), 1)
+            vref[0] = torch.tensor(np.stack(chunk), dtype=torch.float32).cuda()
+            try:
+                gen = actor.generate(input_ids=pt, attention_mask=torch.ones_like(pt),
+                                     max_new_tokens=CG.MAX_NEW, do_sample=True, temperature=1.0,
+                                     top_p=1.0, top_k=0, pad_token_id=tok.eos_token_id)
+            finally:
+                vref[0] = None
+            for o, (vi, k) in zip(gen, owners):
+                txt = C["prefill"] + tok.decode(o[pt.shape[1]:], skip_special_tokens=True)
+                meta[vi]["lines"][k] = parse(txt)
+            if (s // args.av_batch) % 5 == 0:
+                print(f"  verbalize {min(s + args.av_batch, len(flat_acts))}/{len(flat_acts)}", flush=True)
 
-    json.dump({"model": args.model, "variants": out}, open(HERE / "realism_variants_verb.json", "w"))
-    print(f"[saved] realism_variants_verb.json  ({len(out)} variations)", flush=True)
+    out = meta
+    outp = f"realism_variants_verb_{args.model}.json"
+    json.dump({"model": args.model, "variants": out}, open(HERE / outp, "w"))
+    print(f"[saved] {outp}  ({len(out)} variations)", flush=True)
     print("VVERB_DONE", flush=True)
 
 
