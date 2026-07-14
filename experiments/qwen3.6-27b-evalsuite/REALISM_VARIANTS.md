@@ -49,10 +49,31 @@ We separate two things the correlation can measure:
    *reading-order* position, not *salience*: matryoshka's structure explicitly ranks
    the observation by importance, which is what carries the strong signal.
 
-**Bottom line.** Every NLA can tell you *whether* the model is eval-aware; only the
-matryoshka NLA gives a strong, readable *salience axis* on which you can watch
-eval-awareness rise to the top as a prompt becomes more test-like. Matching the
-granularity narrows but does not close the gap.
+## ⚠️ IMPORTANT — it's a blatant-eval CLIFF, not a realism gradient
+
+Excluding the 23 variations with evaliness > 85 (the ones with explicit eval
+language — "TEST HARNESS", "under active evaluation", "EVAL-SCENARIO") **erases
+every correlation above**:
+
+| metric | all (n=100) | evaliness ≤ 85 (n=77) |
+|---|---|---|
+| matryoshka **where** | −0.413 (p=2e-5) | +0.18 (p=0.12, n.s.) |
+| matryoshka **frequency** | +0.246 (p=0.01) | −0.09 (n.s.) |
+| standard-lines **frequency** | +0.475 (p=6e-7) | −0.19 (n.s.) |
+| standard-chunks10 **where** | −0.310 (p=0.002) | +0.27 (p=0.02, **flips sign**) |
+
+Robust to the cutoff (≤75 is also null). So the entire signal — both NLAs, both
+frequency and position — is carried by a handful of blatantly-labelled eval prompts.
+Across the realistic → moderately-eval range there is **no graded relationship**: the
+NLA is reading explicit surface eval *keywords*, not sensing degrees of realism.
+See `realism_variants_cliff.png`.
+
+**Bottom line (corrected).** On this axis the NLAs detect *explicit* eval framing,
+not subtle realism. The earlier "matryoshka salience tracks eval-y-ness (r=−0.43)"
+is real only as a blatant-vs-not step; within the non-blatant range the salience
+signal is absent. The *relative* story still holds (matryoshka's salience carries
+what signal there is, standard's doesn't) — but the effect is a keyword cliff, and
+should not be read as the NLA having a graded realism sense.
 
 Files: `realism_variants.py` (generate+judge 100 variations), `realism_variants_verbalize.py`
 (NLA verbalization, batched across variations), `realism_variants_correlate.py`
