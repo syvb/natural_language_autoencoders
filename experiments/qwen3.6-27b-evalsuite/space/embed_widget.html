@@ -134,7 +134,13 @@ footer a:hover{text-decoration:underline;}
 .nlaviz .axislab span:first-child:nth-last-child(3){display:none;}
 /* sandbox can't open links; attribution lives in the post body instead */
 footer{display:none;}
-@media (min-width:560px){.cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}}
+/* heatmap overlay isn't useful in the widget — drop the eval-awareness heat bar
+   (CSS display:none beats the JS that un-hides it when EA data loads; the token
+   overlay + badges only render under a heat mode that can no longer be picked) */
+#heatbar{display:none;}
+/* stay single-column / full-width: the LW post column (~340-700px) is too narrow
+   for two side-by-side panels, so let the page's 880px breakpoint stack them
+   (transcript full-width on top, results card full-width below) */
 @media (min-width:640px){.side{position:static;}}
 </style>
 <div class="wrap">
