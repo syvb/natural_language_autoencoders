@@ -138,10 +138,17 @@ footer{display:none;}
    (CSS display:none beats the JS that un-hides it when EA data loads; the token
    overlay + badges only render under a heat mode that can no longer be picked) */
 #heatbar{display:none;}
-/* stay single-column / full-width: the LW post column (~340-700px) is too narrow
-   for two side-by-side panels, so let the page's 880px breakpoint stack them
-   (transcript full-width on top, results card full-width below) */
-@media (min-width:640px){.side{position:static;}}
+/* two-pane once the column is wide enough (560px was fine). The bug was vertical:
+   the token box was a short 320px panel next to the taller results card, so the
+   left column had blank space below it. Give the token box ~the results-card
+   height in two-pane so it fills the column (transcript scrolls inside). Can't
+   auto-stretch to match: the iframe is auto-height and an `auto` grid row would
+   size to the full 4.7k-token transcript and blow up. Narrow/stacked keeps 320px. */
+@media (min-width:560px){
+  .cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
+  .side{position:static;}
+  .tokscroll{max-height:500px;}
+}
 </style>
 <div class="wrap">
   <div class="tabs" id="tabs"></div>
