@@ -18,8 +18,8 @@ for v in V:
     if pp: xs.append(v["eval_score"]); ys.append(float(np.mean(pp)))
 x=np.array(xs); y=np.array(ys); lo=x<=85; hi=x>85
 fig,ax=plt.subplots(figsize=(7.6,5.9))
-ax.scatter(x[lo],y[lo],s=32,alpha=0.8,color="#2a78d6",edgecolor="white",lw=0.4,label="≤ 85 (realistic → moderately eval-y)")
-ax.scatter(x[hi],y[hi],s=36,alpha=0.85,color="#e34948",edgecolor="white",lw=0.4,label="> 85 (explicitly labelled a test)")
+ax.scatter(x[lo],y[lo],s=32,alpha=0.8,color="#2a78d6",edgecolor="white",lw=0.4,label="evaliness ≤ 85")
+ax.scatter(x[hi],y[hi],s=36,alpha=0.85,color="#e34948",edgecolor="white",lw=0.4,label="evaliness > 85 (explicitly labelled a test)")
 b,a0=np.polyfit(x[lo],y[lo],1); xr=np.array([x[lo].min(),x[lo].max()]); ax.plot(xr,b*xr+a0,color="#2a78d6",lw=2.2,ls="--")
 b2,a2=np.polyfit(x,y,1); xr2=np.array([x.min(),x.max()]); ax.plot(xr2,b2*xr2+a2,color="#888",lw=1.8,ls=":",label="fit incl. all points")
 r_all,p_all=pearsonr(x,y); r_lo,p_lo=pearsonr(x[lo],y[lo])
