@@ -68,6 +68,26 @@ Across the realistic → moderately-eval range there is **no graded relationship
 NLA is reading explicit surface eval *keywords*, not sensing degrees of realism.
 See `realism_variants_cliff.png`.
 
+## Restricting to load-bearing lines (marginal FVE > 0.05) doesn't rescue it
+
+Computed per-line **marginal FVE** for the matryoshka verbalizations (FVE of nested
+prefix 1..k − FVE of 1..k−1, via the critic; `realism_variants_fve.py`) and redid the
+"where" correlation counting only lines whose marginal FVE > 0.05 (the substantive
+~23% of lines; line-1 is load-bearing 98% of the time, mean marginal 0.43):
+
+| metric | all lines | marginal FVE > 0.05 |
+|---|---|---|
+| where, all (n=100) | −0.413 | **−0.436 (p=6e-6)** |
+| where, ≤85 (n=77) | +0.18 (n.s.) | **+0.22 (p=0.06, n.s., wrong sign)** |
+| frequency, all | +0.246 | +0.400 (p=4e-5) |
+| frequency, ≤85 | −0.09 (n.s.) | −0.23 (p=0.04) |
+
+The FVE gate leaves the overall correlation unchanged and the ≤85 subset still
+null — the blatant-eval cliff is not an artifact of counting noisy low-FVE filler
+lines. (It does *sharpen* the overall frequency signal, +0.25→+0.40: load-bearing
+eval-aware lines are a cleaner "is this blatantly an eval" detector.) See
+`realism_variants_fve_corr.png`.
+
 **Bottom line (corrected).** On this axis the NLAs detect *explicit* eval framing,
 not subtle realism. The earlier "matryoshka salience tracks eval-y-ness (r=−0.43)"
 is real only as a blatant-vs-not step; within the non-blatant range the salience
