@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "shard": "datasets/openbmb/Ultra-FineWeb/data/ultrafineweb_en/ultrafineweb-en-part-2001-of-2048.parquet",
+    "layer": 42,
+    "n_contexts": 250,
+    "rollouts": 4,
+    "answer_len": 32,
+    "n_options": 10,
+    "t_lo": 96,
+    "t_hi": 600,
+    "seed": 0,
+    "grader": "anthropic/claude-haiku-4.5",
+    "base_model": "Qwen/Qwen3.6-27B",
+    "t_dist": {
+      "min": 96,
+      "p50": 245,
+      "max": 598
+    },
+    "distractor_kind": "same_document"
+  },
+  "arms": {
+    "mat": {
+      "primary": {
+        "acc": 0.651,
+        "ci": [
+          0.6209297417330122,
+          0.6799145348938979
+        ],
+        "n": 1000,
+        "correct": 651
+      },
+      "primary_no_outliers": {
+        "acc": 0.651,
+        "ci": [
+          0.6209297417330122,
+          0.6799145348938979
+        ],
+        "n": 1000
+      },
+      "majority_vote": {
+        "acc": 0.7,
+        "ci": [
+          0.6405173251395347,
+          0.7534291359606159
+        ],
+        "n": 250
+      },
+      "inter_rollout_agreement": 0.842,
+      "shuffled": {
+        "acc": 0.126,
+        "ci": [
+          0.1068525845716722,
+          0.14800993557094794
+        ],
+        "n": 1000
+      },
+      "cjk_explanations": 127,
+      "n_outliers": 0
+    },
+    "std": {
+      "primary": {
+        "acc": 0.794,
+        "ci": [
+          0.7678307565977308,
+          0.8179190270334717
+        ],
+        "n": 1000,
+        "correct": 794
+      },
+      "primary_no_outliers": {
+        "acc": 0.794,
+        "ci": [
+          0.7678307565977308,
+          0.8179190270334717
+        ],
+        "n": 1000
+      },
+      "majority_vote": {
+        "acc": 0.824,
+        "ci": [
+          0.7719923442315464,
+          0.8662009227506976
+        ],
+        "n": 250
+      },
+      "inter_rollout_agreement": 0.886,
+      "shuffled": {
+        "acc": 0.108,
+        "ci": [
+          0.09024089880433962,
+          0.12875938968739056
+        ],
+        "n": 1000
+      },
+      "cjk_explanations": 26,
+      "n_outliers": 0
+    }
+  },
+  "skyline": {
+    "acc": 0.896,
+    "ci": [
+      0.8519787370865683,
+      0.92803525589173
+    ],
+    "n": 250,
+    "correct": 224
+  }
+}

@@ -25,15 +25,18 @@ specificity test that would go further.
 ## Method
 
 - **Corpus:** `openbmb/Ultra-FineWeb` (en) — the models' *training* corpus, so
-  the eval is in-distribution — drawn from the **tail shard** (`part-2001-of-2048`),
-  far from the front where the 7B datagen config drew (`corpus_slice start=0`).
-  Held-out by shard position only, not exact doc-dedup: the 27B (ceselder) corpus
-  config is out-of-repo, so "training drew from the front" is an *assumption*
-  carried from the 7B pipeline, the trained Ultra-FineWeb subset is no longer
-  hosted, and the base model's own pretraining plausibly overlaps FineWeb. Any
-  residual contamination would inflate **both** arms equally, so it does not
-  threaten the matryoshka-vs-standard comparison — but treat the absolute ~99%/
-  skyline as "in-distribution, shard-held-out," not a clean generalization number.
+  the eval is in-distribution — drawn from the **tail shard** (`part-2001-of-2048`).
+  **Held-out from NLA training — verified** (`check_heldout.py`): the warmstart
+  corpus draws from the first ~100k Ultra-FineWeb docs (custom_id indices
+  0–99,999, all in shard part-0000); checking all 250 eval-doc openings against
+  every one of its 449,607 training rows found **0 genuine overlaps** (the single
+  120-char hit was shared journal boilerplate between two different articles,
+  8-gram Jaccard 0.035). The remaining, **unverifiable** caveat is the *base
+  model*: Qwen3.6-27B's pretraining near-certainly overlaps FineWeb/CommonCrawl,
+  so the base whose L42 activations we read has likely seen this web text — which
+  would inflate absolute numbers (and could aid the specificity test via
+  memorization) but hits **both** arms equally, leaving the matryoshka-vs-standard
+  comparison intact. Read absolutes as in-distribution, not clean generalization.
 - **Layer 42** (the 27B extraction layer; layer 20 is the 7B pipeline).
 - **N = 250** contexts. Truncation position `t ~ log-uniform[96, 600]` capped to
   leave ≥32 tokens (median `t ≈ 244`). This **rejects the paper's [512,1536]
@@ -128,19 +131,61 @@ match the deployed Spaces. Two things bound the *interpretation*:
   distractors mean the true continuation is the only on-topic option, so the eval
   rewards conveying the passage's *domain*, not the exact 32 tokens. Direct probe:
   replacing every explanation with a bare 3–6 word topic label scores ~100%; the
-  standard's register-only first 4 tokens still score 52%. So the accuracies (and
-  the front-loading curve) measure **topic/register conveyance**. A **specificity
-  test** would swap the off-document distractors for **same-document / same-topic
-  near-misses** (other 32-token windows from the *same* doc) — this forces
-  fine-grained next-token prediction and would show whether the matryoshka's
-  early-token advantage survives when topic alone is not enough. Constructible
-  from the existing explanations + manifest, no GPU. **Recommended next step.**
+  standard's register-only first 4 tokens still score 52%. So the off-document
+  accuracies (and the front-loading curve above) measure **topic/register
+  conveyance**. The specificity test below removes this shortcut.
 - **Rollout clustering.** See the CI note above — lead with the n=250
   majority-vote intervals.
 
+## Specificity test — same-document distractors
+
+Same eval, same explanations, but the 9 distractors are now **other
+non-overlapping 32-token windows from the true answer's own document**
+(`build_hard_options.py` → `data/hard_manifest.json`). Every option is on-topic,
+so the grader can no longer win on domain — it must identify the *specific*
+continuation after token *t*.
+
+**Full explanation** (n = 1000 gradings/arm; same clustering caveat):
+
+| | off-document | same-document | same-doc majority-vote | same-doc shuffled |
+|---|---|---|---|---|
+| **Skyline** | 100.0% | 89.6% | — | — |
+| **Matryoshka** | 99.1% | **65.1%** | 70.0% | 12.6% |
+| **Standard** | 99.0% | **79.4%** | 82.4% | 10.8% |
+
+**Token budget, same-document** (n = 500/point):
+
+| content tokens | 4 | 8 | 16 | 32 | 64 | 120 | full (~170) |
+|---|---|---|---|---|---|---|---|
+| **Matryoshka** | **51.2%** | **56.8%** | 59.4% | 60.6% | 60.8% | 64.4% | 65.1% |
+| **Standard** | 15.0% | 17.4% | 22.0% | 28.0% | 58.2% | **73.4%** | 79.4% |
+
+Three findings:
+
+1. **The off-document ~99% was mostly topic-matching.** With topic controlled,
+   both arms drop hard (99→65 and 99→79) — but both stay far above chance (10%)
+   and the shuffled controls return to ~chance, so the explanations do carry
+   genuine continuation-specific information. Even the skyline falls to 90%:
+   picking the exact next 32 tokens among same-document windows is hard.
+2. **At full length the ranking reverses: the standard NLA is more specific**
+   (79.4% vs 65.1%, a ~14-pt gap at n=250). The matryoshka's truncation-RL
+   apparently trades total fine-grained specificity for early-token utility.
+3. **Front-loading survives the topic control — dramatically.** At 4 tokens the
+   matryoshka already delivers 51% (≈80% of everything it will ever deliver)
+   while the standard is at 15%, barely above chance; the standard doesn't catch
+   up until ~64–120 tokens, crossing over near the top of the matryoshka's
+   U[1,120] training range. So the crossover is the honest headline: **the
+   matryoshka puts its (smaller) payload first; the standard buries its (larger)
+   payload deep.** A monitor reading only the first few tokens should prefer the
+   matryoshka; a reader of full explanations gets more specificity from the
+   standard.
+
+![specificity.png](specificity.png)
+
 ## Caveats
 
-- Held-out by shard position, not exact training-doc dedup (see *Corpus*).
+- Held out from NLA training (verified, `check_heldout.py`); base-model
+  pretraining overlap is separate and unverifiable (see *Corpus*).
 - Grader is Haiku 4.5; a stronger/weaker grader would shift absolutes but not the
   matryoshka-vs-standard gap, which is a within-grader comparison.
 - ~12.7% of matryoshka explanations (2.6% of standard) contain a stray CJK char —
@@ -164,4 +209,13 @@ python suffix_gen.py --model std --out results/explanations_std.json
 python  grade_suffix.py --explanations results/explanations_{mat,std}.json
 .venv-cpu/bin/python grade_budget.py --explanations results/explanations_{mat,std}.json
 python  plot_suffix.py
+# specificity test (same-document distractors; reuses the explanations, no GPU):
+.venv-cpu/bin/python build_hard_options.py
+.venv-cpu/bin/python grade_suffix.py --manifest data/hard_manifest.json \
+    --explanations results/explanations_{mat,std}.json --out results/results_hard.json
+.venv-cpu/bin/python grade_budget.py --manifest data/hard_manifest.json \
+    --explanations results/explanations_{mat,std}.json --out results/budget_hard.json
+python  plot_hard.py && python plot_reversal.py
+# held-out check (eval docs vs the NLA training corpus):
+.venv-cpu/bin/python check_heldout.py
 ```
