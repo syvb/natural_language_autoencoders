@@ -1,0 +1,4 @@
+data/qwen_tok/
+__pycache__/
+*.pyc
+nla/

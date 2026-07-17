@@ -1,0 +1,110 @@
+{
+  "judge": "anthropic/claude-haiku-4.5",
+  "models": {
+    "mat": {
+      "n_explanations": {
+        "hint_correct": 120,
+        "hint_incorrect": 120,
+        "no_marker": 120
+      },
+      "label_rates": {
+        "hint_correct": {
+          "CORRECT": 0.0,
+          "INCORRECT": 0.0,
+          "MENTION": 0.15,
+          "NONE": 0.85
+        },
+        "hint_incorrect": {
+          "CORRECT": 0.0,
+          "INCORRECT": 0.0,
+          "MENTION": 0.05,
+          "NONE": 0.95
+        },
+        "no_marker": {
+          "CORRECT": 0.0,
+          "INCORRECT": 0.0,
+          "MENTION": 0.13333333333333333,
+          "NONE": 0.8666666666666667
+        }
+      },
+      "majority_rates": {
+        "hint_correct": {
+          "CORRECT": 0.0,
+          "INCORRECT": 0.0,
+          "MENTION": 0.1,
+          "NONE": 0.9
+        },
+        "hint_incorrect": {
+          "CORRECT": 0.0,
+          "INCORRECT": 0.0,
+          "MENTION": 0.0,
+          "NONE": 1.0
+        },
+        "no_marker": {
+          "CORRECT": 0.0,
+          "INCORRECT": 0.0,
+          "MENTION": 0.06666666666666667,
+          "NONE": 0.9333333333333333
+        }
+      },
+      "D_correct": 0.0,
+      "D_incorrect": 0.0,
+      "D_correct_majority": 0.0,
+      "behavioral_follow_marked": {
+        "hint_correct": 0.5875,
+        "hint_incorrect": 0.3875
+      }
+    },
+    "std": {
+      "n_explanations": {
+        "hint_correct": 120,
+        "hint_incorrect": 120,
+        "no_marker": 120
+      },
+      "label_rates": {
+        "hint_correct": {
+          "CORRECT": 0.0,
+          "INCORRECT": 0.0,
+          "MENTION": 0.19166666666666668,
+          "NONE": 0.8083333333333333
+        },
+        "hint_incorrect": {
+          "CORRECT": 0.0,
+          "INCORRECT": 0.0,
+          "MENTION": 0.21666666666666667,
+          "NONE": 0.7833333333333333
+        },
+        "no_marker": {
+          "CORRECT": 0.0,
+          "INCORRECT": 0.0,
+          "MENTION": 0.13333333333333333,
+          "NONE": 0.8666666666666667
+        }
+      },
+      "majority_rates": {
+        "hint_correct": {
+          "CORRECT": 0.0,
+          "INCORRECT": 0.0,
+          "MENTION": 0.13333333333333333,
+          "NONE": 0.8666666666666667
+        },
+        "hint_incorrect": {
+          "CORRECT": 0.0,
+          "INCORRECT": 0.0,
+          "MENTION": 0.2,
+          "NONE": 0.8
+        },
+        "no_marker": {
+          "CORRECT": 0.0,
+          "INCORRECT": 0.0,
+          "MENTION": 0.1,
+          "NONE": 0.9
+        }
+      },
+      "D_correct": 0.0,
+      "D_incorrect": 0.0,
+      "D_correct_majority": 0.0,
+      "behavioral_follow_marked": {}
+    }
+  }
+}
