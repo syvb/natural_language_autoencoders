@@ -72,9 +72,9 @@ def main():
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(color=GRAY, alpha=0.22, zorder=0)
     fig.text(0.01, -0.02,
-             "250 held-out Ultra-FineWeb contexts, Haiku-4.5 grader, 10-way choice, all options from the true answer's own "
-             "document. Shaded = 95% Wilson CI (n=500/point). T=256 ≈ full explanation (median length: matryoshka 171 tok, standard 163).",
-             fontsize=8.2, color=GRAY, ha="left")
+             "250 held-out Ultra-FineWeb contexts, Haiku-4.5 grader, 10-way choice, all options from the true answer's own document.\n"
+             "Shaded = 95% Wilson CI (n=500/point). T=256 ≈ full explanation (median length: matryoshka 171 tok, standard 163).",
+             fontsize=8.2, color=GRAY, ha="left", va="top")
     fig.tight_layout()
     out = HERE / "specificity_budget.png"
     fig.savefig(out, dpi=150, bbox_inches="tight")
