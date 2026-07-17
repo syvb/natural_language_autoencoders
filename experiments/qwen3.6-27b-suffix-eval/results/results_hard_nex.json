@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "shard": "datasets/openbmb/Ultra-FineWeb/data/ultrafineweb_en/ultrafineweb-en-part-2001-of-2048.parquet",
+    "layer": 42,
+    "n_contexts": 250,
+    "rollouts": 4,
+    "answer_len": 32,
+    "n_options": 10,
+    "t_lo": 96,
+    "t_hi": 600,
+    "seed": 0,
+    "grader": "anthropic/claude-haiku-4.5",
+    "base_model": "Qwen/Qwen3.6-27B",
+    "t_dist": {
+      "min": 96,
+      "p50": 245,
+      "max": 598
+    },
+    "distractor_kind": "same_document"
+  },
+  "arms": {
+    "mat": {
+      "primary": {
+        "acc": 0.794,
+        "ci": [
+          0.7563727994796797,
+          0.8271439248241491
+        ],
+        "n": 500,
+        "correct": 397
+      },
+      "primary_no_outliers": {
+        "acc": 0.794,
+        "ci": [
+          0.7563727994796797,
+          0.8271439248241491
+        ],
+        "n": 500
+      },
+      "majority_vote": {
+        "acc": 0.776,
+        "ci": [
+          0.7203636303789511,
+          0.8232824859392568
+        ],
+        "n": 250
+      },
+      "inter_rollout_agreement": 0.892,
+      "shuffled": {
+        "acc": 0.0,
+        "ci": [
+          0.0,
+          0.0
+        ],
+        "n": 0
+      },
+      "cjk_explanations": 127,
+      "n_outliers": 0
+    },
+    "std": {
+      "primary": {
+        "acc": 0.926,
+        "ci": [
+          0.8996646988891736,
+          0.9458391261224969
+        ],
+        "n": 500,
+        "correct": 463
+      },
+      "primary_no_outliers": {
+        "acc": 0.926,
+        "ci": [
+          0.8996646988891736,
+          0.9458391261224969
+        ],
+        "n": 500
+      },
+      "majority_vote": {
+        "acc": 0.94,
+        "ci": [
+          0.9033762972146848,
+          0.9633059172056464
+        ],
+        "n": 250
+      },
+      "inter_rollout_agreement": 0.952,
+      "shuffled": {
+        "acc": 0.0,
+        "ci": [
+          0.0,
+          0.0
+        ],
+        "n": 0
+      },
+      "cjk_explanations": 26,
+      "n_outliers": 0
+    }
+  },
+  "skyline": {
+    "acc": 0.932,
+    "ci": [
+      0.8938099139309015,
+      0.957114442045424
+    ],
+    "n": 250,
+    "correct": 233
+  }
+}

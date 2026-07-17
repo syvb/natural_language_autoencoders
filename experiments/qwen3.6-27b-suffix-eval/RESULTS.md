@@ -136,6 +136,16 @@ match the deployed Spaces. Two things bound the *interpretation*:
   conveyance**. The specificity test below removes this shortcut.
 - **Rollout clustering.** See the CI note above — lead with the n=250
   majority-vote intervals.
+- **Grader robustness — checked with a second, unrelated grader**
+  (`nex-agi/nex-n2-mini`, same-document eval re-graded in check mode: no
+  shuffled control, 2 rollouts full / 1 rollout budget at 4 points;
+  `results_hard_nex.json`, `budget_hard_nex.json`, `grader_check.png`). Every
+  qualitative conclusion replicates: standard > matryoshka at full length
+  (nex 92.6% vs 79.4%; Haiku 79.4% vs 65.1%), matryoshka dominates small budgets
+  (nex T4 59.6% vs 15.6%; Haiku 51.2% vs 15.0%), and the crossover sits at
+  ~64–120 tokens under both. nex is uniformly the stronger extractor (skyline
+  93.2% vs 89.6%; everything shifts up ~10 pts) — absolute numbers are
+  grader-relative, orderings are not.
 
 ## Specificity test — same-document distractors
 

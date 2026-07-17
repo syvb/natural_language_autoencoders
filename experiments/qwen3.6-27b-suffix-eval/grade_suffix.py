@@ -37,8 +37,14 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 KEY = open(os.path.expanduser("~/.openrouter_key")).read().strip()
 URL = "https://openrouter.ai/api/v1/chat/completions"
-GRADER = "anthropic/claude-haiku-4.5"
-CACHE_PATH = HERE / "results" / ".suffix_grade_cache.json"
+# Grader is env-selectable (SUFFIX_GRADER) so the whole suite can be re-run
+# under a different judge. Each grader gets its OWN cache file — cache keys
+# don't include the model, so sharing one file would replay the wrong grader.
+GRADER = os.environ.get("SUFFIX_GRADER", "anthropic/claude-haiku-4.5")
+_slug = re.sub(r"[^a-z0-9]+", "-", GRADER.lower())
+CACHE_PATH = (HERE / "results" / ".suffix_grade_cache.json"
+              if GRADER == "anthropic/claude-haiku-4.5"
+              else HERE / "results" / f".suffix_grade_cache_{_slug}.json")
 PROMPT_VERSION = "nla-suffix-v1"
 LETTERS = "ABCDEFGHIJ"
 ANS_RE = re.compile(r"<answer>\s*([A-J])\s*</answer>", re.I)
@@ -108,7 +114,7 @@ def ask(job):
 
 
 def run_jobs(jobs, tag):
-    with ThreadPoolExecutor(max_workers=32) as ex:
+    with ThreadPoolExecutor(max_workers=int(os.environ.get("SUFFIX_WORKERS", "32"))) as ex:
         res = list(ex.map(ask, jobs))
     fails = 0
     for (k, v) in res:
@@ -134,6 +140,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--manifest", default=str(HERE / "data" / "manifest.json"))
     ap.add_argument("--explanations", nargs="+", required=True)
+    ap.add_argument("--skip-shuffled", action="store_true",
+                    help="cheap-check mode: skip the shuffled-pairing control")
+    ap.add_argument("--rollouts", type=int, default=0,
+                    help="cheap-check mode: grade only the first N rollouts (0 = all)")
     ap.add_argument("--out", default=str(HERE / "results" / "results.json"))
     args = ap.parse_args()
     os.makedirs(HERE / "results", exist_ok=True)
@@ -160,6 +170,8 @@ def main():
         tag = data["meta"]["model"]
         ent = {e["ci"]: e for e in data["entries"]}
         R = data["meta"]["rollouts"]
+        if args.rollouts:
+            R = min(R, args.rollouts)
 
         # explanations are saved as per-line lists; join to the text the model
         # actually emitted (NOT the Python list repr) before grading.
@@ -176,12 +188,13 @@ def main():
 
         # shuffled: expl_i vs donor j=(i+1)%N options, score vs donor key
         shuf_jobs, shuf_idx = [], []
-        for i in range(N):
-            j = (i + 1) % N
-            for r in range(R):
-                shuf_jobs.append(("expl", body_of(i, r), opts[j]))
-                shuf_idx.append((i, j, r))
-        shuf = run_jobs(shuf_jobs, f"{tag}:shuffled")
+        if not args.skip_shuffled:
+            for i in range(N):
+                j = (i + 1) % N
+                for r in range(R):
+                    shuf_jobs.append(("expl", body_of(i, r), opts[j]))
+                    shuf_idx.append((i, j, r))
+        shuf = run_jobs(shuf_jobs, f"{tag}:shuffled") if shuf_jobs else []
 
         # metrics — unparseable grade (a is None) counts as INCORRECT (in denom)
         outlier = {e["ci"]: e["norm_outlier"] for e in data["entries"]}
