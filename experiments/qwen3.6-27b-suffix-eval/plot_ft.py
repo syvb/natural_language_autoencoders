@@ -55,13 +55,6 @@ def main():
     ax.axhline(10, color=INK, ls=":", lw=1.3, zorder=1)
     ax.text(4, 11.2, "chance 10%", ha="left", fontsize=9, color=INK)
 
-    # callout: gap decomposition at T=4 (no arrow — the text names the point)
-    ax.text(4.0, 88, "at 4 tokens the matryoshka–standard gap is still +24 pts\n"
-                     "(was +36 without the token: ~1/3 of the edge was token-restating;\n"
-                     "the matryoshka curve itself barely moves — the token was redundant for it)",
-            fontsize=9.6, color=INK, ha="left", va="top",
-            bbox=dict(boxstyle="round,pad=0.45", fc="white", ec=GRAY, alpha=0.92))
-
     ks = sorted(curves["mat"])
     ax.set_xscale("log")
     ax.set_xticks(ks)
@@ -78,7 +71,7 @@ def main():
         Line2D([], [], color=RED, lw=2.6, marker="o", label="Standard + final token"),
         Line2D([], [], color=INK, lw=1.6, ls="--", alpha=0.4, label="explanation only (prev. result)"),
         Line2D([], [], color=GRAY, lw=2.2, alpha=0.75, label="final token only"),
-    ], fontsize=9.5, loc="center right")
+    ], fontsize=9.5, loc="lower right")
     ax.spines[["top", "right"]].set_visible(False)
     ax.grid(color=GRAY, alpha=0.22, zorder=0)
     fig.text(0.01, -0.02,
