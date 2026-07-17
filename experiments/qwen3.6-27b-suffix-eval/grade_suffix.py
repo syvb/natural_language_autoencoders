@@ -5,8 +5,12 @@ options, and picks the true 32-token continuation. Chance = 10%.
 
 Controls:
   * shuffled-pairing: re-pair each explanation with a DERANGED context's option
-    set (donor j = (i+1)%N) and score against donor j's key. Expect ~10%; above
-    that ⇒ the grader is exploiting a spurious cue (option length/format).
+    set (donor j = (i+1)%N) and score against donor j's key. This control exists
+    to catch an ABOVE-chance result, which would mean the grader exploits a
+    spurious cue (option length/format) rather than content. At-or-below chance
+    (~10%) passes: below-chance just means a topic-A explanation actively steers
+    away from topic-B's true answer — no positive cue exists. NB it rules out
+    format/length cues, NOT topic separability (distractors are off-document).
   * skyline: replace the explanation with the actual prefix passage. Expect near
     100%; validates that items are solvable and distractors aren't plausible.
     Model-independent ⇒ run once, shared across arms.
@@ -157,11 +161,16 @@ def main():
         ent = {e["ci"]: e for e in data["entries"]}
         R = data["meta"]["rollouts"]
 
+        # explanations are saved as per-line lists; join to the text the model
+        # actually emitted (NOT the Python list repr) before grading.
+        def body_of(i, r):
+            return "\n".join(ent[i]["explanations"][r])
+
         # primary: (ci, r) -> grade expl against own options
         prim_jobs, prim_idx = [], []
         for i in range(N):
             for r in range(R):
-                prim_jobs.append(("expl", ent[i]["explanations"][r], opts[i]))
+                prim_jobs.append(("expl", body_of(i, r), opts[i]))
                 prim_idx.append((i, r))
         prim = run_jobs(prim_jobs, f"{tag}:primary")
 
@@ -170,7 +179,7 @@ def main():
         for i in range(N):
             j = (i + 1) % N
             for r in range(R):
-                shuf_jobs.append(("expl", ent[i]["explanations"][r], opts[j]))
+                shuf_jobs.append(("expl", body_of(i, r), opts[j]))
                 shuf_idx.append((i, j, r))
         shuf = run_jobs(shuf_jobs, f"{tag}:shuffled")
 

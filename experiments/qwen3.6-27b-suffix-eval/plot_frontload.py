@@ -58,8 +58,8 @@ def main():
     ax.set_ylim(0, 105)
     ax.set_xlabel("explanation content tokens the grader may read  (first N)", fontsize=12)
     ax.set_ylabel("blind grader accuracy  (%)", fontsize=12)
-    ax.set_title("The matryoshka NLA front-loads the answer\n"
-                 "Suffix prediction from a truncated activation explanation "
+    ax.set_title("The matryoshka NLA front-loads the discriminative topic\n"
+                 "Identify the passage from a truncated activation explanation "
                  "— Qwen3.6-27B, layer 42",
                  fontsize=13.5, fontweight="bold")
     ax.legend(fontsize=12, loc="lower right", frameon=True)
@@ -67,9 +67,10 @@ def main():
     ax.grid(color=GRAY, alpha=0.22, zorder=0)
     # subtle footnote
     fig.text(0.01, -0.02,
-             f"250 held-out Ultra-FineWeb contexts, Haiku-4.5 grader, 10-way choice. "
-             f"Shaded = 95% Wilson CI (n=500/point). U[1,120] = the matryoshka's RL truncation range.",
-             fontsize=8.5, color=GRAY, ha="left")
+             f"250 held-out Ultra-FineWeb contexts, Haiku-4.5 grader, 10-way choice, off-document distractors "
+             f"(⇒ topic-separability, not exact next-token). Shaded = 95% Wilson CI (n=500/point). "
+             f"U[1,120] = the matryoshka's RL truncation range.",
+             fontsize=8.0, color=GRAY, ha="left")
     fig.tight_layout()
     out = HERE / "frontload.png"
     fig.savefig(out, dpi=150, bbox_inches="tight")

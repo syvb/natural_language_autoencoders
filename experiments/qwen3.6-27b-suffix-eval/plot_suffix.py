@@ -57,7 +57,7 @@ def main():
     axA.set_yticklabels([x[0] for x in rows], fontsize=10.5)
     axA.set_xlim(0, 108)
     axA.set_xlabel("blind grader accuracy (%)", fontsize=10.5)
-    axA.set_title("A. Pick the true 32-token continuation from 10 options", fontsize=11.5, fontweight="bold")
+    axA.set_title("A. Identify the true continuation among 10 options (9 off-document)", fontsize=11.5, fontweight="bold")
     axA.spines[["top", "right"]].set_visible(False)
     axA.grid(axis="x", color=GRAY, alpha=0.25, zorder=0)
 
