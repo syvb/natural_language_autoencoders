@@ -153,12 +153,13 @@ continuation after token *t*.
 | **Matryoshka** | 99.1% | **65.1%** | 70.0% | 12.6% |
 | **Standard** | 99.0% | **79.4%** | 82.4% | 10.8% |
 
-**Token budget, same-document** (n = 500/point):
+**Token budget, same-document** (n = 500/point; T=256 ≈ full explanation —
+median lengths 171 mat / 163 std, so T=120 truncates essentially all of them):
 
-| content tokens | 4 | 8 | 16 | 32 | 64 | 120 | full (~170) |
-|---|---|---|---|---|---|---|---|
-| **Matryoshka** | **51.2%** | **56.8%** | 59.4% | 60.6% | 60.8% | 64.4% | 65.1% |
-| **Standard** | 15.0% | 17.4% | 22.0% | 28.0% | 58.2% | **73.4%** | 79.4% |
+| content tokens | 4 | 8 | 16 | 32 | 64 | 120 | 170 | 256 |
+|---|---|---|---|---|---|---|---|---|
+| **Matryoshka** | **51.2%** | **56.8%** | 59.4% | 60.6% | 60.8% | 64.4% | 64.8% | 66.2% |
+| **Standard** | 15.0% | 17.4% | 22.0% | 28.0% | 58.2% | 73.4% | **79.8%** | **79.8%** |
 
 Three findings:
 
@@ -171,16 +172,18 @@ Three findings:
    (79.4% vs 65.1%, a ~14-pt gap at n=250). The matryoshka's truncation-RL
    apparently trades total fine-grained specificity for early-token utility.
 3. **Front-loading survives the topic control — dramatically.** At 4 tokens the
-   matryoshka already delivers 51% (≈80% of everything it will ever deliver)
-   while the standard is at 15%, barely above chance; the standard doesn't catch
-   up until ~64–120 tokens, crossing over near the top of the matryoshka's
-   U[1,120] training range. So the crossover is the honest headline: **the
-   matryoshka puts its (smaller) payload first; the standard buries its (larger)
-   payload deep.** A monitor reading only the first few tokens should prefer the
-   matryoshka; a reader of full explanations gets more specificity from the
-   standard.
+   matryoshka already delivers 51% (≈77% of everything it will ever deliver)
+   while the standard is at 15%, barely above chance; the standard crosses over
+   between 64 and 120 tokens — near the top of the matryoshka's U[1,120]
+   training range — and keeps climbing to 79.8% by T=170 (its explanations run
+   ~163 tokens, so T=120 still truncates them all) while the matryoshka plateaus
+   (64→66%). So the crossover is the honest headline: **the matryoshka puts its
+   (smaller) payload first; the standard buries its (larger) payload deep.** A
+   monitor reading only the first few tokens should prefer the matryoshka; a
+   reader of full explanations gets more specificity from the standard.
 
 ![specificity.png](specificity.png)
+![specificity_budget.png](specificity_budget.png)
 
 ## Caveats
 
