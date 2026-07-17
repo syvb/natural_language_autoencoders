@@ -195,6 +195,31 @@ Three findings:
 ![specificity.png](specificity.png)
 ![specificity_budget.png](specificity_budget.png)
 
+### Final-token-revealed variant (is the front-load just token-restating?)
+
+The matryoshka's first lines often literally restate/complete the passage's
+final token, a trivially front-loadable cue. Re-graded the same-document eval
+with the judge additionally TOLD the final token (`grade_suffix_ft.py`,
+`ft_results.json`, `ft_check.png`; token-only baseline = final token, no
+explanation):
+
+| | token only | T=4 | T=8 | T=32 | T=120 | T=256 | full |
+|---|---|---|---|---|---|---|---|
+| **Matryoshka + token** | — | 51.6% | 53.6% | 59.2% | 64.0% | 66.0% | 67.4% |
+| **Standard + token** | — | 27.6% | 28.0% | 36.8% | 73.2% | 75.6% | 76.8% |
+| **Final token alone** | **32.8%** | | | | | | |
+
+- **~1/3 of the matryoshka's early edge was token-restating; ~2/3 survives.**
+  At T=4 the gap was +36 pts without the token, +24 with it. The matryoshka's
+  4 tokens still beat the token-only floor by +19 pts — genuine semantic
+  front-loading beyond the last token.
+- **The matryoshka's curve barely moves** (±3 pts at every budget): the token
+  was already redundant with its opening lines. The standard's low-budget
+  points jump ~+10 to ≈ the token-only floor (its register-preamble adds
+  nothing beyond the token until ~T=32; at T=4–8 it's even slightly *below*
+  token-only — a truncated preamble mildly distracts the judge).
+- The full-length specificity reversal is unaffected (std 76.8 vs mat 67.4).
+
 ## Caveats
 
 - Held out from NLA training (verified, `check_heldout.py`); base-model
