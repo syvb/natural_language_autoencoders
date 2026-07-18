@@ -178,7 +178,10 @@ standard sentences have *positive* marginal (mean +0.42) and are load-bearing
 (solo +0.25, LOO damage +0.09) where the matryoshka item is redundant/harmful —
 the two critics assign the same claim opposite reconstruction roles (the
 per-claim face of the cross-critic co-adaptation in the table above). Caveat:
-negative marginal is a *weak* hallucination detector (n.s. for matryoshka, OR
-1.18 p=0.19; weak for standard, OR 1.24 p=0.001) — most hallucinated items still
-carry positive marginal. Base hallucination rate 39% (mat top-3) vs 54% (std
-sentences); matched std sentences hallucinated 57%. Judge: nex-agi/nex-n2-mini.
+negative marginal is NOT a hallucination detector in either model — the standard
+model's pooled lift (0.58 vs 0.52, p=0.001) is a Simpson's-paradox position
+artifact that reverses within later items (k≥1 OR 0.54, p=3e-9), and the
+matryoshka is n.s. at every position. Base hallucination rate 39% (mat top-3) vs
+54% (std sentences); matched std sentences hallucinated 57%. Judge:
+nex-agi/nex-n2-mini. (Pipeline re-audited by three independent reviewers; std
+sentence ablation verified correct.)
