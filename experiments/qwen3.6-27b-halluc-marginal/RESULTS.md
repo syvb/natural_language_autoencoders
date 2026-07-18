@@ -51,51 +51,74 @@ climbs out of a deeply negative start (≈ −0.88 at 1 token; see the evalsuite
 marginal-per-token figure), which inflates its early per-item marginals. So we
 also compare the **order-independent** quantities on the 252 paired cases:
 
-| metric | matryoshka mined item | matched standard sentence |
+| metric (mean over 252 paired cases) | matryoshka mined item | matched standard sentence |
 |---|---|---|
 | marginal FVE | −0.026 | **+0.422** |
 | solo FVE (item alone) | −0.126 | **+0.247** |
 | LOO damage (load-bearing if > 0) | −0.003 | **+0.087** |
 
 Even ignoring order: the matched standard sentence reconstructs well *by itself*
-(+0.25) and is *load-bearing* (removing it costs +0.09 FVE, 82% of the time
-positive), while the matryoshka's item does neither — it reconstructs poorly
-alone (−0.13, negative 67% of the time) and removing it typically *helps*
-(LOO damage ≈ 0, positive only 39%). The two critics assign the same claim
-opposite roles. This is the per-claim face of the cross-critic co-adaptation
-already seen in the evalsuite (matryoshka explanations are critic-portable;
-the standard AV/critic share a private co-adapted code).
+(+0.25) and is *load-bearing* (removing it costs +0.09 FVE; positive in 91% of
+paired cases), while the matryoshka's item does neither — it reconstructs poorly
+alone (−0.13; negative in 65% of paired cases) and removing it typically *helps*
+(LOO damage ≈ 0). The two critics assign the same claim opposite roles. This is
+the per-claim face of the cross-critic co-adaptation already seen in the
+evalsuite (matryoshka explanations are critic-portable; the standard AV/critic
+share a private co-adapted code). (All figures collapse each mined case to one
+value, averaging over its matched standard rollouts; the 881 raw matches cover
+708 distinct standard sentences, since one sentence can match several mined
+items.)
 
-## 3. But negative marginal FVE is a *weak* hallucination signal
+## 3. Negative marginal FVE is *not* a hallucination detector (in either model)
 
 ![hallucination detector](results/fig_halluc_detector.png)
 
-The premise that "negative marginal ≈ critic-detected hallucination" only weakly
-holds, and **not at all significantly for the matryoshka**:
+The premise that "negative marginal ≈ critic-detected hallucination" does not
+hold. The naive pooled comparison looks like a weak signal:
 
-| | P(halluc \| marginal<0) | P(halluc \| marginal≥0) | odds ratio | Fisher p |
+| pooled | P(halluc \| marginal<0) | P(halluc \| marginal≥0) | odds ratio | Fisher p |
 |---|---|---|---|---|
-| matryoshka (top-3) | 0.43 | 0.39 | 1.18 | **0.19 (n.s.)** |
+| matryoshka (top-3) | 0.43 | 0.39 | 1.18 | 0.19 (n.s.) |
 | standard (all sents) | 0.58 | 0.52 | 1.24 | 0.001 |
 
-Most hallucinated items — in *both* models — still carry positive marginal FVE,
-and most negative-marginal items are faithful. A negative marginal means the
-critic couldn't reconstruct better *given the item*, which happens for redundant,
-vague, or off-base items alike; unfaithfulness is only one cause. Base hallucination
-rates differ sharply though: **39% of matryoshka top-3 items** are judged
-hallucinated vs **54% of standard sentences** (and of the matched standard
-sentences specifically, **57%**). So the standard critic is not just tolerating
-the occasional fabrication — it is systematically rewarding a claim pool that is
-hallucinated more than half the time.
+but the one apparently-significant cell — the standard model's p=0.001 — is a
+**Simpson's-paradox position artifact**, not a critic signal. Two facts collide:
+(i) the standard critic scores a *lone first sentence* at ≈**−0.58 FVE, 94%
+negative** (its deeply-negative-start), so **67% of all standard "negative
+marginals" are simply first sentences**; and (ii) P(hallucinated) falls
+monotonically with sentence position (k=0: 0.68 → k=1: 0.60 → k=2: 0.51 → k=3:
+0.42) for reasons unrelated to the marginal. Pooling the two manufactures a
+correlation. Stratifying by position dissolves it — and for the standard model it
+**reverses**:
+
+| standard, by position | P(halluc \| marginal<0) | P(halluc \| marginal≥0) | odds ratio | Fisher p |
+|---|---|---|---|---|
+| first item (k=0) | 0.68 (n=939) | 0.70 (n=61) | 0.88 | 0.78 (n.s.) |
+| later items (k≥1) | 0.37 (n=464) | 0.52 (n=2723) | **0.54** | **2.6e-9 (reversed)** |
+
+A *genuine mid-explanation* negative marginal is, if anything, **less** likely to
+be a hallucination. The matryoshka shows no lift at any position (odds ratio 1.15
+at k=0, 1.06 at k≥1, both n.s.), so its pooled 1.18 is also compositional —
+consistent with the n.s. label. A negative marginal means the critic couldn't
+reconstruct better *given the item*, which happens for redundant, vague, or
+position-0 items far more often than for unfaithful ones; the per-item FVE sign
+carries no usable hallucination signal in either model.
+
+What *does* differ is the base rate, independent of the marginal: **39% of
+matryoshka top-3 items** are judged hallucinated vs **54% of standard sentences**
+(and of the matched standard sentences specifically, **57%**). The standard
+critic is not just tolerating the occasional fabrication — it rewards (§2) a claim
+pool that is hallucinated more than half the time.
 
 **Takeaway.** The requested comparison is clean and one-directional: matryoshka
 items that damage its own reconstruction map to standard sentences that *improve*
-the standard reconstruction, are load-bearing there, and are themselves
-hallucinated a majority of the time. The standard AV/critic pair reconstructs
-activations from surface features of a sentence largely independent of the
-sentence's faithfulness; the matryoshka pair at least *sometimes* down-weights an
-off-base late item to zero/negative marginal — though not reliably enough to use
-the marginal sign as a hallucination detector.
+the standard reconstruction, are load-bearing there (order-independent solo/LOO,
+§2), and are themselves hallucinated a majority of the time. The standard
+AV/critic pair reconstructs activations from surface features of a sentence
+largely independent of the sentence's faithfulness. But the marginal *sign* is
+not a hallucination detector for either model (§3) — the only significant-looking
+cell was sentence position, not faithfulness — so this is a statement about the
+two critics' reconstruction behavior on matched claims, not a lie-detector.
 
 ## Case studies
 
@@ -121,3 +144,18 @@ by 0.036) — and the standard NLA makes no such claim there.
 - Own-critic scoring caveat carries over from the evalsuite: cross-model FVE
   *levels* are co-adapted; the comparison here is of each claim's role *within*
   its own model's reconstruction, which is the fair unit.
+
+## Method audit (three independent reviewers)
+
+The pipeline was re-audited after the first draft. Verified correct against the
+raw data: the standard sentence splitter is byte-exact on all 1000 rollouts
+(`''.join(units)==line`, `rebuild(all)=='\n'.join(lines)`), prefix nesting holds,
+`solo[0]==pfx[0]` and `loo[n-1]==pfx[n-2]` identities pass on the shipped scores
+(proving marginal/gold indexing is aligned end-to-end), the cross-model matcher
+has zero indexing errors across all 881 matched rows (marginal, solo, and
+sentence text all reconcile), and every headline number recomputes from scratch.
+One real defect was found and **fixed here**: the earlier draft reported the
+standard model's pooled P(halluc\|neg) lift (0.58 vs 0.52, p=0.001) as a "modest
+real signal" — it is a Simpson's-paradox position artifact (§3, now corrected).
+Guards added to `score_subsets.py` (finite-score assert, suffix-anchor cap
+assert) since it carries no external FVE reference of its own.

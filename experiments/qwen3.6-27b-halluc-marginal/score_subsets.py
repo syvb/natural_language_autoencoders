@@ -235,12 +235,18 @@ def main():
         return gold_cache[ei]
 
     pad = tok.eos_token_id
+    CAP = 1024
     t0 = time.time()
     with torch.inference_mode():
         for b0 in range(start, len(jobs), args.batch):
             chunk = jobs[b0: b0 + args.batch]
             idlists = [tok.encode(TPL.format(explanation=j[4]),
-                                  add_special_tokens=False)[:1024] for j in chunk]
+                                  add_special_tokens=False) for j in chunk]
+            # the critic anchors on the trailing "<summary>" of TPL; truncating
+            # from the right would sever it and silently poison the score. Fail
+            # loud instead of clipping (measured max here ~272 tokens << CAP).
+            over = [len(x) for x in idlists if len(x) > CAP]
+            assert not over, f"critic input exceeds {CAP} tokens ({max(over)}); would sever suffix anchor"
             m = max(len(x) for x in idlists)
             bx = torch.full((len(chunk), m), pad, dtype=torch.long, device=dev)
             attn = torch.zeros((len(chunk), m), dtype=torch.long, device=dev)
@@ -261,6 +267,10 @@ def main():
                 print(f"  [{b0 + len(chunk)}/{len(jobs)}] {rate:.0f} jobs/s "
                       f"eta {eta:.0f}min", flush=True)
     np.save(scores_path, scores)
+    # this script has no external FVE reference to check against (suffix_gen
+    # computes none), so guard what we can: every job must have a finite score.
+    assert np.isfinite(scores).all(), \
+        f"{int((~np.isfinite(scores)).sum())} non-finite scores — critic misconfig?"
 
     # ── assemble ─────────────────────────────────────────────────────────────
     by_ro = {}
