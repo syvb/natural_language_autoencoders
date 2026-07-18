@@ -25,6 +25,12 @@ def L(name):
 
 def panel(ax, ft, noft, title):
     tko = ft["token_only"]["acc"] * 100
+    # precompute both solid curves so labels can sit on the OUTSIDE of the pair
+    solid = {}
+    for tag in ("mat", "std"):
+        c = ft["arms"][tag]["curve"]
+        ks = sorted(int(k) for k in c)
+        solid[tag] = dict(zip(ks, [c[str(k)]["acc"] * 100 for k in ks]))
     for tag, col in [("mat", BLUE), ("std", RED)]:
         if noft and tag in noft["arms"]:
             c = noft["arms"][tag]["curve"]
@@ -38,9 +44,11 @@ def panel(ax, ft, noft, title):
         hi = [c[str(k)]["ci"][1] * 100 for k in ks]
         ax.fill_between(ks, lo, hi, color=col, alpha=0.12, zorder=2)
         ax.plot(ks, ys, "o-", color=col, lw=2.6, ms=6.5, zorder=4)
+        other = solid["std" if tag == "mat" else "mat"]
         for k, y in zip(ks, ys):
+            above = y >= other.get(k, y - 1)
             ax.annotate(f"{y:.0f}", (k, y), textcoords="offset points",
-                        xytext=(0, 9 if tag == "mat" else -16), ha="center",
+                        xytext=(0, 9 if above else -16), ha="center",
                         fontsize=8.5, color=col, fontweight="bold", zorder=5)
     ax.axhline(tko, color=GRAY, ls="-", lw=2.0, alpha=0.75, zorder=3)
     ax.text(ks[-1], tko + 1.5, f"token alone {tko:.0f}%", ha="right",
