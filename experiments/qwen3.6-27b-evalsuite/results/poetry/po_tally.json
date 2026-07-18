@@ -1,0 +1,1282 @@
+{
+ "paper": {
+  "nopatch": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habitat": 2,
+    "habbit": 1,
+    "hit": 1
+   }
+  },
+  "mat_patch_orig": {
+   "plan": 0.72,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "hit": 2,
+    "habbit": 1,
+    "traffic": 1
+   }
+  },
+  "mat_patch_edit_full": {
+   "plan": 0.72,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "hit": 2,
+    "habbit": 1,
+    "traffic": 1
+   }
+  },
+  "mat_steer_full_a0.25": {
+   "plan": 0.84,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 21,
+    "habbit": 1,
+    "habitat": 1,
+    "hit": 1
+   }
+  },
+  "mat_steer_full_a0.5": {
+   "plan": 0.72,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "bit": 2,
+    "habbit": 1,
+    "it": 1
+   }
+  },
+  "mat_steer_full_a1.0": {
+   "plan": 0.76,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 19,
+    "habbit": 1,
+    "hit": 1,
+    "no": 1
+   }
+  },
+  "mat_steer_full_a2.0": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 19,
+    "chat": 1,
+    "habit": 1,
+    "bit": 1
+   }
+  },
+  "mat_steer_full_a4.0": {
+   "plan": 0.6,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 15,
+    "": 4,
+    "it": 2,
+    "habitat": 1
+   }
+  },
+  "mat_patch_edit_k1": {
+   "plan": 0.76,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 19,
+    "habitat": 1,
+    "hit": 1,
+    "rabit": 1
+   }
+  },
+  "mat_steer_k1_a0.5": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habitat": 2,
+    "habbit": 1,
+    "hit": 1
+   }
+  },
+  "mat_steer_k1_a1.0": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habitat": 2,
+    "habbit": 1,
+    "hit": 1
+   }
+  },
+  "mat_steer_k1_a2.0": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habitat": 2,
+    "habbit": 1,
+    "hit": 1
+   }
+  },
+  "mat_patch_edit_k2": {
+   "plan": 0.72,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "hit": 2,
+    "bit": 2,
+    "habbit": 1
+   }
+  },
+  "mat_steer_k2_a0.5": {
+   "plan": 0.84,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 21,
+    "habbit": 1,
+    "hit": 1,
+    "habitat": 1
+   }
+  },
+  "mat_steer_k2_a1.0": {
+   "plan": 0.84,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 21,
+    "habbit": 1,
+    "habitat": 1,
+    "it": 1
+   }
+  },
+  "mat_steer_k2_a2.0": {
+   "plan": 0.76,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "safe": 1,
+    "habbit": 1,
+    "bit": 1
+   }
+  },
+  "std_patch_orig": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 19,
+    "habbit": 1,
+    "hit": 1,
+    "habit": 1
+   }
+  },
+  "std_patch_edit_full": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 19,
+    "habbit": 1,
+    "hit": 1,
+    "habit": 1
+   }
+  },
+  "std_steer_full_a0.25": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 19,
+    "hit": 2,
+    "habbit": 1,
+    "habit": 1
+   }
+  },
+  "std_steer_full_a0.5": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 19,
+    "bit": 2,
+    "habbit": 1,
+    "hit": 1
+   }
+  },
+  "std_steer_full_a1.0": {
+   "plan": 0.72,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "bit": 3,
+    "habbit": 1,
+    "no": 1
+   }
+  },
+  "std_steer_full_a2.0": {
+   "plan": 0.6,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 14,
+    "bit": 2,
+    "it": 2,
+    "habit": 1
+   }
+  },
+  "std_steer_full_a4.0": {
+   "plan": 0.68,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 15,
+    "habit": 2,
+    "bunny": 1,
+    "happy": 1
+   }
+  },
+  "std_patch_edit_k1": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "bit": 2,
+    "habbit": 1,
+    "": 1
+   }
+  },
+  "std_steer_k1_a0.5": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habitat": 2,
+    "habbit": 1,
+    "hit": 1
+   }
+  },
+  "std_steer_k1_a1.0": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habitat": 2,
+    "habbit": 1,
+    "hit": 1
+   }
+  },
+  "std_steer_k1_a2.0": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habitat": 2,
+    "habbit": 1,
+    "hit": 1
+   }
+  },
+  "std_patch_edit_k2": {
+   "plan": 0.84,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 21,
+    "bit": 2,
+    "habbit": 1,
+    "hatbit": 1
+   }
+  },
+  "std_steer_k2_a0.5": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habitat": 2,
+    "habbit": 1,
+    "hit": 1
+   }
+  },
+  "std_steer_k2_a1.0": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habitat": 2,
+    "habbit": 1,
+    "hit": 1
+   }
+  },
+  "std_steer_k2_a2.0": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habitat": 2,
+    "habbit": 1,
+    "hit": 1
+   }
+  },
+  "xact_patch": {
+   "plan": 0.84,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 21,
+    "habbit": 1,
+    "hit": 1,
+    "habitat": 1
+   }
+  },
+  "xact_steer_a0.5": {
+   "plan": 0.84,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habbit": 1,
+    "it": 1,
+    "habit": 1
+   }
+  },
+  "xact_steer_a1.0": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "bit": 2,
+    "habbit": 1,
+    "rabit": 1
+   }
+  },
+  "xact_steer_a2.0": {
+   "plan": 0.68,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 17,
+    "it": 3,
+    "habbit": 1,
+    "rabit": 1
+   }
+  },
+  "xrec_mat_patch": {
+   "plan": 0.72,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "hit": 2,
+    "habbit": 1,
+    "traffic": 1
+   }
+  },
+  "xrec_std_patch": {
+   "plan": 0.84,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habitat": 1,
+    "hit": 1,
+    "habit": 1
+   }
+  },
+  "xactL6_patch": {
+   "plan": 0.76,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "habitat": 3,
+    "floppyrabbit": 1,
+    "habit": 1
+   }
+  },
+  "xactL12_patch": {
+   "plan": 0.76,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "habitat": 2,
+    "habbit": 1,
+    "floppyrabbit": 1
+   }
+  },
+  "xactL18_patch": {
+   "plan": 0.76,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "habitat": 2,
+    "habbit": 1,
+    "floppyrabbit": 1
+   }
+  },
+  "xactL24_patch": {
+   "plan": 0.76,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "hit": 2,
+    "habitat": 2,
+    "habbit": 1
+   }
+  },
+  "xactL30_patch": {
+   "plan": 0.84,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habbit": 1,
+    "habit": 1,
+    "habitat": 1
+   }
+  },
+  "xactL36_patch": {
+   "plan": 0.76,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 19,
+    "hit": 2,
+    "habbit": 1,
+    "it": 1
+   }
+  },
+  "xactL42_patch": {
+   "plan": 0.76,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 19,
+    "bit": 2,
+    "habbit": 1,
+    "hit": 1
+   }
+  },
+  "xactL48_patch": {
+   "plan": 0.76,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "bit": 2,
+    "habitat": 1,
+    "hit": 1
+   }
+  },
+  "xactL54_patch": {
+   "plan": 0.88,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habit": 2,
+    "habbit": 1,
+    "it": 1
+   }
+  },
+  "xactL60_patch": {
+   "plan": 0.88,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 20,
+    "habit": 2,
+    "habbit": 1,
+    "it": 1
+   }
+  },
+  "xactL12_all": {
+   "plan": 0.0,
+   "target": 0.64,
+   "loose": 0.64,
+   "top": {
+    "house": 15,
+    "jarouse": 1,
+    "spouse": 1,
+    "brows": 1
+   }
+  },
+  "xactL24_all": {
+   "plan": 0.0,
+   "target": 0.68,
+   "loose": 0.68,
+   "top": {
+    "house": 16,
+    "pounce": 2,
+    "houbou": 1,
+    "was": 1
+   }
+  },
+  "xactL36_all": {
+   "plan": 0.0,
+   "target": 0.52,
+   "loose": 0.52,
+   "top": {
+    "house": 13,
+    "youlouse": 1,
+    "noise": 1,
+    "choose": 1
+   }
+  },
+  "xactL42_all": {
+   "plan": 0.0,
+   "target": 0.36,
+   "loose": 0.36,
+   "top": {
+    "house": 9,
+    "youlouse": 1,
+    "soupse": 1,
+    "once": 1
+   }
+  },
+  "xactL54_all": {
+   "plan": 0.8,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "rabbit": 18,
+    "it": 2,
+    "habit": 2,
+    "tail": 1
+   }
+  },
+  "mrec_mat_orig_all": {
+   "plan": 0.12,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "it": 15,
+    "rabbit": 2,
+    "nibbling": 1,
+    "could": 1
+   }
+  },
+  "mrec_mat_edit_all": {
+   "plan": 0.12,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "it": 15,
+    "habit": 2,
+    "labit": 1,
+    "afraid": 1
+   }
+  },
+  "mrec_mat_xorig_all": {
+   "plan": 0.0,
+   "target": 0.36,
+   "loose": 0.36,
+   "top": {
+    "house": 7,
+    "goose": 2,
+    "cause": 2,
+    "most": 1
+   }
+  },
+  "mrec_std_orig_all": {
+   "plan": 0.16,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "it": 6,
+    "rabbit": 4,
+    "smit": 1,
+    "could": 1
+   }
+  },
+  "mrec_std_edit_all": {
+   "plan": 0.16,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "it": 14,
+    "rabbit": 3,
+    "nibble": 2,
+    "embrace": 1
+   }
+  },
+  "mrec_std_xorig_all": {
+   "plan": 0.0,
+   "target": 0.56,
+   "loose": 0.56,
+   "top": {
+    "house": 14,
+    "youlouse": 1,
+    "most": 1,
+    "chew": 1
+   }
+  }
+ },
+ "spont": {
+  "nopatch": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 12,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "mat_patch_orig": {
+   "plan": 0.56,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 13,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "mat_patch_edit_full": {
+   "plan": 0.56,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 13,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "mat_steer_full_a0.25": {
+   "plan": 0.56,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 14,
+    "cooks": 1,
+    "waltz": 1,
+    "rose": 1
+   }
+  },
+  "mat_steer_full_a0.5": {
+   "plan": 0.56,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 14,
+    "cooks": 1,
+    "waltz": 1,
+    "rose": 1
+   }
+  },
+  "mat_steer_full_a1.0": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 12,
+    "douse": 2,
+    "cooks": 1,
+    "times": 1
+   }
+  },
+  "mat_steer_full_a2.0": {
+   "plan": 0.36,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 9,
+    "blouse": 2,
+    "spied": 1,
+    "flowers": 1
+   }
+  },
+  "mat_steer_full_a4.0": {
+   "plan": 0.32,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 8,
+    "sous": 2,
+    "lose": 2,
+    "first": 1
+   }
+  },
+  "mat_patch_edit_k1": {
+   "plan": 0.56,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 13,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "mat_steer_k1_a0.5": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 12,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "mat_steer_k1_a1.0": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 12,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "mat_steer_k1_a2.0": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 12,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "mat_patch_edit_k2": {
+   "plan": 0.6,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 14,
+    "howse": 1,
+    "waltz": 1,
+    "gaze": 1
+   }
+  },
+  "mat_steer_k2_a0.5": {
+   "plan": 0.6,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 15,
+    "cooks": 1,
+    "times": 1,
+    "waltz": 1
+   }
+  },
+  "mat_steer_k2_a1.0": {
+   "plan": 0.6,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 15,
+    "louse": 2,
+    "cooks": 1,
+    "times": 1
+   }
+  },
+  "mat_steer_k2_a2.0": {
+   "plan": 0.6,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 15,
+    "cooks": 1,
+    "times": 1,
+    "joust": 1
+   }
+  },
+  "std_patch_orig": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 11,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "std_patch_edit_full": {
+   "plan": 0.56,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 13,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "std_steer_full_a0.25": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 12,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "std_steer_full_a0.5": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 12,
+    "cooks": 1,
+    "discuss": 1,
+    "waltz": 1
+   }
+  },
+  "std_steer_full_a1.0": {
+   "plan": 0.52,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 13,
+    "nose": 1,
+    "aloof": 1,
+    "haws": 1
+   }
+  },
+  "std_steer_full_a2.0": {
+   "plan": 0.36,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 9,
+    "nose": 3,
+    "pause": 2,
+    "bourgeoisie": 1
+   }
+  },
+  "std_steer_full_a4.0": {
+   "plan": 0.32,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 8,
+    "": 6,
+    "repose": 1,
+    "play": 1
+   }
+  },
+  "std_patch_edit_k1": {
+   "plan": 0.64,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 15,
+    "howse": 1,
+    "waltz": 1,
+    "paws": 1
+   }
+  },
+  "std_steer_k1_a0.5": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 12,
+    "louse": 2,
+    "cooks": 1,
+    "howse": 1
+   }
+  },
+  "std_steer_k1_a1.0": {
+   "plan": 0.6,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 15,
+    "cooks": 1,
+    "lost": 1,
+    "paws": 1
+   }
+  },
+  "std_steer_k1_a2.0": {
+   "plan": 0.32,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 7,
+    "nose": 4,
+    "paws": 1,
+    "toast": 1
+   }
+  },
+  "std_patch_edit_k2": {
+   "plan": 0.6,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 14,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "std_steer_k2_a0.5": {
+   "plan": 0.56,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 14,
+    "louse": 2,
+    "cooks": 1,
+    "waltz": 1
+   }
+  },
+  "std_steer_k2_a1.0": {
+   "plan": 0.68,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 17,
+    "louse": 2,
+    "cooks": 1,
+    "paws": 1
+   }
+  },
+  "std_steer_k2_a2.0": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 11,
+    "nose": 4,
+    "paws": 1,
+    "crumb": 1
+   }
+  },
+  "xact_patch": {
+   "plan": 0.52,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 13,
+    "cooks": 1,
+    "waltz": 1,
+    "rose": 1
+   }
+  },
+  "xact_steer_a0.5": {
+   "plan": 0.56,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 14,
+    "louse": 2,
+    "pause": 1,
+    "waltz": 1
+   }
+  },
+  "xact_steer_a1.0": {
+   "plan": 0.44,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 11,
+    "cause": 2,
+    "paws": 2,
+    "louse": 2
+   }
+  },
+  "xact_steer_a2.0": {
+   "plan": 0.6,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 15,
+    "across": 1,
+    "haws": 1,
+    "blowse": 1
+   }
+  },
+  "xrec_mat_patch": {
+   "plan": 0.56,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 13,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "xrec_std_patch": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 11,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "xactL6_patch": {
+   "plan": 0.52,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 12,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "xactL12_patch": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 12,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "xactL18_patch": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 11,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "xactL24_patch": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 11,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "xactL30_patch": {
+   "plan": 0.52,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 12,
+    "howse": 1,
+    "waltz": 1,
+    "rose": 1
+   }
+  },
+  "xactL36_patch": {
+   "plan": 0.48,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 11,
+    "pounce": 2,
+    "cooks": 1,
+    "howse": 1
+   }
+  },
+  "xactL42_patch": {
+   "plan": 0.52,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 13,
+    "cooks": 1,
+    "waltz": 1,
+    "rose": 1
+   }
+  },
+  "xactL48_patch": {
+   "plan": 0.64,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 15,
+    "cooks": 1,
+    "waltz": 1,
+    "paws": 1
+   }
+  },
+  "xactL54_patch": {
+   "plan": 0.56,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 13,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1
+   }
+  },
+  "xactL60_patch": {
+   "plan": 0.44,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 11,
+    "howse": 1,
+    "waltz": 1,
+    "loose": 1
+   }
+  },
+  "xactL12_all": {
+   "plan": 0.0,
+   "target": 0.28,
+   "loose": 0.28,
+   "top": {
+    "it": 5,
+    "rabbit": 5,
+    "fabrit": 1,
+    "frantic": 1
+   }
+  },
+  "xactL24_all": {
+   "plan": 0.0,
+   "target": 0.16,
+   "loose": 0.16,
+   "top": {
+    "it": 10,
+    "rabbit": 3,
+    "caper": 1,
+    "frantic": 1
+   }
+  },
+  "xactL36_all": {
+   "plan": 0.0,
+   "target": 0.08,
+   "loose": 0.08,
+   "top": {
+    "it": 16,
+    "habit": 1,
+    "rabbit": 1,
+    "tremble": 1
+   }
+  },
+  "xactL42_all": {
+   "plan": 0.0,
+   "target": 0.08,
+   "loose": 0.08,
+   "top": {
+    "it": 15,
+    "rabbit": 1,
+    "habanero": 1,
+    "rabit": 1
+   }
+  },
+  "xactL54_all": {
+   "plan": 0.28,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 6,
+    "nose": 2,
+    "use": 1,
+    "times": 1
+   }
+  },
+  "mrec_mat_orig_all": {
+   "plan": 0.44,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 10,
+    "ran": 1,
+    "down": 1,
+    "lullaby": 1
+   }
+  },
+  "mrec_mat_edit_all": {
+   "plan": 0.0,
+   "target": 0.16,
+   "loose": 0.24,
+   "top": {
+    "habit": 4,
+    "habitat": 2,
+    "joy": 1,
+    "inrgbtsrgbtsrgbtsrgbts": 1
+   }
+  },
+  "mrec_mat_xorig_all": {
+   "plan": 0.0,
+   "target": 0.12,
+   "loose": 0.12,
+   "top": {
+    "it": 15,
+    "carrot": 1,
+    "habit": 1,
+    "rat": 1
+   }
+  },
+  "mrec_std_orig_all": {
+   "plan": 0.56,
+   "target": 0.0,
+   "loose": 0.0,
+   "top": {
+    "house": 13,
+    "pause": 2,
+    "cooks": 1,
+    "prize": 1
+   }
+  },
+  "mrec_std_edit_all": {
+   "plan": 0.0,
+   "target": 0.28,
+   "loose": 0.36,
+   "top": {
+    "habit": 7,
+    "habitat": 2,
+    "it": 2,
+    "you": 1
+   }
+  },
+  "mrec_std_xorig_all": {
+   "plan": 0.0,
+   "target": 0.16,
+   "loose": 0.16,
+   "top": {
+    "it": 12,
+    "rabbit": 2,
+    "carrot": 1,
+    "habit": 1
+   }
+  }
+ }
+}
