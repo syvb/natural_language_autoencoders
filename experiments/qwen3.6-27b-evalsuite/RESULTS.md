@@ -168,3 +168,17 @@ Notable quirks (both real model behavior, not harness): the matryoshka model
 leaks CJK on ~12% of gold-activation generations and ~30% under steered (OOD)
 activations; the standard model's unprefilled first token collapses to `<`
 (orphaned SFT-era tag residue).
+
+## Related: hallucination vs marginal FVE (separate experiment)
+
+See `../qwen3.6-27b-halluc-marginal/RESULTS.md`. Mining the matryoshka's top-3
+items with **negative marginal FVE** (272 items, 149/250 clean contexts) and
+matching each to the standard NLA's corresponding sentence: 85% of matched
+standard sentences have *positive* marginal (mean +0.42) and are load-bearing
+(solo +0.25, LOO damage +0.09) where the matryoshka item is redundant/harmful —
+the two critics assign the same claim opposite reconstruction roles (the
+per-claim face of the cross-critic co-adaptation in the table above). Caveat:
+negative marginal is a *weak* hallucination detector (n.s. for matryoshka, OR
+1.18 p=0.19; weak for standard, OR 1.24 p=0.001) — most hallucinated items still
+carry positive marginal. Base hallucination rate 39% (mat top-3) vs 54% (std
+sentences); matched std sentences hallucinated 57%. Judge: nex-agi/nex-n2-mini.
