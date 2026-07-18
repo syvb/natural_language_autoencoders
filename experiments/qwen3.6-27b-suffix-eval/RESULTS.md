@@ -220,6 +220,18 @@ explanation):
   token-only — a truncated preamble mildly distracts the judge).
 - The full-length specificity reversal is unaffected (std 76.8 vs mat 67.4).
 
+**Grader comparison** (`ft_results_nex.json`, `ft_graders.png`): under
+nex-n2-mini the token-only floor doubles (67.2% vs Haiku's 32.8% — a much
+stronger cue-exploiter), yet the same structure holds: matryoshka's low-budget
+lead persists (T=4 gap +15 pts; Haiku +24; no-token +36), and the standard's
+truncated preamble again sits at/below its token-only floor until ~T=32.
+One nex-specific nuance: at full length with the token revealed the reversal
+compresses to a statistical tie (mat 90.6 vs std 92.4, both near nex's 93.2
+skyline) — the token is fully redundant for the standard at full length
+(92.6→92.4) but complementary for the matryoshka (79.4→90.6), i.e. much of the
+matryoshka's full-length specificity deficit is exactly the token-adjacent
+detail it omits and the standard spells out.
+
 ## Caveats
 
 - Held out from NLA training (verified, `check_heldout.py`); base-model
