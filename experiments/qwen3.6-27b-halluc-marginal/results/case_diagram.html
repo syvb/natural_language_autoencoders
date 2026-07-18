@@ -1,0 +1,255 @@
+<title>One case: hallucination vs. marginal FVE</title>
+<style>
+  :root {
+    --paper:#f5f7f9; --card:#ffffff; --sunk:#eef1f5;
+    --ink:#15202b; --muted:#5b6773; --faint:#8896a3; --line:#e3e7ec;
+    --mat:#2a78d6; --mat-soft:#e9f1fc; --mat-line:#bcd6f4;
+    --std:#e0463f; --std-soft:#fdece9; --std-line:#f4c4bf;
+    --halluc:#b4520a; --halluc-bg:#f8ecdf;
+    --ok:#2f9c69;
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:#0d151e; --card:#15202b; --sunk:#0f1922;
+      --ink:#e7edf3; --muted:#95a3b1; --faint:#6c7c8a; --line:#26333f;
+      --mat:#5ea0ef; --mat-soft:#15263c; --mat-line:#274a72;
+      --std:#f0716a; --std-soft:#361c1a; --std-line:#5a2b27;
+      --halluc:#e79055; --halluc-bg:#31241a;
+      --ok:#4fbd8a;
+    }
+  }
+  :root[data-theme="light"] {
+    --paper:#f5f7f9; --card:#ffffff; --sunk:#eef1f5;
+    --ink:#15202b; --muted:#5b6773; --faint:#8896a3; --line:#e3e7ec;
+    --mat:#2a78d6; --mat-soft:#e9f1fc; --mat-line:#bcd6f4;
+    --std:#e0463f; --std-soft:#fdece9; --std-line:#f4c4bf;
+    --halluc:#b4520a; --halluc-bg:#f8ecdf; --ok:#2f9c69;
+  }
+  :root[data-theme="dark"] {
+    --paper:#0d151e; --card:#15202b; --sunk:#0f1922;
+    --ink:#e7edf3; --muted:#95a3b1; --faint:#6c7c8a; --line:#26333f;
+    --mat:#5ea0ef; --mat-soft:#15263c; --mat-line:#274a72;
+    --std:#f0716a; --std-soft:#361c1a; --std-line:#5a2b27;
+    --halluc:#e79055; --halluc-bg:#31241a; --ok:#4fbd8a;
+  }
+
+  * { box-sizing:border-box; }
+  body { margin:0; }
+  .wrap {
+    background:var(--paper); color:var(--ink);
+    font-family:var(--font-sans); line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    padding:clamp(20px,5vw,56px) 20px 72px;
+  }
+  .page { max-width:840px; margin:0 auto; }
+
+  .eyebrow {
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--faint); margin:0 0 14px;
+  }
+  h1 {
+    font-size:clamp(26px,4.6vw,40px); line-height:1.12; letter-spacing:-0.02em;
+    font-weight:680; margin:0 0 14px; text-wrap:balance;
+  }
+  h1 .cult { color:var(--std); } h1 .rite { color:var(--mat); }
+  .lede { font-size:clamp(16px,2.2vw,18.5px); color:var(--muted); margin:0; max-width:64ch; }
+
+  .rule { height:1px; background:var(--line); border:0; margin:38px 0; }
+
+  .stage { display:flex; gap:16px; margin:34px 0; }
+  .step {
+    flex:0 0 auto; width:30px; height:30px; border-radius:50%;
+    display:grid; place-items:center; margin-top:2px;
+    font-family:var(--font-mono); font-size:14px; font-weight:600;
+    background:var(--sunk); color:var(--muted); border:1px solid var(--line);
+  }
+  .stage-body { flex:1 1 auto; min-width:0; }
+  .stage h2 {
+    font-size:16.5px; font-weight:640; margin:4px 0 10px; letter-spacing:-0.01em;
+  }
+  .stage p { margin:0 0 12px; color:var(--muted); font-size:15px; }
+  .stage p.tight { margin-bottom:0; }
+  strong { color:var(--ink); font-weight:620; }
+
+  .card {
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:16px 18px; margin:12px 0;
+  }
+  .label {
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--faint); margin:0 0 8px;
+  }
+
+  .passage {
+    font-family:var(--font-mono); font-size:13.5px; line-height:1.7;
+    color:var(--ink); background:var(--sunk); border-radius:9px;
+    padding:13px 15px; overflow-x:auto; white-space:pre-wrap; word-break:break-word;
+  }
+  .passage .dim { color:var(--faint); }
+  .rite-mark {
+    color:var(--mat); font-weight:640;
+    background:var(--mat-soft); border-radius:4px; padding:0 3px;
+  }
+  .tok {
+    display:inline-block; margin-left:2px; padding:0 5px; border-radius:4px;
+    background:var(--ink); color:var(--paper); font-size:11px; font-weight:600;
+    vertical-align:1px;
+  }
+  .conn { color:var(--muted); font-size:13px; margin:6px 2px 2px; }
+
+  /* two-model comparison */
+  .pair { display:flex; gap:14px; flex-wrap:wrap; }
+  .model { flex:1 1 300px; min-width:0; border-radius:12px; padding:15px 16px; border:1px solid; }
+  .model.mat { background:var(--mat-soft); border-color:var(--mat-line); }
+  .model.std { background:var(--std-soft); border-color:var(--std-line); }
+  .model .who { font-family:var(--font-mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:600; margin:0 0 9px; }
+  .model.mat .who { color:var(--mat); } .model.std .who { color:var(--std); }
+  .quote { font-size:14.5px; color:var(--ink); margin:0; }
+  .quote .cult { font-weight:640; background:rgba(180,82,10,.14); color:var(--halluc); border-radius:4px; padding:0 3px; }
+  .tags { display:flex; gap:7px; flex-wrap:wrap; margin-top:11px; }
+  .tag {
+    font-family:var(--font-mono); font-size:11px; font-weight:600; letter-spacing:.03em;
+    padding:3px 8px; border-radius:20px; border:1px solid var(--line); color:var(--muted);
+    background:var(--card);
+  }
+  .tag.bad { color:var(--halluc); border-color:transparent; background:var(--halluc-bg); }
+  .tag.num { color:var(--ink); }
+  .tag.num.pos { color:var(--std); } .tag.num.neg { color:var(--mat); }
+
+  .formula {
+    font-family:var(--font-mono); font-size:13px; color:var(--ink);
+    background:var(--sunk); border-radius:8px; padding:11px 14px; overflow-x:auto;
+    border-left:3px solid var(--faint);
+  }
+  .formula b { color:var(--mat); font-weight:600; }
+
+  /* diverging bar */
+  .meter { margin:6px 0 2px; }
+  .meter svg { width:100%; height:auto; display:block; }
+  .barnum { font-family:var(--font-mono); font-weight:600; }
+  .axislbl { font-family:var(--font-mono); }
+
+  .takeaway {
+    background:var(--card); border:1px solid var(--line); border-left:4px solid var(--mat);
+    border-radius:12px; padding:18px 20px; margin-top:14px;
+  }
+  .takeaway h2 { font-size:17px; margin:0 0 10px; font-weight:660; }
+  .takeaway p { margin:0 0 10px; font-size:15px; color:var(--muted); }
+  .takeaway p:last-child { margin-bottom:0; }
+  .caveat {
+    margin-top:14px; font-size:13.5px; color:var(--muted);
+    border-left:3px solid var(--std); padding:2px 0 2px 13px;
+  }
+  .caveat strong { color:var(--std); }
+
+  footer { margin-top:40px; font-size:12.5px; color:var(--faint); font-family:var(--font-mono); line-height:1.7; }
+  a { color:var(--mat); }
+</style>
+
+<div class="wrap"><div class="page">
+
+  <p class="eyebrow">Interpretability · Qwen3.6-27B NLA · single-case walkthrough</p>
+  <h1>Two interpreters read one thought.<br>Both hallucinate the <span class="cult">cult</span> for the <span class="rite">rite</span> — their critics disagree about it.</h1>
+  <p class="lede">A natural-language autoencoder (NLA) turns a model's internal activation into a written explanation, and a paired <em>critic</em> scores each line by how well it reconstructs that activation. This is one held-out case, start to finish — the smallest complete version of the comparison.</p>
+
+  <hr class="rule">
+
+  <div class="stage">
+    <div class="step">1</div>
+    <div class="stage-body">
+      <h2>The activation: one token inside a bibliography</h2>
+      <p>Both NLAs read the <em>same</em> Qwen3.6-27B activation, captured at layer 42 at the last token of this passage (a Hungarian sociology-of-science reference list):</p>
+      <div class="passage"><span class="dim">…Previous publications in epistemology/sociology of science
+- Katona, Eszter, Németh, Renáta, Kmetty, Zoltán: Text analytics…
+- Bárdits, Anna, Németh, Renáta (2017): The </span><span class="rite-mark">rite</span><span class="dim"> of statistical significance</span><span class="tok">◂ token 245</span></div>
+      <p class="conn">True next words (the model had not seen them): <span style="color:var(--ink)">“ testing – contemporary critics; the rite in sociology.”</span> — the real paper is <strong>“The rite of statistical significance testing.”</strong></p>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="step">2</div>
+    <div class="stage-body">
+      <h2>Both explanations invent the same famous book</h2>
+      <p>Each NLA emits a list of short lines describing the activation. Both land on <span style="color:var(--halluc);font-weight:600">“The cult of statistical significance”</span> — the real 2008 Ziliak &amp; McCloskey book — a very natural slip from <span class="rite-mark">rite</span>. An LLM judge (nex-n2-mini), shown the source, flags both as unfaithful.</p>
+      <div class="pair">
+        <div class="model mat">
+          <p class="who">◆ Matryoshka NLA · item 3</p>
+          <p class="quote">“Second citation <span class="cult">“The cult of statistical significance”</span> is a famous open-access article on statistical practice norms.”</p>
+          <div class="tags">
+            <span class="tag bad">CONTRADICTED</span>
+            <span class="tag num neg">marginal FVE −0.21</span>
+          </div>
+        </div>
+        <div class="model std">
+          <p class="who">■ Standard NLA · matched sentence</p>
+          <p class="quote">“…<span class="cult">“The cult of statistical significance”</span> is an incomplete publication title, continuing the bibliographic list…”</p>
+          <div class="tags">
+            <span class="tag bad">CONTRADICTED</span>
+            <span class="tag num pos">marginal FVE +1.08</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="step">3</div>
+    <div class="stage-body">
+      <h2>What “marginal FVE” means</h2>
+      <p class="tight">Feed the explanation to the critic one item at a time and watch the reconstruction quality (fraction of variance explained). An item's <strong>marginal</strong> is how much it moves that number:</p>
+      <div class="formula" style="margin:12px 0;">marginal(item&nbsp;k) = FVE(items&nbsp;1…k) − FVE(items&nbsp;1…k−1)</div>
+      <p class="tight">Negative marginal = adding the item made the critic's reconstruction <em>worse</em>. That is the signal I mined: the matryoshka's item is one of <strong>272</strong> top-3 items across <strong>149 / 250</strong> contexts whose marginal dips below zero.</p>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="step">4</div>
+    <div class="stage-body">
+      <h2>Same fabricated claim, opposite verdict from the two critics</h2>
+      <p>This is the whole finding in one picture. The identical “cult” claim <em>hurts</em> the matryoshka critic and <em>helps</em> the standard critic:</p>
+      <div class="card meter">
+        <svg viewBox="0 0 800 200" role="img" aria-label="Diverging bar chart. Adding the same fabricated claim moves the matryoshka critic's reconstruction to minus 0.21 and the standard critic's to plus 1.08.">
+          <!-- scale: zero at x=300, 380 px per FVE unit -->
+          <g stroke="var(--line)" stroke-width="1">
+            <line x1="110" y1="30" x2="110" y2="158"/>
+            <line x1="490" y1="30" x2="490" y2="158"/>
+            <line x1="680" y1="30" x2="680" y2="158"/>
+          </g>
+          <g class="axislbl" fill="var(--faint)" font-size="12" text-anchor="middle">
+            <text x="110" y="178">−0.5</text>
+            <text x="300" y="178">0</text>
+            <text x="490" y="178">+0.5</text>
+            <text x="680" y="178">+1.0</text>
+          </g>
+          <!-- emphasised zero line -->
+          <line x1="300" y1="24" x2="300" y2="162" stroke="var(--muted)" stroke-width="2"/>
+          <!-- matryoshka: 0 -> -0.21  =>  x 220.2 .. 300 -->
+          <text x="308" y="40" class="axislbl" fill="var(--mat)" font-size="12.5" font-weight="600">◆ matryoshka critic</text>
+          <rect x="220" y="46" width="80" height="34" rx="4" fill="var(--mat)"/>
+          <text class="barnum" x="210" y="68" text-anchor="end" fill="var(--mat)" font-size="16">−0.21</text>
+          <!-- standard: 0 -> +1.08  =>  x 300 .. 710.4 -->
+          <text x="308" y="108" class="axislbl" fill="var(--std)" font-size="12.5" font-weight="600">■ standard critic</text>
+          <rect x="300" y="114" width="410" height="34" rx="4" fill="var(--std)"/>
+          <text class="barnum" x="720" y="136" text-anchor="start" fill="var(--std)" font-size="16">+1.08</text>
+        </svg>
+      </div>
+      <p class="tight" style="font-size:13.5px;">Deleting the matryoshka item actually <strong style="color:var(--mat)">raises</strong> its reconstruction by 0.12 FVE (leave-one-out) — the critic wants it gone. The standard critic treats the very same fabrication as load-bearing. <span style="color:var(--faint)">(Standard marginals also ride high because its cumulative curve climbs out of a deeply negative start; the order-free solo &amp; leave-one-out view in the aggregate figures tells the same story.)</span></p>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <div class="takeaway">
+    <h2>What this one case shows — and what it doesn't</h2>
+    <p>Across all 272 mined items, this pattern holds: <strong>85%</strong> of the matched standard sentences carry positive marginal FVE (mean <strong>+0.42</strong>), and on order-free measures they reconstruct well alone and are load-bearing where the matryoshka item is redundant or harmful. The standard critic reconstructs from a sentence's surface form largely regardless of whether it's true; the matryoshka critic at least sometimes pushes an off-base claim down to zero or negative.</p>
+    <p class="caveat"><strong>Honest caveat:</strong> a negative marginal is a <em>weak</em> hallucination detector, not a clean one. Most hallucinated items — in both models — still have positive marginal FVE, and the association isn't significant for the matryoshka (odds ratio 1.18, p = 0.19). This case is illustrative, not a lie-detector.</p>
+  </div>
+
+  <footer>
+    Qwen3.6-27B · matryoshka <span style="color:var(--muted)">ceselder/nla-qwen36-27b-matryoshka</span> vs standard <span style="color:var(--muted)">…-nla-L42</span> · own-critic FVE, layer 42<br>
+    context ci=185 · judge nex-agi/nex-n2-mini · full study: experiments/qwen3.6-27b-halluc-marginal/RESULTS.md
+  </footer>
+
+</div></div>
