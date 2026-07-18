@@ -115,13 +115,17 @@ def ask(prompt, rex):
 
 
 def run_jobs(jobs, rex, tag):
-    """jobs: list of prompts. Returns list of verdicts (None on failure)."""
-    with ThreadPoolExecutor(max_workers=int(os.environ.get("JUDGE_WORKERS", "24"))) as ex:
-        res = list(ex.map(lambda p: ask(p, rex), jobs))
-    for k, v in res:
-        cache[k] = v
+    """jobs: list of prompts. Returns list of verdicts (None on failure).
+    Cache is checkpointed every chunk so a crash loses <=500 calls."""
     CACHE_PATH.parent.mkdir(exist_ok=True)
-    json.dump(cache, open(CACHE_PATH, "w"))
+    res = []
+    with ThreadPoolExecutor(max_workers=int(os.environ.get("JUDGE_WORKERS", "24"))) as ex:
+        for c0 in range(0, len(jobs), 500):
+            res += list(ex.map(lambda p: ask(p, rex), jobs[c0: c0 + 500]))
+            for k, v in res[c0:]:
+                cache[k] = v
+            json.dump(cache, open(CACHE_PATH, "w"))
+            print(f"  [{tag}] {min(c0 + 500, len(jobs))}/{len(jobs)}", flush=True)
     fails = sum(1 for _, v in res if v is None)
     print(f"[{tag}] {len(jobs)} calls, {fails} unparsed", flush=True)
     return [v for _, v in res]

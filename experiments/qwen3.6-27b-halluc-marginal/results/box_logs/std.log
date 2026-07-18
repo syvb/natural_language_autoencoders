@@ -1,0 +1,27 @@
+/usr/local/lib/python3.11/dist-packages/huggingface_hub/constants.py:298: FutureWarning: The `HF_HUB_ENABLE_HF_TRANSFER` environment variable is deprecated as 'hf_transfer' is not used anymore. Please use `HF_XET_HIGH_PERFORMANCE` instead to enable high performance transfer with Xet. Visit https://huggingface.co/docs/huggingface_hub/package_reference/environment_variables#hfxethighperformance for more details.
+  warnings.warn(
+Fetching 12 files:   0%|          | 0/12 [00:00<?, ?it/s]Fetching 12 files:   8%|▊         | 1/12 [00:00<00:03,  2.99it/s]Fetching 12 files:  17%|█▋        | 2/12 [00:00<00:02,  4.62it/s]Fetching 12 files:  25%|██▌       | 3/12 [00:08<00:34,  3.79s/it]Fetching 12 files:  83%|████████▎ | 10/12 [01:13<00:16,  8.31s/it]Fetching 12 files: 100%|██████████| 12/12 [01:13<00:00,  6.14s/it]
+[cfg] arm=std mse_scale=71.55 tpl='Summary of the following text: <text>{explanation}</text> <summary>'
+[phase1] reusing (250, 5120) from /workspace/hm/score_work/acts.npy
+[sanity] extracted-vs-generation act_norm rel-diff: median 7.20e-08 max 5.37e-03
+[jobs] 12561 critic scorings Counter({'pfx': 4187, 'solo': 4187, 'loo': 4187})
+[phase2] loading critic…
+The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/573 [00:00<?, ?it/s]Loading weights: 100%|██████████| 573/573 [00:00<00:00, 7856.76it/s]
+[1mQwen3_5ForCausalLM LOAD REPORT[0m from: /root/.cache/huggingface/hub/models--ceselder--qwen3.6-27b-nla-L42/snapshots/54e3ce6040b9a37fd341e286870b7480b3e6bd50/rl_critic_step400
+Key               | Status  | 
+------------------+---------+-
+model.norm.weight | MISSING | 
+lm_head.weight    | MISSING | 
+
+Notes:
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+  [2400/12561] 54 jobs/s eta 3min
+  [4800/12561] 64 jobs/s eta 2min
+  [7200/12561] 67 jobs/s eta 1min
+  [9600/12561] 70 jobs/s eta 1min
+  [12000/12561] 71 jobs/s eta 0min
+[stats] 1000 rollouts | full-FVE mean 0.731 p50 0.769
+[stats] top-3 marginals: n=3000 neg-frac 0.376 p05 -0.8740
+[saved] results/subset_scores_std.json
+SCORE_DONE_STD

@@ -1,0 +1,43 @@
+/usr/local/lib/python3.11/dist-packages/huggingface_hub/constants.py:298: FutureWarning: The `HF_HUB_ENABLE_HF_TRANSFER` environment variable is deprecated as 'hf_transfer' is not used anymore. Please use `HF_XET_HIGH_PERFORMANCE` instead to enable high performance transfer with Xet. Visit https://huggingface.co/docs/huggingface_hub/package_reference/environment_variables#hfxethighperformance for more details.
+  warnings.warn(
+Fetching 12 files:   0%|          | 0/12 [00:00<?, ?it/s]Fetching 12 files: 100%|██████████| 12/12 [00:00<00:00, 25053.09it/s]
+[cfg] arm=mat mse_scale=71.55 tpl='Summary of the following text: <text>{explanation}</text> <summary>'
+[phase1] loading raw base for extraction…
+`torch_dtype` is deprecated! Use `dtype` instead!
+Fetching 15 files:   0%|          | 0/15 [00:00<?, ?it/s]Fetching 15 files: 100%|██████████| 15/15 [00:00<00:00, 9961.14it/s]
+The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/851 [00:00<?, ?it/s]Loading weights:   0%|          | 1/851 [00:00<03:23,  4.17it/s]Loading weights:   0%|          | 2/851 [00:00<04:04,  3.48it/s]Loading weights:   2%|▏         | 15/851 [00:00<00:27, 30.21it/s]Loading weights:   3%|▎         | 28/851 [00:00<00:16, 49.08it/s]Loading weights:   5%|▍         | 41/851 [00:00<00:13, 61.74it/s]Loading weights:   6%|▌         | 49/851 [00:01<00:15, 53.00it/s]Loading weights:   8%|▊         | 65/851 [00:01<00:10, 74.11it/s]Loading weights:   9%|▉         | 75/851 [00:01<00:10, 74.42it/s]Loading weights:  10%|▉         | 84/851 [00:01<00:11, 64.91it/s]Loading weights:  11%|█         | 95/851 [00:01<00:11, 68.51it/s]Loading weights:  12%|█▏        | 103/851 [00:01<00:12, 61.02it/s]Loading weights:  14%|█▎        | 117/851 [00:02<00:09, 76.22it/s]Loading weights:  15%|█▍        | 126/851 [00:02<00:10, 68.17it/s]Loading weights:  16%|█▌        | 134/851 [00:02<00:11, 64.39it/s]Loading weights:  17%|█▋        | 147/851 [00:02<00:09, 71.88it/s]Loading weights:  18%|█▊        | 155/851 [00:02<00:10, 63.79it/s]Loading weights:  20%|██        | 171/851 [00:02<00:08, 83.79it/s]Loading weights:  21%|██▏       | 181/851 [00:02<00:08, 81.11it/s]Loading weights:  22%|██▏       | 190/851 [00:03<00:09, 68.74it/s]Loading weights:  24%|██▎       | 200/851 [00:03<00:08, 75.09it/s]Loading weights:  25%|██▍       | 209/851 [00:03<00:10, 61.83it/s]Loading weights:  26%|██▌       | 223/851 [00:03<00:08, 77.31it/s]Loading weights:  27%|██▋       | 232/851 [00:03<00:08, 74.94it/s]Loading weights:  28%|██▊       | 241/851 [00:03<00:09, 65.09it/s]Loading weights:  30%|██▉       | 253/851 [00:03<00:07, 76.51it/s]Loading weights:  31%|███       | 262/851 [00:04<00:09, 63.35it/s]Loading weights:  33%|███▎      | 277/851 [00:04<00:07, 73.33it/s]Loading weights:  34%|███▍      | 288/851 [00:04<00:07, 79.24it/s]Loading weights:  35%|███▍      | 297/851 [00:04<00:07, 71.90it/s]Loading weights:  36%|███▌      | 307/851 [00:04<00:07, 72.74it/s]Loading weights:  37%|███▋      | 315/851 [00:04<00:08, 64.39it/s]Loading weights:  39%|███▉      | 330/851 [00:04<00:06, 81.62it/s]Loading weights:  40%|███▉      | 339/851 [00:05<00:06, 77.83it/s]Loading weights:  41%|████      | 348/851 [00:05<00:07, 67.01it/s]Loading weights:  42%|████▏     | 358/851 [00:05<00:06, 74.29it/s]Loading weights:  43%|████▎     | 367/851 [00:05<00:07, 61.26it/s]Loading weights:  45%|████▍     | 381/851 [00:05<00:06, 76.97it/s]Loading weights:  46%|████▌     | 390/851 [00:05<00:06, 75.63it/s]Loading weights:  47%|████▋     | 399/851 [00:06<00:06, 65.61it/s]Loading weights:  48%|████▊     | 412/851 [00:06<00:05, 79.66it/s]Loading weights:  49%|████▉     | 421/851 [00:06<00:06, 64.54it/s]Loading weights:  51%|█████     | 436/851 [00:06<00:05, 81.45it/s]Loading weights:  52%|█████▏    | 446/851 [00:06<00:05, 79.71it/s]Loading weights:  53%|█████▎    | 455/851 [00:06<00:05, 68.36it/s]Loading weights:  55%|█████▍    | 465/851 [00:06<00:05, 75.04it/s]Loading weights:  56%|█████▌    | 474/851 [00:07<00:06, 61.67it/s]Loading weights:  57%|█████▋    | 489/851 [00:07<00:04, 79.04it/s]Loading weights:  59%|█████▊    | 499/851 [00:07<00:04, 77.77it/s]Loading weights:  60%|█████▉    | 508/851 [00:07<00:05, 67.49it/s]Loading weights:  61%|██████    | 517/851 [00:07<00:05, 65.96it/s]Loading weights:  62%|██████▏   | 525/851 [00:07<00:05, 59.65it/s]Loading weights:  64%|██████▎   | 542/851 [00:07<00:03, 81.82it/s]Loading weights:  65%|██████▍   | 552/851 [00:08<00:03, 79.95it/s]Loading weights:  66%|██████▌   | 561/851 [00:08<00:04, 68.09it/s]Loading weights:  67%|██████▋   | 571/851 [00:08<00:03, 74.90it/s]Loading weights:  68%|██████▊   | 580/851 [00:08<00:04, 61.75it/s]Loading weights:  70%|██████▉   | 595/851 [00:08<00:03, 79.34it/s]Loading weights:  71%|███████   | 605/851 [00:08<00:03, 74.39it/s]Loading weights:  72%|███████▏  | 614/851 [00:08<00:03, 68.16it/s]Loading weights:  73%|███████▎  | 624/851 [00:09<00:03, 74.98it/s]Loading weights:  74%|███████▍  | 633/851 [00:09<00:03, 61.71it/s]Loading weights:  76%|███████▌  | 648/851 [00:09<00:02, 78.98it/s]Loading weights:  77%|███████▋  | 658/851 [00:09<00:02, 78.61it/s]Loading weights:  78%|███████▊  | 667/851 [00:09<00:02, 67.86it/s]Loading weights:  80%|███████▉  | 677/851 [00:09<00:02, 74.69it/s]Loading weights:  81%|████████  | 686/851 [00:10<00:02, 61.73it/s]Loading weights:  82%|████████▏ | 701/851 [00:10<00:01, 79.20it/s]Loading weights:  84%|████████▎ | 711/851 [00:10<00:01, 74.06it/s]Loading weights:  85%|████████▍ | 720/851 [00:10<00:01, 68.10it/s]Loading weights:  86%|████████▌ | 730/851 [00:10<00:01, 75.00it/s]Loading weights:  87%|████████▋ | 739/851 [00:10<00:01, 61.84it/s]Loading weights:  89%|████████▊ | 754/851 [00:10<00:01, 79.55it/s]Loading weights:  90%|████████▉ | 764/851 [00:11<00:01, 79.64it/s]Loading weights:  91%|█████████ | 773/851 [00:11<00:01, 68.25it/s]Loading weights:  92%|█████████▏| 783/851 [00:11<00:00, 68.32it/s]Loading weights:  93%|█████████▎| 791/851 [00:11<00:00, 61.02it/s]Loading weights:  95%|█████████▍| 807/851 [00:11<00:00, 81.61it/s]Loading weights:  96%|█████████▌| 817/851 [00:11<00:00, 73.83it/s]Loading weights:  97%|█████████▋| 826/851 [00:11<00:00, 71.00it/s]Loading weights:  98%|█████████▊| 835/851 [00:12<00:00, 75.24it/s]Loading weights:  99%|█████████▉| 844/851 [00:12<00:00, 61.74it/s]Loading weights: 100%|██████████| 851/851 [00:12<00:00, 69.17it/s]
+  extracted [50/250] (13s)
+  extracted [100/250] (16s)
+  extracted [150/250] (19s)
+  extracted [200/250] (22s)
+  extracted [250/250] (25s)
+[phase1] saved → /workspace/hm/score_work/acts.npy
+[sanity] extracted-vs-generation act_norm rel-diff: median 7.20e-08 max 5.37e-03
+[jobs] 29871 critic scorings Counter({'pfx': 9957, 'solo': 9957, 'loo': 9957})
+[phase2] loading critic…
+Loading weights:   0%|          | 0/573 [00:00<?, ?it/s]Loading weights: 100%|██████████| 573/573 [00:00<00:00, 6992.83it/s]
+[1mQwen3_5ForCausalLM LOAD REPORT[0m from: /root/.cache/huggingface/hub/models--ceselder--nla-qwen36-27b-matryoshka/snapshots/ad65f3dbbeda0ad9e5fee38da4efa6eb1f8f71d5/rl_critic_step400
+Key               | Status  | 
+------------------+---------+-
+lm_head.weight    | MISSING | 
+model.norm.weight | MISSING | 
+
+Notes:
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+  [2400/29871] 52 jobs/s eta 9min
+  [4800/29871] 60 jobs/s eta 7min
+  [7200/29871] 63 jobs/s eta 6min
+  [9600/29871] 65 jobs/s eta 5min
+  [12000/29871] 66 jobs/s eta 5min
+  [14400/29871] 66 jobs/s eta 4min
+  [16800/29871] 67 jobs/s eta 3min
+  [19200/29871] 67 jobs/s eta 3min
+  [21600/29871] 68 jobs/s eta 2min
+  [24000/29871] 68 jobs/s eta 1min
+  [26400/29871] 68 jobs/s eta 1min
+  [28800/29871] 68 jobs/s eta 0min
+[stats] 1000 rollouts | full-FVE mean 0.669 p50 0.685
+[stats] top-3 marginals: n=3000 neg-frac 0.091 p05 -0.0119
+[saved] results/subset_scores_mat.json
+SCORE_DONE_MAT
