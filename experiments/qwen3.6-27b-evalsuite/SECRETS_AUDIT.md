@@ -196,6 +196,38 @@ its full-length reveal rate within its first 10 words; the standard needs
 trains for — the secret-relevant claim, when present, sits at the front —
 while under equal *full-length* budgets the two models know the same amount.
 
+## Why is the matryoshka better at short budgets? Density, not depth
+
+Mechanical decomposition (`why_mat.py`, no new judging — cached judgments +
+raw text):
+
+- **Same knowledge, same length.** Both formats average ~110 words per
+  explanation (mat: 10.0 lines × 10.9 words; std: 4.5 sentences × 24.8
+  words), and about as many explanations reveal the trait at *some* budget
+  (101 vs 90 of 326). Full-length parity is genuine.
+- **The trait appears ~2× earlier in words.** First trait-keyword occurrence:
+  median word 18 (mat) vs 31 (std); within the first 5 words 26% vs 3%.
+  Semantically (judged reveal onset): 49% of matryoshka's ever-revealing
+  explanations already reveal at a 10-word budget vs 16% for the standard.
+- **The twist: it is NOT sentence-ordering.** Conditional on carrying the
+  trait keyword anywhere, the standard's *first sentence* carries it
+  slightly more often than the matryoshka's first line (45% vs 35%). The
+  standard doesn't bury the trait deep in the document — it buries it deep
+  in the *sentence*. Its 25-word sentences open with scene-setting noun
+  phrases ("Conversational AI assistant responding to…", "Q&A format…",
+  29+35 of 326 first sentences start exactly like that) before reaching
+  dispositional content, so even a sentence-1 trait lands past the 10-word
+  line. The matryoshka's telegraphic 11-word lines have no such overhead:
+  line 1 ≈ the first 10 words.
+- **Plus redundancy.** The matryoshka restates the trait across 2.8 units on
+  average vs 2.0 — more chances for a truncated prefix to catch one mention.
+
+So the short-budget advantage is mostly **per-word information density at
+the front** (compressed telegraphic style, no discourse framing) with a
+side of redundancy — rather than the trained line-*ordering* per se, whose
+unit-level effect is roughly matched by where the standard happens to put
+trait content anyway.
+
 ## Caveats
 
 Single weak auditor (nex-n2-mini, pathologically credulous on presence);
