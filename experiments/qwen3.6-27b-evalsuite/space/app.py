@@ -114,7 +114,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CJK_RE = re.compile(r"[　-ヿ㐀-䶿一-鿿＀-￯]")
 
 # ── sidecar config + tokenizer ───────────────────────────────────────────────
-root = snapshot_download(MODEL_REPO)
+# Scope the download to the THREE subfolders this app actually loads. Without
+# allow_patterns snapshot_download pulls the WHOLE repo — which has grown to
+# ~115GB of other checkpoints/iters; combined with the 56GB base that blew past
+# the 150GB ephemeral cap ("Workload evicted, storage limit exceeded"). These
+# three total ~39GB, keeping peak ephemeral (repo + base) near ~95GB.
+root = snapshot_download(
+    MODEL_REPO,
+    allow_patterns=[f"{RL_SUBDIR}/*", f"{TOK_SUBDIR}/*", f"{CRITIC_SUBDIR}/*"],
+)
 RL_DIR = f"{root}/{RL_SUBDIR}"
 TOK_DIR = f"{root}/{TOK_SUBDIR}"
 CRITIC_DIR = f"{root}/{CRITIC_SUBDIR}"
