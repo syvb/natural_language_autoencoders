@@ -1,168 +1,212 @@
-# Planning in Poetry, reproduced on Qwen3.6-27B — matryoshka vs standard NLA
+# Does the NLA see the rhyme coming? "Planning in Poetry" on Qwen3.6-27B
 
-Reproduction of the NLA paper's "Planning in Poetry" case study (rhyming-couplet
-planning + causal steering via explanation edits, Opus 4.6/Haiku 3.5 there) on
-Qwen3.6-27B with both 27B NLAs (`ceselder/nla-qwen36-27b-matryoshka`,
-`ceselder/qwen3.6-27b-nla-L42`, both at L42). Chat-template framing (user turn +
-pre-closed think + prefilled first line); the model writes the second line.
-Scripts: `poetry_steer.py` (phased: baseline / av / encode / steer / controls /
-layers / mencode / msteer), `screen_couplets.py`, `tally_steer.py`,
-`walkthrough.py`, `plot_poetry.py`. Artifacts in `results/poetry/`.
+*A self-contained reproduction of the "Planning in Poetry" case study from
+"Natural Language Autoencoders Produce Unsupervised Explanations of LLM
+Activations" (Transformer Circuits, 2026), run on Qwen3.6-27B with two
+independently trained NLAs. Two GPU runs, 2026-07-18/20.*
 
-**TL;DR.** The observational claim reproduces — at the line-break token the
-NLA explanations sometimes name the not-yet-written rhyme word (on the
-cat/mouse couplet the matryoshka does so 3× more often than the standard, 67%
-vs 23%, though §5 shows that gap is couplet-specific and mention rates are
-low elsewhere). The paper's causal protocol (edit the explanation at the
-newline, steer that one token) fails — but for a model-level reason our
-controls pin down: **on Qwen3.6-27B the rhyme plan is causally inert at any
-single token/layer and is instead diffuse across the whole line**. Patching
-all first-line tokens with critic reconstructions of *edited* explanations
-does causally rewrite the rhyme — on **all 7 couplets tested** the original
-plan word is eliminated (0/300 completions per model in §5) and endings move
-to the edited-in target's rhyme family (28–80%), with the two NLAs at causal
-parity overall.
+## Background: the models and the original case study
 
-## 1. Adapting the couplet (screening, N=25 per candidate)
+A **natural-language autoencoder (NLA)** is a pair of models trained jointly:
+an **activation verbalizer (AV)** that takes one residual-stream activation
+from a target LLM and generates a natural-language explanation of it, and a
+**critic / activation reconstructor (AR)** that reads only that text and
+predicts the activation back. If the explanation is faithful, the
+reconstruction lands close to the true activation (measured as FVE, fraction
+of variance explained), and — the causal hope — putting the reconstruction
+*back into the model* should reproduce the behavioral effect of the original
+activation.
 
-The paper's exact prompt doesn't transfer: with "Write a rhyming couplet." +
-"He saw a carrot and had to grab it," the base model ends the second line with
-"rabbit" only **4/25** — it prefers two-word "-ab it" rhymes ("nab it").
-Screened 7 framings (`po_screen.json`); kept two complementary winners:
+We test two NLAs trained on **Qwen3.6-27B** (64 layers, d_model 5120), both
+reading **layer 42** block-output activations:
 
-| tag | user prompt | first line | plan word (baseline) |
+- **matryoshka** (`ceselder/nla-qwen36-27b-matryoshka`): explains in
+  salience-ordered independent lines, most important first (~10–20 words per
+  line);
+- **standard** (`ceselder/qwen3.6-27b-nla-L42`): explains in `<explanation>`
+  prose (~4–5 sentences, ~100+ words).
+
+The paper's case study revisits Lindsey et al.'s poetry-planning result.
+Given the prompt
+
+```
+A rhyming couplet:
+He saw a carrot and had to grab it,
+```
+
+the model will end the second line with "rabbit" — and the claim is that it
+*decides this early*: at the newline ending the first line, the NLA
+explanation of the activation already talks about a rabbit before any rabbit
+has been written. The paper then validates this causally: **edit** the
+explanation (rabbit→mouse, habit→house, carrot→cheese), re-encode both
+versions with the AR, and steer the model at that newline token with the
+difference Δ = AR(edited) − AR(original), rescaled to α·‖h‖. On Opus 4.6
+this flips the rhyme to "mouse"/"house" roughly half the time. Two paper
+caveats matter for what follows: their *direct patching* (replacing the
+activation outright with the edited reconstruction) did **not** change Opus's
+behavior, and on Haiku 3.5 patching only worked when the NLA was trained at
+the specific layer where the planning mechanism had been localized.
+
+## Setup
+
+Everything runs on the raw Qwen3.6-27B base with the Qwen 3.6 chat template:
+a user turn requesting a couplet, a pre-closed think block, and the couplet's
+first line prefilled as the assistant's answer; the model then samples the
+second line (T=1, top_p=1.0, top_k=0, 25 samples per condition, seed-matched
+across conditions). The steered token is the newline ending line 1 — the
+paper's choice. Interventions are forward hooks on a layer's block output
+during prefill only:
+
+- **patch**: `h[pos] ← ‖h[pos]‖ · v/‖v‖`
+- **steer**: `h[pos] ← h[pos] + α·‖h[pos]‖ · Δ/‖Δ‖`
+- **whole-line patch**: patch every token of the first line (incl. the
+  newline) simultaneously, each position norm-matched to its own live norm.
+
+Explanations are generated by each AV from the true L42 activation at each
+line token (the injection path and prompt template are the same ones
+validated in this repo's Space demos); edits are word-level substitutions;
+reconstructions come from each NLA's own critic. Outcomes are scored
+mechanically: the last word of the generated second line, tallied over 25
+samples. No LLM judge. Scripts: `poetry_steer.py` (main pipeline + controls),
+`poetry_gen.py` (generalization), `screen_couplets.py`, `tally_steer.py`,
+`walkthrough.py`, `pg_analyze.py`, plots in `plot_poetry.py`. All raw
+generations and vectors are in `results/poetry/`.
+
+## Finding 0: the paper's exact prompt doesn't transfer — and concentrated plans are rare
+
+With the paper's bare framing, Qwen3.6-27B ends the couplet with "rabbit"
+only **4/25** times; it prefers two-word "-ab it" rhymes ("had to nab it").
+Screening 19 candidate framings across the two runs produced the working set:
+
+- **paper couplet**: "Write a rhyming couplet about a rabbit." + the paper's
+  first line → "rabbit" 20/25 (plan is prompt-anchored);
+- **six spontaneous couplets** (prompt just "Write a rhyming couplet.", no
+  content hint): cat/mouse→**house** 12/25, stars/gleam→**dream** 20/25,
+  frog/log→**song** 9/25, dog/bone→**alone** 9/25, mouse/cheese→**ease**
+  8/25, hat/coat→**boat** 7/25.
+
+Notably, only 2 of 12 screened spontaneous first lines yield a ≥40%
+concentration on a single rhyme word — on this model, a sharply concentrated
+one-word plan (the premise of the case study) is the exception, not the rule.
+
+## Finding 1 (observational): explanations sometimes name the unwritten rhyme — but unreliably, and the matryoshka's advantage is one couplet's
+
+At the line-break token we sample explanations (n=18–30) and count how often
+they name the *plan word* — a word that exists nowhere in the prompt or text,
+only in the model's future:
+
+| couplet | plan (baseline rate) | matryoshka mentions | standard mentions |
 |---|---|---|---|
-| **paper** | "Write a rhyming couplet about a rabbit." | He saw a carrot and had to grab it, | rabbit **20/25** — but the prompt names it |
-| **spont** | "Write a rhyming couplet." | The old grey cat had spied a mouse, | house **12/25** — fully spontaneous plan |
-
-Edits follow the paper (rabbit→mouse, habit→house, carrot→cheese), reversed for
-spont (mouse→rabbit, house→habit, cheese→carrot). Caveat that applies
-throughout: these positions sit at ~token 30, *below* the NLAs' training
-minimum of 50 context tokens; reconstructions are weak here (FVE ≈ 0.33–0.46
-at the steer token vs ≈ 0.65–0.69 on precache texts).
-
-## 2. Observational: the explanations do surface the plan
+| cat/mouse | house (48%) | **67–72%** (two runs) | 23–28% |
+| stars/gleam | dream (80%) | 28% | 22% |
+| dog/bone | alone (36%) | 6% | 22% |
+| mouse/cheese | ease (32%) | 11% | 33% |
+| frog/log | song (36%) | 6% | 0% |
+| hat/coat | boat (28%) | 6% | 0% |
 
 ![plan mention](results/poetry/fig_poetry_planmention.png)
 
-At the newline ending line 1 (n=30 explanations each, T=1): on **spont**, the
-matryoshka names **"house" — a word appearing nowhere in prompt or text, only
-in the model's future — in 20/30 explanations (67%)** vs the standard's 7/30
-(23%). Per-token traces (`walkthrough.py`): "house" first appears once " mouse"
-is on-screen (the rhyme constraint), peaking at the line break — the paper's
-token-19/21 pattern. On **paper**, "rabbit" saturates explanations at tokens
-0–9 (context-reading — the prompt names it) then *collapses at the newline*
-(mat 0/30, std 3/30): the newline activation reads as structural
-("second line of a rhyming animal couplet needed") and the matryoshka
-confabulates specifics ("He saw a giant burrito", "He ate all the shrimp") —
-the paper's confabulation caveat, amplified by the terse line format at an
-OOD-early position.
+The headline case reproduces beautifully: on the cat/mouse couplet the
+matryoshka names "house" in ~70% of explanations, 3× the standard's rate, and
+this replicated across two independent runs. But it does not generalize: on
+the other five couplets the two NLAs are statistically indistinguishable
+(pooled ~10% vs ~16%), and both badly under-report even very strong plans
+(the gleam couplet ends "dream" 80% of the time; neither NLA mentions "dream"
+in more than 28% of explanations). On the prompt-anchored paper couplet,
+"rabbit" saturates explanations over the visible text (context-reading, since
+the prompt names it) and then *collapses at the newline* (matryoshka 0/30,
+standard 3/30), where the matryoshka instead confabulates specifics — "He saw
+a giant burrito", "He ate all the shrimp". One structural caveat: these
+positions sit ~30 tokens into the context, below the NLAs' training minimum
+of 50 tokens, and reconstruction quality is correspondingly weak (FVE ≈
+0.33–0.46 at the steer token, vs ≈ 0.65–0.69 on in-distribution text).
 
-## 3. Causal: the paper's single-token steer can't work here — the plan is diffuse
+## Finding 2 (causal): nothing works at one token — the plan is diffuse across the line
+
+The paper's protocol steers a single token. On Qwen3.6-27B this fails
+completely, and a ladder of controls shows why (n=25 per arm):
 
 ![ladder](results/poetry/fig_poetry_ladder.png)
 
-Per arm: n=25 seed-matched T=1 completions; metric = second lines ending in the
-steered-to rhyme family (mechanical last-word extraction, `po_tally.json`).
-
-1. **Paper protocol (single-token, newline, L42): 0% everywhere.** Direct
-   patch of v̂(edited), Δ-steer at α∈[0.25,4] — original rhyme survives at
-   ~baseline rates for both NLAs, both couplets. Matches the paper's own Opus
-   appendix result (patching "does not lead to modified behavior").
-2. **Not the NLAs' fault — true activations also do nothing at one token.**
-   Patching the *other couplet's* real activation at the newline: no effect at
-   L42, and none at any of 10 layers (L6→L60). The single-token channel does
-   not exist on this model.
-3. **The plan is diffuse across the line.** Patching all 11 first-line
+1. **Edited-explanation steering at the newline: 0%** — direct patch of the
+   edited reconstruction and Δ-steering at α ∈ {0.25…4}, both NLAs, all
+   couplets: the original rhyme survives at baseline rates.
+2. **Not the NLAs' fault: true activations also do nothing.** Swapping in the
+   *real* activation from a different couplet's newline changes nothing — at
+   L42 or at any of ten layers L6→L60. There is no single-token causal
+   channel for the rhyme in this model. (This echoes the paper's own
+   findings: patching failed on Opus, and worked on Haiku only at the
+   localized planning layer.)
+3. **The plan is spread across the whole line.** Patching all 11 first-line
    positions with the other couplet's true activations flips the rhyme:
-   paper→"house" endings 64%/68%/52%/36%/0% at L12/L24/L36/L42/L54. (The
-   reverse direction reads lower on the strict word list — 28% at L12 — but
-   15–16/25 completions switch to the paper couplet's "-it" rhyme family at
-   L36–L42.) Causal window: early-mid layers, fading right at L42 and gone by
-   L54, where the plan has already been read out.
-4. **Whole-line NLA reconstructions carry the plan causally.** Patching the 11
-   positions with each critic's reconstructions of the *other* couplet's
-   per-token explanations transfers the rhyme: paper→house **56% (std)** / 36%
-   (mat) — the std matching or beating the true-activation transplant at L42
-   (36%).
-5. **The paper's edit works at multi-token granularity — where the
-   explanations verbalize the plan.** On spont (house→habit edit):
-   habit-family endings **0% → 28% strict / 36% incl. "habitat" (std)** and
-   **16% / 24% (mat)**, while the unedited-reconstruction control preserves
-   "house" (52–56%) and every other arm sits at 0%. On paper, the mouse-edit
-   still fails for both — the explanations at these positions barely mention
-   "rabbit" (mat 0/30), so the substitution has nothing to rewrite; the
-   unedited whole-line reconstruction patch already collapses the rabbit rhyme
-   (80% → 12–16%), confirming the reconstructions never encoded that plan.
+   64%/68%/52%/36%/0% at layers 12/24/36/42/54. The causal window is
+   early-to-mid stack, already fading at L42 (where the NLAs live) and gone
+   by L54, where the plan has been read out.
 
-## 4. Matryoshka vs standard
+## Finding 3 (causal): whole-line steering with edited explanations rewrites the plan — on every couplet
 
-- **Observational (reading the plan): matryoshka wins 3×** (67% vs 23% plan
-  mention at the line break on the spontaneous couplet).
-- **Causal (steering with edited explanations): standard wins** (36% vs 24%
-  loose; 28% vs 16% strict; cross-couplet transfer 56% vs 36%). The standard's
-  verbose per-token explanations re-encode into richer line reconstructions;
-  the matryoshka's terse lines drop payload nouns (and confabulate substitutes)
-  at these short-context positions, leaving less to edit.
-- Both NLAs fail identically under the paper's literal single-token protocol,
-  and the layer sweep shows *nothing* could succeed there on this model — the
-  informative reproduction required generalizing the protocol to the token
-  span, which the paper itself anticipates ("diffuse across tokens" is one of
-  their hypothesized failure causes, and their Haiku patching only worked at
-  the localized planning layer).
-
-Caveats: n=25/arm (binomial SE ≈ 10pp at the observed rates); one couplet per
-regime; positions below the NLA training range; last-word rhyme extraction is
-mechanical (no judge); the "paper" couplet's plan is prompt-anchored, so its
-walkthrough evidence is context-reading rather than pure planning — the spont
-couplet carries the planning claim.
-
-## 5. Generalization across couplets (2026-07-20 follow-up)
-
-Same pipeline over fresh spontaneous couplets (`poetry_gen.py`, `pg_analyze.py`,
-artifacts `results/poetry/pg_*`). Screened 12 first lines; only 2/12 produce a
-≥40%-concentrated plan (gleam→"dream" 80%, mouse→"house" 48%) — **a
-concentrated single-word rhyme plan is the exception**, so the gate was
-lowered to ≥28% and 6 couplets ran end-to-end, each edited toward the next
-couplet's (plan, anchor) pair round-robin.
+Generalizing the paper's protocol to the token span: explain every first-line
+token, apply the word substitutions to each explanation, re-encode each with
+the critic, and patch all positions at L42 with the edited reconstructions.
+Each spontaneous couplet was edited toward another couplet's (plan, anchor)
+pair (e.g. the cat/mouse couplet's house→song, mouse→log).
 
 ![generalization](results/poetry/fig_poetry_generalize.png)
 
-| couplet (edit→) | plan (base) | mention mat/std | edit strict mat/std | edit family mat/std |
-|---|---|---|---|---|
-| gleam→mouse | dream 20/25 | 28% / 22% | 28% / 36% | 64% / 64% |
-| mouse→log | house 12/25 | **72% / 28%** | 0% / 0% | 72% / 80% |
-| log→bone | song 9/25 | 6% / 0% | 32% / 24% | 68% / 60% |
-| bone→cheese | alone 9/25 | 6% / 22% | 16% / 36% | 36% / 52% |
-| cheese→coat | ease 8/25 | 11% / 33% | 20% / 4% | 76% / 28% |
-| coat→gleam | boat 7/25 | 6% / 0% | 40% / 48% | 72% / 68% |
+| couplet (edit→) | mat strict / family | std strict / family |
+|---|---|---|
+| gleam→mouse | 28% / 64% | 36% / 64% |
+| mouse→log | 0% / 72% | 0% / 80% |
+| log→bone | 32% / 68% | 24% / 60% |
+| bone→cheese | 16% / 36% | 36% / 52% |
+| cheese→coat | 20% / 76% | 4% / 28% |
+| coat→gleam | 40% / 72% | 48% / 68% |
 
-- **The causal result generalizes to every couplet.** The original plan word
-  survives the whole-line edit patch in **0/300 completions per model**; the
-  new target word appears in 4–48% (strict) and the new rhyme *family*
-  (final-2-char heuristic — fog/bog/jog for a "log" target, throat/note/goat
-  for "coat") in 28–80%. In the two strict-0% cells (mouse→log) the
-  completions moved wholesale into "-og" rhymes — the transplant carried the
-  new anchor and the model chose its own rhymes for it. Unedited-recon
-  controls preserve the plan; the single-token edit arm is 0% on all 6
-  couplets (inertness generalizes too).
-- **The matryoshka's observational advantage does NOT generalize.** Its 3×
-  plan-mention edge is specific to the mouse/house couplet (72% vs 28%,
-  replicating the first run); pooled over the other five couplets the models
-  are statistically indistinguishable (mat 10%, std 16%; overall means 21% vs
-  18%). Mention rates are low (≤33%) even where the plan is strong (gleam:
-  "dream" 80% of completions, mentioned in ≤28% of explanations) — at these
-  short-context positions neither NLA reliably reads out the plan.
-- **Causally the two NLAs are at parity** across couplets (mean strict 23% vs
-  25%, family 65% vs 59%) — the first run's std>mat gap on one couplet was
-  within couplet-to-couplet noise.
+("strict" = second line ends with the exact new target word; "family" = any
+word in the new rhyme family, final-2-char heuristic — e.g. fog/bog/jog for a
+"log" target.)
 
-## Provenance
+- The **original plan word survives in 0/300 completions per model** — the
+  edit patch eliminates the old rhyme on every couplet, while the
+  unedited-reconstruction control preserves it and the single-token version
+  of the same edit does nothing (0% on all six).
+- The "strict-miss" rows are family-hits: after the mouse→log edit the model
+  ends lines with fog/bog/frog/jog — it accepted the transplanted anchor and
+  chose its own rhymes for it.
+- Cross-couplet transfer works too: patching one couplet's line with the
+  *unedited* reconstructions of another couplet's explanations imports that
+  couplet's rhyme (up to 56% — more effective than transplanting the true
+  activations at the same layer, 36%, suggesting the reconstructions denoise
+  toward the content).
+- **The two NLAs are at causal parity**: mean strict 23% (mat) vs 25% (std),
+  family 65% vs 59%. A one-couplet first run had suggested the standard was
+  causally stronger; across six couplets that gap is noise.
 
-RunPod secure-cloud A100 80GB PCIe, same env as STEERING_TRUNCATION.md
-(torch 2.7.1+cu126, transformers 5.5.4, peft 0.19.1, fla + causal-conv1d
-built `--no-build-isolation`). Main run on `n85oc1zut8mjb3` (~2.5 h GPU:
-screen 10 min; main chain 65 min; supplemental AV/encode 25 min; controls +
-layer sweep 25 min; multi-token pass 20 min); generalization follow-up on
-`rod5cxgzf064r7` (~1.8 h: screen 2×12 min, AV+encode 2×30 min, steer 20 min).
-Rhyme scoring is mechanical; no LLM judge used.
+## What this says about the paper's claims
+
+- **The observational claim survives, weakened**: NLA explanations can
+  surface a genuinely unwritten plan word at the position the paper predicts,
+  but on this model+NLA pair it is couplet-dependent and never dominant, and
+  neither the matryoshka's line format nor the standard's prose is reliably
+  better at it.
+- **The causal claim survives, relocated**: explanation edits do causally
+  control the planned rhyme — through the critic, at the NLA's own layer —
+  but only when applied across the token span, because on Qwen3.6-27B the
+  plan is not causally concentrated in the newline token at any layer. The
+  paper anticipated exactly this failure mode ("diffuse across tokens") for
+  its own Opus steering; here we confirm it with true-activation controls and
+  show the multi-token fix works.
+- Everything above is n=25/arm (binomial SE ≈ 10pp), mechanical last-word
+  scoring, positions below the NLAs' training context range, and one target
+  model — the layer/token localization story is specifically Qwen3.6-27B's.
+
+## Reproduction
+
+RunPod secure-cloud A100 80GB PCIe ($1.39/hr), torch 2.7.1+cu126,
+transformers 5.5.4, peft 0.19.1, flash-linear-attention + causal-conv1d
+(built `--no-build-isolation` — without it the qwen3_5 forward silently runs
+on CPU). Run 1 (`n85oc1zut8mjb3`, ~2.5 h GPU): screening, main pipeline,
+single-token arms, layer sweep, multi-token pass. Run 2 (`rod5cxgzf064r7`,
+~1.8 h): 12-couplet screen + 6-couplet generalization. Total ≈ $8. Raw
+artifacts (all generations, explanations, reconstruction vectors, tallies):
+`results/poetry/po_*` (run 1), `results/poetry/pg_*` (run 2).
