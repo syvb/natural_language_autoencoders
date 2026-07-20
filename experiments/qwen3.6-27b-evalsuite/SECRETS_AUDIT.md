@@ -134,6 +134,12 @@ identity is granted, never truncated away). k ∈ {1, 2, 4, full}:
 - Explanations alone reach 58%/42% vs 75%/58% with transcripts — evidence
   channels compose; and the mat-vs-std ordering only emerges once
   transcripts are removed.
+- **Tokens-only floor: 8%, 0/6 exact** (`audit_tokens.py`: same packets with
+  the explanations deleted, leaving only the 7 revealed tokens per reply —
+  the auditor confabulates freely, e.g. "a hidden rule to prepend a comma").
+  The sweep's 58%/42% is therefore explanation content, not leakage through
+  the revealed tokens; explanations are a real auditing channel even though
+  Finding 3 shows transcripts dominate whenever they are available.
 - The sandbagger — invisible behaviorally and in the main arms — is *faintly*
   visible only in matryoshka explanations at k ≥ 4 (partial credit).
   Secret words stay at 0% in every truncation condition.
