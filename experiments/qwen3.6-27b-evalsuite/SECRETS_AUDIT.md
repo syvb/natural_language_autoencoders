@@ -174,27 +174,31 @@ noise, rather than a difference in what the two NLAs read off the
 activations. Most explanations (~78–82%) reveal nothing about the trait;
 audits work by integrating the ~20% that do across ~56 samples.
 
-**Word-budget truncation curves (the fair comparison).** Unit-based
+**Token-budget truncation curves (the fair comparison).** Unit-based
 truncation gives the two formats different evidence budgets (a matryoshka
-line ≈ 10–20 words, a standard sentence ≈ 20+). Re-judging every explanation
-truncated to its first N *words* — identical treatment for both models,
-judge always shown the explained position's token:
+line ≈ 16 tokens, a standard sentence ≈ 36). Re-judging every explanation
+truncated to its first N *tokens* (real Qwen3.6-27B tokenizer; budget
+walked across units in order, partial units decoded from their token
+prefix; the two formats have near-identical tokens-per-word, 1.447 vs
+1.439) — identical treatment for both models, judge always shown the
+explained position's token:
 
 ![reveal curve](results/secrets/fig_secrets_revealcurve.png)
 
-| reveal rate | 5w | 10w | 20w | 40w | 80w | full |
+| reveal rate | 8t | 16t | 32t | 64t | 128t | full |
 |---|---|---|---|---|---|---|
-| matryoshka | **7.4%** | **13.2%** | **16.9%** | 16.9% | 22.1% | 20.2% |
-| standard | 0.9% | 4.0% | 10.7% | 13.8% | 17.8% | 17.8% |
+| matryoshka | **11.3%** | **13.5%** | 14.7% | **21.2%** | 20.2% | 20.2% |
+| standard | 1.2% | 6.4% | 11.3% | 14.1% | 15.3% | 17.8% |
 
 This is the cleanest matryoshka-vs-standard separation in the experiment:
-at a 5-word budget the matryoshka reveals the trait 8× as often (24 vs 3 of
-326, p < 10⁻⁴), 3× at 10 words, ~1.6× at 20 (p ≈ 0.02), converging to
-statistical parity by 80 words/full length. The matryoshka reaches ~2/3 of
-its full-length reveal rate within its first 10 words; the standard needs
-~40–80. Exactly the salience-ordering property the matryoshka objective
-trains for — the secret-relevant claim, when present, sits at the front —
-while under equal *full-length* budgets the two models know the same amount.
+at an 8-token budget the matryoshka reveals the trait **9×** as often (37 vs
+4 of 326, p < 10⁻⁶), 2× at 16 tokens, converging to statistical parity at
+128 tokens/full length. The matryoshka reaches over half its full-length
+reveal rate within its first 8 tokens — roughly its first line — where the
+standard delivers almost nothing; the standard needs ~64–128 tokens to catch
+up. Exactly the salience-ordering property the matryoshka objective trains
+for — the secret-relevant claim, when present, sits at the front — while
+under equal *full-length* budgets the two models know the same amount.
 
 ## Why is the matryoshka better at short budgets? Density, not depth
 
