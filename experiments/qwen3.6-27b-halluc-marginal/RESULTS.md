@@ -217,10 +217,19 @@ genuine-confabulation curve sits below. So the critic's marginal FVE *does* carr
 a hallucination signal, and the reason §3a/§3b looked null was exactly the concern
 raised: the "hallucinated" bucket was ~40–55% legitimate descriptions of the
 model's unverbalized thoughts (mat 1928/3555, std 624/1670), which reconstruct
-like faithful content and washed the signal out. The effect is still small in
-absolute FVE, and this split reuses the same judge family (so it inherits nex's
-biases — though the §3c blind check independently supports the premise); but the
-direction and significance are now clean. Data: `results/severity{,_stats}.json`.
+like faithful content and washed the signal out. Data: `results/severity{,_stats}.json`.
+
+**Important caveat (see §3e).** This vs-SUPPORTED framing overstates the case. The
+*direct* test of whether the GENUINE/PREDICTION split matters — GENUINE vs
+PREDICTION within the substantive hallucinations — is much weaker: matryoshka coef
+−0.002 (permutation p = 0.31, **no better than a random split of the same items**),
+standard −0.049 (permutation p = 0.03, barely). The §3b′ significance came mostly
+from GENUINE inheriting position/composition differences relative to the high-marginal
+SUPPORTED baseline, not from the confabulation/prediction distinction being sharp.
+So: the *qualitative* story (unverbalized-prediction items reconstruct like faithful
+content, §3b′ figures) holds, but the genuine-confabulation category is only weakly
+meaningful (std) or not meaningful (mat) as an FVE predictor. The categories that
+*do* strongly predict FVE are not about faithfulness at all — see §3e.
 
 ### 3c. Judge reliability — blind inter-rater check
 
@@ -256,6 +265,39 @@ Three things matter for the conclusions:
    hallucination signal in §3b survives despite this, so the true effect is a lower
    bound, not an artifact of mislabeling. (Sample + both reviewers' blind labels:
    `results/judge_review_{sample,key,reviewerA,reviewerB}.json`.)
+
+### 3e. What marginal FVE actually tracks — a reality check on the categories
+
+![what marginal tracks](results/fig_what_marginal_tracks.png)
+
+Are the faithfulness categories meaningful at all? Ranking *every* candidate item
+category by its within-position effect (OLS `marginal ~ C(position) + feature`)
+answers both "are they meaningful" and "is there a category that *is* significant":
+
+| category | matryoshka coef (p) | standard coef (p) |
+|---|---|---|
+| **contains a quoted string** | +0.015 (4e‑26) | **+0.422 (9e‑111)** |
+| **long item (> median length)** | +0.017 (9e‑35) | +0.253 (2e‑63) |
+| **copies ≥4 words from the source** | +0.021 (4e‑6) | +0.228 (3e‑13) |
+| META (genre/tone commentary) | −0.011 (1e‑9) | −0.166 (1e‑15) |
+| contains a digit | −0.000 (0.93) | +0.031 (0.13) |
+| hallucinated (CON/FAB) | +0.001 (0.35) | +0.046 (2e‑3) |
+| genuine confab vs prediction | −0.002 (0.31) | −0.049 (0.04) |
+
+The verdict is unambiguous. **Marginal FVE tracks how reconstructable the text is,
+not whether it is faithful.** Three surface features — whether the item contains a
+quoted string, how long it is, and whether it copies verbatim from the source —
+have within-position effects **5–100× larger** than any faithfulness category and
+p‑values down to 1e‑111. Faithfulness barely registers: the hallucination coef is
+≈0 for the matryoshka (p=0.35), and the one nominally-significant faithfulness cell
+(standard genuine-confab, p=0.04) does **not** beat a random split of the same items
+under permutation for the matryoshka (p=0.31) and only barely for the standard model
+(p=0.03). The one large *negative* category, META, is itself a content/length effect
+(short abstract genre-commentary is intrinsically hard to reconstruct), not a
+faithfulness one. So the honest bottom line for the whole §3 series: the critic's
+per-item marginal FVE is a **reconstructability** signal — it rewards specific,
+verbatim, quotable text — and is at best a very weak, and largely position-mediated,
+hallucination signal. Script: `find_category.py`.
 
 **Takeaway.** The requested comparison is clean and one-directional: matryoshka
 items that damage its own reconstruction map to standard sentences that *improve*
