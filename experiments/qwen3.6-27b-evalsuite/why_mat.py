@@ -53,7 +53,11 @@ def trunc_words_fixed(units, w):
     return "\n".join(out)
 
 
-raw = {tuple(k): v for k, v in json.load(open(D / "sa_revealcurve_raw.json"))}
+# the WORD-budget judgment cache (pinned from commit 3c6758f) — the live
+# sa_revealcurve_raw.json now holds token-budget truncations whose keys
+# don't match trunc_words_fixed; using it here would KeyError (or worse,
+# silently mis-join on coincidental key overlaps)
+raw = {tuple(k): v for k, v in json.load(open(D / "sa_revealcurve_raw_words.json"))}
 
 expls = []
 for org in TRAITS:

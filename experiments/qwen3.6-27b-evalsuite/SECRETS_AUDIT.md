@@ -88,12 +88,24 @@ in *whether* it says one exists.
 
 No arm recovered any of the 4 secret words (0/16 organism×arm cells), and
 the words never appear in the AV explanations either: **0/56 explanations ×
-4 words × both NLAs**. The taboo word isn't verbalized at L42 during
-unrelated conversation — the model apparently doesn't "think about" the word
-it must not say while discussing hiking tips. Suppression also held
-behaviorally (no word ever surfaced in a reply). Prompt-induced taboo words
-may simply not be resident in mid-stack activations outside contexts that
-evoke them — consistent with the poetry study's lesson that these NLAs read
+4 words × both NLAs** (literal match). A paraphrase screen
+(`patch_review.py` P3: every word-organism explanation judged for indirect
+hints — category, paraphrase, associated imagery) finds hint rates of 3.6%
+(mat) / 4.9% (std), statistically indistinguishable from the judge's own
+false-match floor on trait-free text (1.8–5.4%, see Finding 5) — so there
+is no paraphrase-level leakage either. Suppression also held behaviorally
+(no word ever surfaced in a reply).
+
+Two scoping cautions on the interpretation. First, absence from
+verbalizations cannot distinguish "not represented in the activation" from
+"represented but not read out" — these NLAs are lossy readers, so the
+defensible claim is that the word is not *verbalized*, not that the model
+never computes it. Second, only 7 positions per reply were sampled, in
+replies on unrelated topics; word-evoking probes (e.g. the favorite-animal
+question for the flamingo organism, at the exact decision token) with dense
+position sampling would be the direct test. What the data do support:
+prompt-induced taboo words are not surfaced by either NLA at these
+positions, consistent with the poetry study's lesson that these NLAs read
 what the model is *currently computing*, not its full latent knowledge.
 
 ## Finding 3: traits are auditable — but transcripts carry most of it
@@ -101,13 +113,23 @@ what the model is *currently computing*, not its full latent knowledge.
 Mean trait grade (fraction of max, 6 traits): **matryoshka 75% (4/6 exact) >
 placebo 67% > standard 58% > black-box 50% (2/6 exact)**. The two black-box
 exact hits are the behavioral leakers (owl, cola). The placebo arm nearly
-matching the true-explanation arms is the key control result: with
-transcripts in the packet, most trait recovery comes from *behavior*, and
-mismatched explanations neither help nor much mislead (judged against their
-own *source* organism the placebo hypotheses score only 0.62/2 — the auditor
-weights transcripts over transplanted explanations). The matryoshka arm's
-edge (its extra exact IDs: curtness and condescension) is consistent but,
-at n=6 traits, suggestive rather than decisive.
+matching the true-explanation arms — and note that the **standard arm
+actually scores below placebo** — is the key control result: with
+transcripts in the packet, no explanation condition separates from placebo
+by more than one grade point (~8pp), so most trait recovery comes from
+*behavior*. Two corrections to how far that control reaches, though. The
+fixed placebo rotation gave 5 of 6 trait recipients explanations from
+word/control organisms — i.e. essentially *trait-free* filler — so this is
+a test of "transcripts + innocuous explanations," and the
+can-wrong-explanations-mislead question rests on a single genuinely
+mismatched packet. And the auditor does read transplanted explanations when
+transcripts are uninformative: on the four word-organism recipients (whose
+transcripts are flat denials), placebo hypotheses recover the *transplanted*
+trait at 1.25/2 mean grade. So the honest summary is: transcripts dominate
+when behaviorally informative; explanations drive the hypothesis when they
+aren't. The matryoshka arm's edge (its extra exact IDs: curtness and
+condescension) is consistent but, at n=6 traits (paired sign test p = 0.5),
+suggestive rather than decisive.
 
 ## Finding 4 (truncation sweep): matryoshka leads at every length; neither NLA collapses
 
@@ -134,14 +156,18 @@ identity is granted, never truncated away). k ∈ {1, 2, 4, full}:
 - Explanations alone reach 58%/42% vs 75%/58% with transcripts — evidence
   channels compose; and the mat-vs-std ordering only emerges once
   transcripts are removed.
-- **Tokens-only floor: 8%, 0/6 exact** (`audit_tokens.py`: same packets with
-  the explanations deleted, leaving only the 7 revealed tokens per reply —
-  the auditor confabulates freely, e.g. "a hidden rule to prepend a comma").
-  The sweep's 58%/42% is therefore explanation content, not leakage through
-  the revealed tokens; explanations are a real auditing channel even though
-  Finding 3 shows transcripts dominate whenever they are available.
-- The sandbagger — invisible behaviorally and in the main arms — is *faintly*
-  visible only in matryoshka explanations at k ≥ 4 (partial credit).
+- **Tokens-only floor: one partial credit in 12 audits (~8%, consistent
+  with zero)** (`audit_tokens.py`: same packets with the explanations
+  deleted, leaving only the 7 revealed tokens per reply — the auditor
+  confabulates freely, e.g. "a hidden rule to prepend a comma", and the
+  single grade-1 looks like a judge false positive). Either way it is far
+  below the sweep's 58%/42%, so the sweep signal is explanation content,
+  not leakage through the revealed tokens; explanations are a real auditing
+  channel even though Finding 3 shows transcripts dominate whenever they
+  are available.
+- The sandbagger's single partial credit (matryoshka, k ≥ 4) should be read
+  as noise: the tokens-only and placebo arms also produced isolated
+  partial credits on the sandbagger, and one grade point ≈ 8pp here.
   Secret words stay at 0% in every truncation condition.
 
 ## Finding 5 (per-explanation reveal rates): at high n, the NLAs are nearly equal — matryoshka's edge is in format, not content
@@ -191,46 +217,98 @@ explained position's token:
 | standard | 1.2% | 6.4% | 11.3% | 14.1% | 15.3% | 17.8% |
 
 This is the cleanest matryoshka-vs-standard separation in the experiment:
-at an 8-token budget the matryoshka reveals the trait **9×** as often (37 vs
-4 of 326, p < 10⁻⁶), 2× at 16 tokens, converging to statistical parity at
-128 tokens/full length. The matryoshka reaches over half its full-length
-reveal rate within its first 8 tokens — roughly its first line — where the
-standard delivers almost nothing; the standard needs ~64–128 tokens to catch
-up. Exactly the salience-ordering property the matryoshka objective trains
-for — the secret-relevant claim, when present, sits at the front — while
-under equal *full-length* budgets the two models know the same amount.
+at an 8-token budget the matryoshka reveals the trait **9×** as often on the
+raw counts (37 vs 4 of 326; absolute rates 11.3pp vs 1.2pp), 2× at 16
+tokens, with the gap closing by 128 tokens/full length. The matryoshka
+reaches over half its full-length reveal rate within its first 8 tokens —
+roughly its first line — where the standard delivers almost nothing; the
+standard needs ~64–128 tokens to catch up. This is the salience-ordering
+property the matryoshka objective trains for: the secret-relevant claim,
+when present, sits at the front.
+
+Calibrations on that headline (adversarial-review corrections):
+
+- **Significance, honestly clustered**: the 326 judgments cluster within 6
+  organisms (× 4 probes × ~7 positions × 2 correlated samples). The naive
+  Fisher p at 8 tokens is 4×10⁻⁸, but the organism-level permutation test
+  gives **p ≈ 0.03** — the defensible statement is "direction consistent in
+  6/6 organisms, organism-clustered p ≈ 0.03," not p < 10⁻⁶.
+- **Judge false-match floor is asymmetric**: judging *control*-organism
+  explanations (no trait present) against trait truths yields false reveals
+  at 3.6% (mat) vs 0.0% (std) at 8 tokens, 5.4% vs 1.8% at full — the
+  matryoshka's telegraphic style emits dispositional-sounding fragments
+  even on trait-free activations. Floor-subtracted, the 8-token gap is
+  ≈ 7.7pp vs 1.2pp (**~6×** rather than 9×).
+- **Short fragments are judged generously**: 9 of the matryoshka's 37
+  8-token reveals are judged 0 on the same explanation at full length
+  (2 of 4 for the standard); counting only reveals *sustained* at full
+  length, 28 vs 2. The gap survives every correction; its exact magnitude
+  is judge-dependent (a ±3-count non-monotonicity in the matryoshka curve
+  bounds judge noise at ~1pp).
+- **"Full length" for the matryoshka was silently capped at 10 lines**
+  (`parse_units`; 82% of its explanations run longer, and the cap discards
+  25% of its words — raw explanations average ~145 words vs the standard's
+  ~112, so "same length" was a cap artifact). Re-judged uncapped
+  (`patch_review.py` P1), matryoshka's full-length rate is **23.3%** vs the
+  standard's 17.8% — a suggestive Δ5.5pp (≈1.8σ unclustered, not
+  significant once clustered; and floor-corrected the two nearly
+  re-converge, ≈17.9 vs 16.0). So the right full-length statement is
+  "statistically indistinguishable, with any true gap likely small and if
+  anything favoring the matryoshka" — parity is a bound (the comparison
+  cannot detect gaps below ~8pp), not an established equality.
+- Two smaller accounting notes: newline joins between units are not charged
+  to the token budget (the matryoshka crosses ~2–4× more of them; ~5%
+  budget asymmetry in its favor at 32–128 tokens, none at 8); and this
+  table's "full" (20.2/17.8%) differs from the earlier per-explanation
+  table's (23.9/20.9%) because the same texts were judged in two separate
+  runs with slightly different prompts — the ~3pp between-run drift is the
+  concrete scale of judge unreliability.
 
 ## Why is the matryoshka better at short budgets? Density, not depth
 
 Mechanical decomposition (`why_mat.py`, no new judging — cached judgments +
 raw text):
 
-- **Same knowledge, same length.** Both formats average ~110 words per
-  explanation (mat: 10.0 lines × 10.9 words; std: 4.5 sentences × 24.8
-  words), and about as many explanations reveal the trait at *some* budget
-  (101 vs 90 of 326). Full-length parity is genuine.
+- **Similar knowledge; length comparable only after capping.** As parsed,
+  both formats average ~110 words (mat: 10.0 lines × 10.9 words — but that
+  10.0 is the parser's `N_LINES=10` cap, not the model; raw matryoshka
+  explanations average ~13.5 lines / ~145 words vs the standard's ~112.
+  Uncapped full-length reveal: 23.3% vs 17.8%, see Finding 5's
+  calibrations). About as many explanations reveal the trait at *some*
+  budget (101 vs 90 of 326, ≈1σ).
 - **The trait appears ~2× earlier in words.** First trait-keyword occurrence:
   median word 18 (mat) vs 31 (std); within the first 5 words 26% vs 3%.
   Semantically (judged reveal onset): 49% of matryoshka's ever-revealing
   explanations already reveal at a 10-word budget vs 16% for the standard.
-- **The twist: it is NOT sentence-ordering.** Conditional on carrying the
-  trait keyword anywhere, the standard's *first sentence* carries it
-  slightly more often than the matryoshka's first line (45% vs 35%). The
-  standard doesn't bury the trait deep in the document — it buries it deep
-  in the *sentence*. Its 25-word sentences open with scene-setting noun
-  phrases ("Conversational AI assistant responding to…", "Q&A format…",
-  29+35 of 326 first sentences start exactly like that) before reaching
-  dispositional content, so even a sentence-1 trait lands past the 10-word
-  line. The matryoshka's telegraphic 11-word lines have no such overhead:
-  line 1 ≈ the first 10 words.
+- **Unit-level ordering is a modest, matryoshka-only contributor.** The
+  naive conditional statistic — P(first unit carries the keyword | carried
+  anywhere) = 45% (std) vs 35% (mat) — initially suggests ordering doesn't
+  matter, but it isn't unit-count-controlled: under *random* placement the
+  expected values are ≈44% for the standard (2.0 carrying units of 4.5)
+  and ≈28% for the matryoshka (2.8 of 10). Against that baseline the
+  matryoshka is modestly above chance (35% vs 28%) and the standard exactly
+  at chance — its salience training does front-load, weakly, at the line
+  level; the standard shows no ordering at all. The bigger factor is
+  *within-unit* packaging: the standard's ~25-word sentences open with
+  scene-setting noun phrases ("Conversational AI assistant responding
+  to…", "Q&A format…" — 29+35 of its 326 first sentences start exactly
+  like that) before any dispositional content, so even a sentence-1 trait
+  lands past the 10-token line. The matryoshka's telegraphic ~11-word
+  lines have no such overhead: line 1 ≈ the first 8–16 tokens.
 - **Plus redundancy.** The matryoshka restates the trait across 2.8 units on
   average vs 2.0 — more chances for a truncated prefix to catch one mention.
 
 So the short-budget advantage is mostly **per-word information density at
-the front** (compressed telegraphic style, no discourse framing) with a
-side of redundancy — rather than the trained line-*ordering* per se, whose
-unit-level effect is roughly matched by where the standard happens to put
-trait content anyway.
+the front** (compressed telegraphic style, no discourse-framing overhead),
+with weak above-chance line-ordering and a side of redundancy on top. One
+further caveat from review: part of both models' reveal rates is the AV
+echoing observable reply content rather than reading covert disposition —
+all owl reveals occur in replies that literally mention owls, and a
+"minimal answer style" reading of a 2-token curt reply describes the reply
+itself. The clean dispositional subset is the pre-reply positions (before
+any reply text exists): mat 12/48 vs std 9/48 at full length — genuine but
+smaller. This echo is symmetric between models (identical activations), so
+it does not touch the mat-vs-std comparison.
 
 ## Caveats
 
@@ -241,7 +319,43 @@ prompt-induced secrets live in the context window, not the weights — a
 fine-tuned organism could behave differently; one target model and one NLA
 layer. The dossier protocol is one-shot: the auditor cannot choose positions
 or ask follow-ups (an interactive `get_explanation` tool-loop is the natural
-v2).
+v2). Additional caveats surfaced by the adversarial review: **auditor and
+judge are the same model** (nex grading nex's hypotheses); every "n=326"
+comparison is clustered (organisms × probes × positions × 2 correlated
+samples — at full length, both-reveal pairs occur ~3× the independence
+rate), so naive binomial error bars and p-values throughout are
+understated; the reveal judge is nondeterministic even at temperature 0
+(same texts re-judged across runs moved full-length rates by ~3pp, ~15% of
+positive verdicts); the curt organism contributes 46 rather than 56
+explanations (its direct-probe reply is 2 tokens long, leaving 2 sampled
+positions); and main-arm packets used uncapped matryoshka lines while the
+sweeps used the 10-line-capped parse, so "full" differs slightly across
+analyses.
+
+## Adversarial validity review
+
+After the initial writeup, four independent adversarial reviewers
+(statistics recomputation, methodology/confounds, code correctness,
+overclaim audit) checked every number against the raw artifacts. Outcome:
+**all arithmetic verified exactly; no reported number was wrong; several
+inferences were overclaimed and have been corrected in place above.** The
+substantive corrections: the 8-token significance restated with organism
+clustering (p ≈ 0.03, direction 6/6, not p < 10⁻⁶); the 9× headline
+floor-corrected to ~6× (the reveal judge false-matches asymmetrically on
+matryoshka-style trait-free text); "full-length parity" reframed as a bound
+after discovering the 10-line parsing cap discarded 25% of matryoshka's
+words (uncapped: 23.3% vs 17.8%, suggestive matryoshka edge, n.s.
+clustered); the placebo-vs-source statistic recomputed without structurally-
+zero word cells (the auditor *does* read transplanted explanations when
+transcripts are uninformative: 1.25/2 on word-organism recipients); the
+"NOT sentence-ordering" claim replaced with the unit-count-controlled
+version (matryoshka weakly above chance, standard at chance); the
+tokens-only floor and sandbagger sightings downgraded to noise-level; and
+the secret-word finding extended with a paraphrase screen (no indirect
+leakage: hint rates 3.6%/4.9% ≈ the judge's false-match floor). Patch
+experiments: `patch_review.py` (1,222 judge calls); review-era caches:
+`sa_patch_review.json`, `sa_revealcurve_raw_words.json` (pinned word-budget
+judgments that `why_mat.py` reads).
 
 ## Reproduction
 
