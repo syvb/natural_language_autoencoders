@@ -1,0 +1,41 @@
+[judge] 6957 un-judged mat lines…
+  [mat-all] 500/6957
+  [mat-all] 1000/6957
+  [mat-all] 1500/6957
+  [mat-all] 2000/6957
+  [mat-all] 2500/6957
+  [mat-all] 3000/6957
+  [mat-all] 3500/6957
+  [mat-all] 4000/6957
+  [mat-all] 4500/6957
+  [mat-all] 5000/6957
+  [mat-all] 5500/6957
+  [mat-all] 6000/6957
+  [mat-all] 6500/6957
+  [mat-all] 6957/6957
+[mat-all] 6957 calls, 0 unparsed
+
+==========================================================================
+
+matryoshka (lines)  (n=9957, global mean marginal = +0.0671)
+  per-verdict mean marginal:
+    FABRICATED   n=3539  mean +0.0505  (detrended -0.0007)
+    CONTRADICTED n=1110  mean +0.0581  (detrended +0.0049)
+    META         n=1879  mean +0.0301  (detrended -0.0085)
+    SUPPORTED    n=3429  mean +0.1075  (detrended +0.0037)
+  hallucinated  n=4649  mean marginal +0.0523  (Δ vs global -0.0148)
+  faithful(SUP) n=3429  mean marginal +0.1075
+  Mann-Whitney halluc<rest:  pooled p=5.34e-10  position-detrended p=9.86e-01
+
+standard (sentences)  (n=4187, global mean marginal = +0.1746)
+  per-verdict mean marginal:
+    FABRICATED   n=1545  mean +0.1464  (detrended +0.0041)
+    CONTRADICTED n= 717  mean +0.2015  (detrended +0.0544)
+    META         n= 606  mean -0.1788  (detrended -0.1347)
+    SUPPORTED    n=1319  mean +0.3554  (detrended +0.0275)
+  hallucinated  n=2262  mean marginal +0.1639  (Δ vs global -0.0108)
+  faithful(SUP) n=1319  mean marginal +0.3554
+  Mann-Whitney halluc<rest:  pooled p=4.07e-01  position-detrended p=1.00e+00
+
+[saved] results/marginal_by_halluc.json
+[saved] results/fig_marginal_by_halluc.png

@@ -110,6 +110,41 @@ matryoshka top-3 items** are judged hallucinated vs **54% of standard sentences*
 critic is not just tolerating the occasional fabrication — it rewards (§2) a claim
 pool that is hallucinated more than half the time.
 
+### 3a. Do hallucinated items have *low* marginal FVE vs the average? (all items)
+
+![marginal by faithfulness](results/fig_marginal_by_halluc.png)
+
+Extending the faithfulness judge to **every** item (all 9,957 matryoshka lines —
+not just top-3 — and all 4,187 standard sentences) and comparing each item's
+marginal FVE to the average line-item marginal:
+
+| | avg line-item marginal | hallucinated mean | SUPPORTED mean | Mann-Whitney (halluc<rest), pooled | position-controlled |
+|---|---|---|---|---|---|
+| matryoshka (lines) | +0.067 | **+0.052** | +0.108 | **p = 5e-10** | p = 0.99 (n.s.) |
+| standard (sentences) | +0.175 | +0.164 | +0.355 | p = 0.41 (n.s.) | p = 1.0 (n.s.) |
+
+**Matryoshka: yes, pooled — but it's entirely position.** Hallucinated lines
+average +0.052 marginal, below the +0.067 line-item average and well below
+SUPPORTED lines (+0.108), a highly significant gap. But it vanishes completely
+once position is controlled (detrended p = 0.99): faithful and hallucinated lines
+trace the *same* steep position curve (line 1 ≈ +0.48, decaying to ≈0 by line 5;
+right panel). The apparent effect is because SUPPORTED content concentrates in the
+high-marginal first line while hallucinations spread across the low-marginal tail
+— not because a hallucinated line reconstructs worse *at its position*.
+
+**Standard: no, not even pooled.** Hallucinated sentences (+0.164) sit essentially
+at the average (+0.175); CONTRADICTED is actually *above* it (+0.201), and the
+halluc<rest test is n.s. (p = 0.41). The genuinely low-marginal category is
+**META** (−0.179) — pure genre/tone/structure commentary, which the standard
+critic can barely reconstruct from — not hallucination. Ordering by mean marginal:
+SUPPORTED (+0.36) > CONTRADICTED (+0.20) > FABRICATED (+0.15) ≫ META (−0.18).
+
+So the answer to "do hallucinations have low marginal FVE" is **no** in the sense
+that matters: within a position they don't, and for the standard model they aren't
+low even pooled. The only robust *low-marginal* signal is meta-commentary, and the
+only robust *high-marginal* signal is faithful (SUPPORTED) content — the marginal
+tracks reconstruction usefulness and position, not unfaithfulness.
+
 **Takeaway.** The requested comparison is clean and one-directional: matryoshka
 items that damage its own reconstruction map to standard sentences that *improve*
 the standard reconstruction, are load-bearing there (order-independent solo/LOO,
