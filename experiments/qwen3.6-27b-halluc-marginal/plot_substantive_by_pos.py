@@ -2,6 +2,7 @@
 comparing SUPPORTED (faithful) vs hallucinated-excluding-misquotes (SUBSTANTIVE).
 Same style as the right panels of fig_marginal_by_halluc.png."""
 import json
+import textwrap
 from pathlib import Path
 
 import numpy as np
@@ -76,39 +77,50 @@ for arm, name, fn, unit in SPECS:
     coef, p = ols(subst, sup)
     ysup, yhal = curve(sup), curve(subst)
     sig = "significant" if p < 0.05 else "n.s."
-    # positive-only curves -> true log; negatives present (std k=0) -> symlog
-    allpos = np.nanmin(ysup + yhal) > 0
-    logmode = "log" if allpos else "symlog"
+    allpos = np.nanmin(ysup + yhal) > 0   # positive-only -> can use true log
 
-    fig, ax = plt.subplots(figsize=(7.4, 5.0))
-    ax.plot(xs, ysup, "-o", color=GREEN, ms=5, lw=2.0, label=f"faithful — SUPPORTED (n={len(sup)})")
-    ax.plot(xs, yhal, "-o", color=ORANGE, ms=5, lw=2.0,
-            label=f"hallucinated, excl. misquotes (n={len(subst)})")
-    if allpos:
-        ax.set_yscale("log")
-    else:
-        lt = 0.05
-        ax.set_yscale("symlog", linthresh=lt)
-        ax.axhline(0, color="#444", lw=0.8)
-        ax.axhspan(-lt, lt, color="#000", alpha=0.04, lw=0)  # mark the linear band
-    ax.set_xlabel(f"item position ({unit} index)", fontsize=11)
-    ax.set_ylabel("mean marginal FVE" + ("  (log)" if allpos else "  (symlog)"), fontsize=11)
-    ax.set_title(f"{name} — marginal FVE by position ({logmode}-y)\n"
-                 f"faithful vs substantive hallucinations (misquotes excluded)",
-                 fontsize=12)
-    ax.legend(fontsize=9.5, loc="upper right" if allpos else "lower left")
-    ax.grid(color="#ccc", alpha=0.3, which="both")
-    ax.spines[["top", "right"]].set_visible(False)
-    band = "" if allpos else " symlog is linear inside ±0.05 (shaded), log outside;"
-    fig.text(0.01, -0.02,
-             f"Substantive = hallucination is a fact fabrication/contradiction in the note's own words, NOT an invented quote "
-             f"(nex-n2-mini).{band}\nWithin-position gap (OLS marginal ~ C(position) + is_halluc, vs SUPPORTED): "
-             f"coef {coef:+.4f}, p={p:.3f} ({sig}). n per point drops with position; "
-             f"curves shown to the 99th-percentile position.",
-             fontsize=7.8, color="#777", ha="left", va="top")
-    fig.tight_layout()
-    out = HERE / "results" / f"fig_substantive_by_pos_{arm}_LOG.png"
-    fig.savefig(out, dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"[saved] {out.name}  ({logmode}-y, coef {coef:+.4f}, p={p:.3f}, "
-          f"SUP n={len(sup)}, SUBSTANTIVE n={len(subst)})")
+    def render(log):
+        fig, ax = plt.subplots(figsize=(7.4, 5.2))
+        ax.plot(xs, ysup, "-o", color=GREEN, ms=5, lw=2.0, label=f"faithful — SUPPORTED (n={len(sup)})")
+        ax.plot(xs, yhal, "-o", color=ORANGE, ms=5, lw=2.0,
+                label=f"hallucinated, excl. misquotes (n={len(subst)})")
+        band = ""
+        if not log:
+            ax.axhline(0, color="#444", lw=0.8)
+            scale_lbl, loc = "", "upper right"
+        elif allpos:
+            ax.set_yscale("log")
+            scale_lbl, loc = "  (log)", "upper right"
+        else:
+            lt = 0.05
+            ax.set_yscale("symlog", linthresh=lt)
+            ax.axhline(0, color="#444", lw=0.8)
+            ax.axhspan(-lt, lt, color="#000", alpha=0.04, lw=0)
+            scale_lbl, loc = "  (symlog)", "lower left"
+            band = " symlog is linear inside ±0.05 (shaded), log outside;"
+        mode = ("linear" if not log else "log" if allpos else "symlog")
+        ax.set_xlabel(f"item position ({unit} index)", fontsize=11)
+        ax.set_ylabel("mean marginal FVE" + scale_lbl, fontsize=11)
+        ax.set_title(f"{name} — marginal FVE by position ({mode}-y)\n"
+                     f"faithful vs substantive hallucinations (misquotes excluded)", fontsize=12)
+        ax.legend(fontsize=9.5, loc=loc)
+        ax.grid(color="#ccc", alpha=0.3, which="both")
+        ax.spines[["top", "right"]].set_visible(False)
+        # wrapped footnote — never wider than the axes
+        foot = (f"Substantive = hallucination is a fact fabrication/contradiction in the note's own words, "
+                f"NOT an invented quote (nex-n2-mini).{band} "
+                f"Within-position gap (OLS marginal ~ C(position) + is_halluc, vs SUPPORTED): "
+                f"coef {coef:+.4f}, p={p:.3f} ({sig}). n per point drops with position; "
+                f"curves shown to the 99th-percentile position.")
+        wrapped = "\n".join(textwrap.wrap(foot, width=112))
+        fig.subplots_adjust(bottom=0.20)
+        fig.text(0.02, 0.015, wrapped, fontsize=7.6, color="#777", ha="left", va="bottom")
+        suffix = "" if not log else "_LOG"
+        out = HERE / "results" / f"fig_substantive_by_pos_{arm}{suffix}.png"
+        fig.savefig(out, dpi=150)
+        plt.close(fig)
+        print(f"[saved] {out.name}  ({mode}-y)")
+
+    render(log=False)
+    render(log=True)
+    print(f"  {name}: coef {coef:+.4f}, p={p:.3f}, SUP n={len(sup)}, SUBSTANTIVE n={len(subst)}")
