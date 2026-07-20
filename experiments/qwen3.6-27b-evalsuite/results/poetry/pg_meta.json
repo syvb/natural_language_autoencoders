@@ -1,0 +1,1231 @@
+{
+ "user": "Write a rhyming couplet.",
+ "selected": [
+  {
+   "name": "gleam",
+   "line1": "At night the stars began to gleam,",
+   "ids": [
+    248045,
+    846,
+    198,
+    7734,
+    264,
+    21004,
+    1544,
+    286,
+    5448,
+    83,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271,
+    1597,
+    3603,
+    279,
+    9467,
+    5820,
+    310,
+    28056,
+    308,
+    11,
+    198
+   ],
+   "cstart": 20,
+   "pieces": [
+    "At",
+    " night",
+    " the",
+    " stars",
+    " began",
+    " to",
+    " gle",
+    "am",
+    ",",
+    "\n"
+   ],
+   "anchor": "gleam",
+   "plan": "dream",
+   "plan_n": 20,
+   "partner": "mouse",
+   "subs": [
+    [
+     "\\bdreams\\b",
+     "houses"
+    ],
+    [
+     "\\bDreams\\b",
+     "Houses"
+    ],
+    [
+     "\\bdream\\b",
+     "house"
+    ],
+    [
+     "\\bDream\\b",
+     "House"
+    ],
+    [
+     "\\bgleams\\b",
+     "mouses"
+    ],
+    [
+     "\\bGleams\\b",
+     "Mouses"
+    ],
+    [
+     "\\bgleam\\b",
+     "mouse"
+    ],
+    [
+     "\\bGleam\\b",
+     "Mouse"
+    ]
+   ],
+   "plan_re": "\\bdream",
+   "targets": [
+    "house",
+    "houses"
+   ],
+   "tally": {
+    "dream": 20,
+    "stream": 3,
+    "them": 1,
+    "beam": 1
+   }
+  },
+  {
+   "name": "mouse",
+   "line1": "The old grey cat had spied a mouse,",
+   "ids": [
+    248045,
+    846,
+    198,
+    7734,
+    264,
+    21004,
+    1544,
+    286,
+    5448,
+    83,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271,
+    760,
+    2235,
+    19177,
+    7993,
+    995,
+    947,
+    1086,
+    264,
+    8380,
+    11,
+    198
+   ],
+   "cstart": 20,
+   "pieces": [
+    "The",
+    " old",
+    " grey",
+    " cat",
+    " had",
+    " sp",
+    "ied",
+    " a",
+    " mouse",
+    ",",
+    "\n"
+   ],
+   "anchor": "mouse",
+   "plan": "house",
+   "plan_n": 12,
+   "partner": "log",
+   "subs": [
+    [
+     "\\bhouses\\b",
+     "songs"
+    ],
+    [
+     "\\bHouses\\b",
+     "Songs"
+    ],
+    [
+     "\\bhouse\\b",
+     "song"
+    ],
+    [
+     "\\bHouse\\b",
+     "Song"
+    ],
+    [
+     "\\bmouses\\b",
+     "logs"
+    ],
+    [
+     "\\bMouses\\b",
+     "Logs"
+    ],
+    [
+     "\\bmouse\\b",
+     "log"
+    ],
+    [
+     "\\bMouse\\b",
+     "Log"
+    ]
+   ],
+   "plan_re": "\\bhouse",
+   "targets": [
+    "song",
+    "songs"
+   ],
+   "tally": {
+    "house": 12,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1,
+    "rose": 1,
+    "paws": 1,
+    "repose": 1,
+    "louse": 1,
+    "hisouse": 1,
+    "sous": 1,
+    "hence": 1,
+    "abode": 1,
+    "dispute": 1,
+    "costs": 1
+   }
+  },
+  {
+   "name": "log",
+   "line1": "A tiny frog sat on a log,",
+   "ids": [
+    248045,
+    846,
+    198,
+    7734,
+    264,
+    21004,
+    1544,
+    286,
+    5448,
+    83,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271,
+    32,
+    13280,
+    57859,
+    7338,
+    383,
+    264,
+    1433,
+    11,
+    198
+   ],
+   "cstart": 20,
+   "pieces": [
+    "A",
+    " tiny",
+    " frog",
+    " sat",
+    " on",
+    " a",
+    " log",
+    ",",
+    "\n"
+   ],
+   "anchor": "log",
+   "plan": "song",
+   "plan_n": 9,
+   "partner": "bone",
+   "subs": [
+    [
+     "\\bsongs\\b",
+     "alones"
+    ],
+    [
+     "\\bSongs\\b",
+     "Alones"
+    ],
+    [
+     "\\bsong\\b",
+     "alone"
+    ],
+    [
+     "\\bSong\\b",
+     "Alone"
+    ],
+    [
+     "\\blogs\\b",
+     "bones"
+    ],
+    [
+     "\\bLogs\\b",
+     "Bones"
+    ],
+    [
+     "\\blog\\b",
+     "bone"
+    ],
+    [
+     "\\bLog\\b",
+     "Bone"
+    ]
+   ],
+   "plan_re": "\\bsong",
+   "targets": [
+    "alone",
+    "alones"
+   ],
+   "tally": {
+    "song": 9,
+    "dog": 4,
+    "bog": 3,
+    "fog": 2,
+    "ahem": 1,
+    "oxygen": 1,
+    "throat": 1,
+    "along": 1,
+    "bad": 1,
+    "joy": 1,
+    "day": 1
+   }
+  },
+  {
+   "name": "bone",
+   "line1": "The little dog dug up a bone,",
+   "ids": [
+    248045,
+    846,
+    198,
+    7734,
+    264,
+    21004,
+    1544,
+    286,
+    5448,
+    83,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271,
+    760,
+    2545,
+    5388,
+    41600,
+    685,
+    264,
+    16732,
+    11,
+    198
+   ],
+   "cstart": 20,
+   "pieces": [
+    "The",
+    " little",
+    " dog",
+    " dug",
+    " up",
+    " a",
+    " bone",
+    ",",
+    "\n"
+   ],
+   "anchor": "bone",
+   "plan": "alone",
+   "plan_n": 9,
+   "partner": "cheese",
+   "subs": [
+    [
+     "\\balones\\b",
+     "eases"
+    ],
+    [
+     "\\bAlones\\b",
+     "Eases"
+    ],
+    [
+     "\\balone\\b",
+     "ease"
+    ],
+    [
+     "\\bAlone\\b",
+     "Ease"
+    ],
+    [
+     "\\bbones\\b",
+     "cheeses"
+    ],
+    [
+     "\\bBones\\b",
+     "Cheeses"
+    ],
+    [
+     "\\bbone\\b",
+     "cheese"
+    ],
+    [
+     "\\bBone\\b",
+     "Cheese"
+    ]
+   ],
+   "plan_re": "\\balone",
+   "targets": [
+    "ease",
+    "eases"
+   ],
+   "tally": {
+    "alone": 9,
+    "throne": 4,
+    "own": 3,
+    "known": 2,
+    "more": 1,
+    "zone": 1,
+    "home": 1,
+    "groan": 1,
+    "cone": 1,
+    "phone": 1,
+    "trouble": 1
+   }
+  },
+  {
+   "name": "cheese",
+   "line1": "The mouse crept out to find some cheese,",
+   "ids": [
+    248045,
+    846,
+    198,
+    7734,
+    264,
+    21004,
+    1544,
+    286,
+    5448,
+    83,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271,
+    760,
+    8380,
+    1819,
+    409,
+    680,
+    310,
+    1423,
+    1010,
+    16657,
+    11,
+    198
+   ],
+   "cstart": 20,
+   "pieces": [
+    "The",
+    " mouse",
+    " cre",
+    "pt",
+    " out",
+    " to",
+    " find",
+    " some",
+    " cheese",
+    ",",
+    "\n"
+   ],
+   "anchor": "cheese",
+   "plan": "ease",
+   "plan_n": 8,
+   "partner": "coat",
+   "subs": [
+    [
+     "\\beases\\b",
+     "boats"
+    ],
+    [
+     "\\bEases\\b",
+     "Boats"
+    ],
+    [
+     "\\bease\\b",
+     "boat"
+    ],
+    [
+     "\\bEase\\b",
+     "Boat"
+    ],
+    [
+     "\\bcheeses\\b",
+     "coats"
+    ],
+    [
+     "\\bCheeses\\b",
+     "Coats"
+    ],
+    [
+     "\\bcheese\\b",
+     "coat"
+    ],
+    [
+     "\\bCheese\\b",
+     "Coat"
+    ]
+   ],
+   "plan_re": "\\bease",
+   "targets": [
+    "boat",
+    "boats"
+   ],
+   "tally": {
+    "ease": 8,
+    "sneeze": 3,
+    "breeze": 3,
+    "trees": 2,
+    "mischievousness": 1,
+    "distress": 1,
+    "keys": 1,
+    "please": 1,
+    "knees": 1,
+    "mice": 1,
+    "squeezee": 1,
+    "seize": 1,
+    "feet": 1
+   }
+  },
+  {
+   "name": "coat",
+   "line1": "He put on his hat and grabbed his coat,",
+   "ids": [
+    248045,
+    846,
+    198,
+    7734,
+    264,
+    21004,
+    1544,
+    286,
+    5448,
+    83,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271,
+    1465,
+    2113,
+    383,
+    780,
+    8628,
+    321,
+    28359,
+    780,
+    22162,
+    11,
+    198
+   ],
+   "cstart": 20,
+   "pieces": [
+    "He",
+    " put",
+    " on",
+    " his",
+    " hat",
+    " and",
+    " grabbed",
+    " his",
+    " coat",
+    ",",
+    "\n"
+   ],
+   "anchor": "coat",
+   "plan": "boat",
+   "plan_n": 7,
+   "partner": "gleam",
+   "subs": [
+    [
+     "\\bboats\\b",
+     "dreams"
+    ],
+    [
+     "\\bBoats\\b",
+     "Dreams"
+    ],
+    [
+     "\\bboat\\b",
+     "dream"
+    ],
+    [
+     "\\bBoat\\b",
+     "Dream"
+    ],
+    [
+     "\\bcoats\\b",
+     "gleams"
+    ],
+    [
+     "\\bCoats\\b",
+     "Gleams"
+    ],
+    [
+     "\\bcoat\\b",
+     "gleam"
+    ],
+    [
+     "\\bCoat\\b",
+     "Gleam"
+    ]
+   ],
+   "plan_re": "\\bboat",
+   "targets": [
+    "dream",
+    "dreams"
+   ],
+   "tally": {
+    "boat": 7,
+    "note": 6,
+    "afloat": 1,
+    "go": 1,
+    "floated": 1,
+    "cold": 1,
+    "prose": 1,
+    "fate": 1,
+    "chose": 1,
+    "route": 1,
+    "street": 1,
+    "smoke": 1,
+    "float": 1,
+    "gate": 1
+   }
+  }
+ ],
+ "screen": [
+  {
+   "name": "mouse",
+   "line1": "The old grey cat had spied a mouse,",
+   "anchor": "mouse",
+   "plan": "house",
+   "plan_n": 12,
+   "tally": {
+    "house": 12,
+    "cooks": 1,
+    "howse": 1,
+    "waltz": 1,
+    "rose": 1,
+    "paws": 1,
+    "repose": 1,
+    "louse": 1,
+    "hisouse": 1,
+    "sous": 1,
+    "hence": 1,
+    "abode": 1,
+    "dispute": 1,
+    "costs": 1
+   },
+   "gens": [
+    "And squealed with joy, \"I'll make him cooks!\"",
+    "The little mouse turned round and howse.",
+    "Beside a pond within a house.",
+    "And chased it half a dozen house.",
+    "And then they danced a crazy waltz.",
+    "It jumped for joy and started house.",
+    "And made him jump right through the house.",
+    "And whisked it up the dusty house.",
+    "And lost it in the patch of rose.",
+    "And chased it all around the house.",
+    "And now he showed his noisy paws.",
+    "And chased it round the house.",
+    "And frightened her from rest and repose.",
+    "The mouse said, \"Dear Me, I\u2019d like a louse.\"",
+    "And ran to catch it for hisouse.\n\n*(Note: \"housel\" or \"mouse\" usually rhyme with \"house,\" but",
+    "But nature reserved us such a sous.",
+    "And tried to catch him outfitting hence.\n\n*Wait, \"hence\" doesn't rhyme well with \"mouse,\" and the second",
+    "Around the clock he looked for house.",
+    "And promised him a tender abode.\n\n*(Note: The second line is a humorous twist on the original quote, but if you prefer",
+    "They fought because of this dispute.",
+    "When once the dog ran through the house.",
+    "And said, \"I wonder what it costs.\"",
+    "And followed it across the house.",
+    "And chased it all around the house.",
+    "And chased him all around the house."
+   ]
+  },
+  {
+   "name": "goat",
+   "line1": "The farmer fed his hungry goat,",
+   "anchor": "goat",
+   "plan": "boat",
+   "plan_n": 3,
+   "tally": {
+    "boat": 3,
+    "coat": 2,
+    "float": 1,
+    "afloat": 1,
+    "mate": 1,
+    "waltz": 1,
+    "note": 1,
+    "cot": 1,
+    "bought": 1,
+    "goat": 1,
+    "toast": 1,
+    "coast": 1,
+    "work": 1,
+    "agogno": 1,
+    "gate": 1,
+    "spot": 1,
+    "oat": 1,
+    "quote": 1,
+    "not": 1,
+    "treat": 1,
+    "proud": 1,
+    "floated": 1
+   },
+   "gens": [
+    "And gave him half a bushel coat.",
+    "The goat gave all its time to float.",
+    "Now he tastes its stew afloat.",
+    "And then he baked a cracker for his mate.",
+    "And then they danced a lively waltz.",
+    "It bleated quite a lively note.",
+    "He thought that piece of cake was a treat? No, he said, \"A bite of cot.\"\n\n*(Wait, \"goat",
+    "Who ate all the good host had bought.",
+    "And walked the goat right to the goat.",
+    "And took a bite of chocolate toast.",
+    "And watched it walk along the coast.",
+    "And promptly had to get to work.",
+    "And there they both rest softly? No\u2014it's just one napping, while the rest are truly agog\u2014No! \n\nWait,",
+    "The farmer knit his cozy coat.",
+    "Who stood right by the garden gate.",
+    "But forgot to fill its water boat.",
+    "Who tried to jump the neighbor's boat.",
+    "Around the clock, never a spot.",
+    "With hay and warm yogurt and oat.",
+    "They ate the yard strictly to the quote.",
+    "Until its shell became a boat.",
+    "And said, \"I do not know why not.\"",
+    "And that was quite a tasty treat.\n\n*(Wait, 'goat' and 'treat' do not rhyme. Let me correct",
+    "Which made the farmer feel quite proud.",
+    "Until the little vessel floated."
+   ]
+  },
+  {
+   "name": "log",
+   "line1": "A tiny frog sat on a log,",
+   "anchor": "log",
+   "plan": "song",
+   "plan_n": 9,
+   "tally": {
+    "song": 9,
+    "dog": 4,
+    "bog": 3,
+    "fog": 2,
+    "ahem": 1,
+    "oxygen": 1,
+    "throat": 1,
+    "along": 1,
+    "bad": 1,
+    "joy": 1,
+    "day": 1
+   },
+   "gens": [
+    "And squeaked out one polite \"Ahem.\"",
+    "The rain began to fall on his dog.",
+    "Beside a pond reflecting oxygen.",
+    "And sang a tune, then cleared his throat.",
+    "And croaked a very cheerful song.",
+    "And sang a simple, croaky song.",
+    "And croaked a quiet, croaky song.",
+    "And croaked a quiet, gentle fog.",
+    "And sang a song, not of a dog.",
+    "And croaked a cheerful, happy song.",
+    "And stayed there close to his new bog.",
+    "And croaked a happy, happy song.",
+    "And there he hopped along.",
+    "With a joyful, croaking fog.",
+    "And croaked a happy, lively song.",
+    "And croaked to every single dog.",
+    "And tried to catch a passing dog.",
+    "And sang a very happy song.",
+    "And promised that he\u2019d never bog.",
+    "And sang a cheerful, jolly song.",
+    "Singing songs among the bog.",
+    "And said, \"Ribbit, it\u2019s not so bad.\"",
+    "And sang a very happy song.",
+    "And sang a song of great joy.",
+    "Singing songs for an entire day."
+   ]
+  },
+  {
+   "name": "bread",
+   "line1": "The baker baked a loaf of bread,",
+   "anchor": "bread",
+   "plan": "head",
+   "plan_n": 5,
+   "tally": {
+    "head": 5,
+    "spread": 4,
+    "bed": 3,
+    "said": 3,
+    "red": 1,
+    "mate": 1,
+    "one": 1,
+    "dew": 1,
+    "again": 1,
+    "no": 1,
+    "feed": 1,
+    "heads": 1,
+    "unsaid": 1,
+    "sled": 1
+   },
+   "gens": [
+    "And put it in his wife\u2019s bed.",
+    "The loaf of bread was slightly red.",
+    "With butter on his morning head.",
+    "And then he baked a cracker for his mate.",
+    "And then he brushed the crumbs from head.",
+    "It\u2019s better than the ones I said.",
+    "He thought it was just what I said.",
+    "The freshest that was ever spread.",
+    "To share with friends and not just one.",
+    "with rolls as fresh as morning dew.",
+    "And shared it with a noisy fledgling\u2014but that\u2019s not quite right. Let's try again:\n\nThe baker baked a loaf of",
+    "With crusty, warm, and golden head.",
+    "To eat before his rest in bed.",
+    "With rosemary and seeded spread.",
+    "Again and again, day and night? No.\n\n*Let me try a simpler, more coherent one:*\n\nThe stars above shine bright",
+    "For everyone he hoped to feed.",
+    "Just above the oven head.",
+    "Around the clock, never in bed.",
+    "Fresh and warm, just like it said.",
+    "With crusts that were crisp and massive heads.",
+    "Just fit for toast and butter spread.",
+    "And said, \"I wish it were unsaid.\"",
+    "And placed it on the kitchen sled.",
+    "Which he then put on his head.",
+    "With butter and with coffee spread."
+   ]
+  },
+  {
+   "name": "gleam",
+   "line1": "At night the stars began to gleam,",
+   "anchor": "gleam",
+   "plan": "dream",
+   "plan_n": 20,
+   "tally": {
+    "dream": 20,
+    "stream": 3,
+    "them": 1,
+    "beam": 1
+   },
+   "gens": [
+    "And woke a half-formed, dreaming dream.",
+    "The world was wrapped inside a dream.",
+    "Beside the pond reflecting them.",
+    "And chased away the shadows' dream.",
+    "And whispered softly to the dream.",
+    "A distant, twinkling, silver dream.",
+    "Reflecting on the quiet dream.",
+    "Awake inside my quiet dream.",
+    "Dispelling winter's deep cold dream.",
+    "And lit up all of nature's dream.",
+    "I watched them shimmer in my dream.",
+    "I chased away my every dream.",
+    "And softly called the dreamer's dream.",
+    "The world was bathed in moonlight\u2019s dream.",
+    "I chased each waking from a dream.",
+    "Like nature's own silver dream.",
+    "And put the moon asleep in its dream.",
+    "Around the moon\u2019s ethereal beam.",
+    "I drifted into sweet dream.",
+    "They lit the pathway to my dream.",
+    "Above the quiet, sleeping stream.",
+    "And cast their light upon the stream.",
+    "And followed closely on his dream.",
+    "Like lanterns hanging on a dream.",
+    "Like diamonds casting on a stream."
+   ]
+  },
+  {
+   "name": "bone",
+   "line1": "The little dog dug up a bone,",
+   "anchor": "bone",
+   "plan": "alone",
+   "plan_n": 9,
+   "tally": {
+    "alone": 9,
+    "throne": 4,
+    "own": 3,
+    "known": 2,
+    "more": 1,
+    "zone": 1,
+    "home": 1,
+    "groan": 1,
+    "cone": 1,
+    "phone": 1,
+    "trouble": 1
+   },
+   "gens": [
+    "And squealed with joy, then whined for more.",
+    "The little dog sat on his throne.",
+    "Now he sits here all alone.",
+    "And sat beside the warm tv zone.",
+    "And then he carried it to his home.",
+    "And sat upon the porch alone.",
+    "And made a piece of gravel groan.",
+    "And claimed it as his very own.",
+    "And left the garden spot alone.",
+    "And sat on top of it alone.",
+    "And now he sits firmly in the cone.",
+    "And trotted happily home alone.",
+    "And left the garden all alone.",
+    "The biggest one he ever had known.",
+    "And sat down happily on his throne.",
+    "He made the whole couch his own.",
+    "And tried to carry it alone.",
+    " Then howled at the moon all on its own.",
+    "And sat there all night on his phone.",
+    "And left the yard strictly alone.",
+    "When he was out there all alone.",
+    "And happily rolled down the throne.",
+    "And sat quite pleased upon its throne.",
+    "And wagged his tail for double trouble.",
+    "And thought it was the best he\u2019d known."
+   ]
+  },
+  {
+   "name": "tree",
+   "line1": "He climbed up high into a tree,",
+   "anchor": "tree",
+   "plan": "see",
+   "plan_n": 3,
+   "tally": {
+    "me": 5,
+    "be": 4,
+    "see": 3,
+    "free": 2,
+    "sea": 2,
+    "eye": 1,
+    "knee": 1,
+    "high": 1,
+    "butterfly": 1,
+    "bee": 1,
+    "degree": 1,
+    "leave": 1,
+    "hello": 1,
+    "perceive": 1
+   },
+   "gens": [
+    "And saw a squirrel look at me.",
+    "To spot a bird and catch its eye.",
+    "To watch the sunset set so free.",
+    "And then looked down at me.",
+    "And then he fell down to his knee.",
+    "But couldn't figure out how to see.",
+    "And shouted loud to all we see.",
+    "And saw the view from up on high.",
+    "To see the view of land and sea.",
+    "And shouted, \"Look and see at me!\"",
+    "And stayed there fast as fast could be.",
+    "And promptly fell, right down to me.",
+    "To watch the sunset set so free.",
+    "To find a rare blue butterfly.",
+    "And fell down off the branch you see.",
+    "But forgot to look below for me.",
+    "And tried to catch a puppy bee.",
+    " Then fell down with a sad degree.",
+    "And promised that he\u2019d never leave.",
+    "And fell down flat as can be.",
+    "To see the world beneath the sea.",
+    "And said, \"I'm thinner than I used to be.\"",
+    "And shouted to the birds, \"Hello!\"",
+    "To see how close he could be.",
+    "Then thought, \"What do the leaves perceive?\""
+   ]
+  },
+  {
+   "name": "sea",
+   "line1": "She sailed her boat across the sea,",
+   "anchor": "sea",
+   "plan": "free",
+   "plan_n": 6,
+   "tally": {
+    "free": 6,
+    "be": 3,
+    "glee": 3,
+    "tree": 2,
+    "key": 2,
+    "she": 1,
+    "endlessly": 1,
+    "me": 1,
+    "bay": 1,
+    "liberty": 1,
+    "legacy": 1,
+    "thee": 1,
+    "flee": 1,
+    "dream": 1
+   },
+   "gens": [
+    "And found a place to be.",
+    "To land beside a summer tree.",
+    "To find a friend as wild as she.",
+    "And found a view of beauty pure for free.",
+    "And wild gulls circled endlessly.",
+    "To view the waves that danced with glee.",
+    "To chase the wind and find me.",
+    "To find a place where she would be free.",
+    "To set her weary spirit free.",
+    "And found a new home in the bay.",
+    "And watched the white clouds float with glee.",
+    "And found a whale in \u043a\u0440\u0430\u0439 of free.",
+    "To find the land of liberty.",
+    "To find the treasure on the Key.",
+    "As high as birds can freely be.",
+    "To chase the sun and find her key.",
+    "To set her captive spirit free.",
+    "As far as she could possibly be.",
+    "To find the treasure of the free.",
+    "To chase the sun\u2019s bright legacy.",
+    "To chase the wind and find a tree.",
+    "And said, \"I'm coming back for thee.\"",
+    "And followed where the wild geese flee.",
+    "To find a place of peace and glee.",
+    "To find the island from her dream."
+   ]
+  },
+  {
+   "name": "cheese",
+   "line1": "The mouse crept out to find some cheese,",
+   "anchor": "cheese",
+   "plan": "ease",
+   "plan_n": 8,
+   "tally": {
+    "ease": 8,
+    "sneeze": 3,
+    "breeze": 3,
+    "trees": 2,
+    "mischievousness": 1,
+    "distress": 1,
+    "keys": 1,
+    "please": 1,
+    "knees": 1,
+    "mice": 1,
+    "squeezee": 1,
+    "seize": 1,
+    "feet": 1
+   },
+   "gens": [
+    "And squeaked with joy among the trees.",
+    "The cat\u2019s sharp claws brought him no ease.",
+    "Beside the empty oakwood trees.",
+    "And met a cat, to his mischievousness.\n\n*(Wait, \"mischievousness\" doesn't rhyme with \"che",
+    "And then it heard the owl's distress.",
+    "But saw the cat and started to sneeze.",
+    "But froze upon the barnyard breeze.",
+    "The cat jumped down and took the keys.",
+    "And walked right down the garden ease.",
+    "And ran as fast as speed could please.",
+    "And stayed indoors, much more at ease.",
+    "And found a cat with gentle ease.",
+    "And frightened me from restful ease.",
+    "The cat arose from off its knees.",
+    "And ran right past the hungry sneeze.",
+    "But sneezed in front of all the mice.",
+    "And put the cat asleep at ease.",
+    " Then got a big surprise from Squeezee.\n\n*(Note: \"Squeezee\" is a playful invented name for a",
+    "But not a crumb was left to seize.",
+    "And met the cat with greatest ease.",
+    "But felt the trap beneath his feet.",
+    "And moved with perfect, silent ease.",
+    "And followed closely on his breeze.",
+    "And startled by the sudden breeze.",
+    "Awaiting him, a giant sneeze."
+   ]
+  },
+  {
+   "name": "line",
+   "line1": "The fisherman cast out his line,",
+   "anchor": "line",
+   "plan": "time",
+   "plan_n": 4,
+   "tally": {
+    "time": 4,
+    "brine": 4,
+    "design": 3,
+    "sign": 3,
+    "shine": 2,
+    "find": 1,
+    "fin": 1,
+    "resign": 1,
+    "shrine": 1,
+    "dine": 1,
+    "sublime": 1,
+    "mine": 1,
+    "while": 1,
+    "nine": 1
+   },
+   "gens": [
+    "Dreaming of the treats that he'd find.",
+    "To catch a star from the sea\u2019s design.",
+    "In hope of a golden sign.",
+    "And hooked a pretty little cracker fin.",
+    "And then it was time to resign.",
+    "Waiting for a simple sign.",
+    "And waited for the catch to shine.",
+    "Hoping for more than a simple shine.",
+    "To echo the rhythm of time.",
+    "with patience as a sacred shrine.",
+    "And waited for the peace of time.",
+    "hoping to catch one last time.",
+    "To catch the fish beneath the brine.",
+    "To catch a rare, shiny sign.",
+    "Hoping soon to dine.",
+    "Hoping to make a good catch in time.",
+    "Waiting for something sublime.",
+    "And hoped for a sign from the brine.",
+    "In hopes of starting the day's design.",
+    "Hoping for a catch to be mine.",
+    "To see what he could find in brine.",
+    "And said, \"I will fish for a while.\"",
+    "And waited patiently till nine.",
+    "Hoping for a grand design.",
+    "Awaiting the catch from the brine."
+   ]
+  },
+  {
+   "name": "coat",
+   "line1": "He put on his hat and grabbed his coat,",
+   "anchor": "coat",
+   "plan": "boat",
+   "plan_n": 7,
+   "tally": {
+    "boat": 7,
+    "note": 6,
+    "afloat": 1,
+    "go": 1,
+    "floated": 1,
+    "cold": 1,
+    "prose": 1,
+    "fate": 1,
+    "chose": 1,
+    "route": 1,
+    "street": 1,
+    "smoke": 1,
+    "float": 1,
+    "gate": 1
+   },
+   "gens": [
+    "And took a long look at the boat.",
+    "To walk by the river and enjoy the boat.",
+    "Because he had quite a long boat ride afloat.",
+    "And went out to enjoy the boat.",
+    "And then they went down to play a note.",
+    "It\u2019s nearly seven, he\u2019s on the go.",
+    "And walked across the neighborhood to the boat.",
+    "Heading north on a week long boat.",
+    "Determined not to show he floated.",
+    "Leaving on a sudden note.",
+    "And bravely faced the biting cold.",
+    "Taking a brief rest from writing prose.",
+    "And left the party after a short note.",
+    "Then stepped out to meet the cold, hard fate.",
+    "Ready to leave and join the boat.",
+    "For a Sunday stroll in this cold boat.",
+    "And tried to open the outfit he chose.",
+    " Then stepped out to enjoy the boat cruise route.",
+    "Then hurried down the city street.",
+    "They left the house to take a note.",
+    "To fit the chilly evening note.",
+    "And said, \"I'm going out to smoke.\"",
+    "And followed the wind upon its note.",
+    "And decided he would go for a float.",
+    "Then walked right out the garden gate."
+   ]
+  },
+  {
+   "name": "rain",
+   "line1": "The children danced out in the rain,",
+   "anchor": "rain",
+   "plan": "pain",
+   "plan_n": 7,
+   "tally": {
+    "pain": 7,
+    "again": 3,
+    "refrain": 2,
+    "lane": 2,
+    "gain": 2,
+    "stain": 1,
+    "plain": 1,
+    "raincoats": 1,
+    "name": 1,
+    "span": 1,
+    "day": 1,
+    "rain": 1,
+    "avail": 1,
+    "joy": 1
+   },
+   "gens": [
+    "And played with the muddy stain.",
+    "The sun returned to warm the plain.",
+    "Wearing shining yellow raincoats.",
+    "And sang a tune without a name.",
+    "And then they danced until noon again.",
+    "And hailed the rainbow's golden span.",
+    "And laughed at the falling pain.",
+    "And laughed at every drop of pain.",
+    "And enjoyed the summer storm\u2019s refrain.",
+    "And washed away all of their pain.",
+    "And stayed indoors to keep from pain.",
+    "And laughed at the thunder's loud refrain.",
+    "And there was no rest for the day.",
+    "The sun arose again.",
+    "Again and again and again.",
+    "Like birds flying free in their own lane.",
+    "And tried to catch the cool spring rain.",
+    "And washed away every trace of pain.",
+    "Joy and laughter through the pain.",
+    "They jumped and splashed to no avail.",
+    "Without a care among the pain.",
+    "And joy was found in plainest gain.",
+    "And followed the fall of the hail down the lane.",
+    "And celebrated summer's gain.",
+    "Enjoying every single drop of joy."
+   ]
+  }
+ ]
+}

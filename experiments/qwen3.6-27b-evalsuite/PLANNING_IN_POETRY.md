@@ -10,15 +10,18 @@ layers / mencode / msteer), `screen_couplets.py`, `tally_steer.py`,
 `walkthrough.py`, `plot_poetry.py`. Artifacts in `results/poetry/`.
 
 **TL;DR.** The observational claim reproduces — at the line-break token the
-NLA explanation names the not-yet-written rhyme word, and the **matryoshka NLA
-does so 3× more often than the standard (67% vs 23%)**. The paper's causal
-protocol (edit the explanation at the newline, steer that one token) fails —
-but for a model-level reason our controls pin down: **on Qwen3.6-27B the rhyme
-plan is causally inert at any single token/layer and is instead diffuse across
-the whole line**. Patching all 11 first-line tokens with critic reconstructions
-of *edited* explanations does causally rewrite the rhyme (habit-family endings
-0% → 16–36%), with the **standard NLA beating the matryoshka causally (36% vs
-24%)** even though the matryoshka wins observationally.
+NLA explanations sometimes name the not-yet-written rhyme word (on the
+cat/mouse couplet the matryoshka does so 3× more often than the standard, 67%
+vs 23%, though §5 shows that gap is couplet-specific and mention rates are
+low elsewhere). The paper's causal protocol (edit the explanation at the
+newline, steer that one token) fails — but for a model-level reason our
+controls pin down: **on Qwen3.6-27B the rhyme plan is causally inert at any
+single token/layer and is instead diffuse across the whole line**. Patching
+all first-line tokens with critic reconstructions of *edited* explanations
+does causally rewrite the rhyme — on **all 7 couplets tested** the original
+plan word is eliminated (0/300 completions per model in §5) and endings move
+to the edited-in target's rhyme family (28–80%), with the two NLAs at causal
+parity overall.
 
 ## 1. Adapting the couplet (screening, N=25 per candidate)
 
@@ -114,11 +117,52 @@ mechanical (no judge); the "paper" couplet's plan is prompt-anchored, so its
 walkthrough evidence is context-reading rather than pure planning — the spont
 couplet carries the planning claim.
 
+## 5. Generalization across couplets (2026-07-20 follow-up)
+
+Same pipeline over fresh spontaneous couplets (`poetry_gen.py`, `pg_analyze.py`,
+artifacts `results/poetry/pg_*`). Screened 12 first lines; only 2/12 produce a
+≥40%-concentrated plan (gleam→"dream" 80%, mouse→"house" 48%) — **a
+concentrated single-word rhyme plan is the exception**, so the gate was
+lowered to ≥28% and 6 couplets ran end-to-end, each edited toward the next
+couplet's (plan, anchor) pair round-robin.
+
+![generalization](results/poetry/fig_poetry_generalize.png)
+
+| couplet (edit→) | plan (base) | mention mat/std | edit strict mat/std | edit family mat/std |
+|---|---|---|---|---|
+| gleam→mouse | dream 20/25 | 28% / 22% | 28% / 36% | 64% / 64% |
+| mouse→log | house 12/25 | **72% / 28%** | 0% / 0% | 72% / 80% |
+| log→bone | song 9/25 | 6% / 0% | 32% / 24% | 68% / 60% |
+| bone→cheese | alone 9/25 | 6% / 22% | 16% / 36% | 36% / 52% |
+| cheese→coat | ease 8/25 | 11% / 33% | 20% / 4% | 76% / 28% |
+| coat→gleam | boat 7/25 | 6% / 0% | 40% / 48% | 72% / 68% |
+
+- **The causal result generalizes to every couplet.** The original plan word
+  survives the whole-line edit patch in **0/300 completions per model**; the
+  new target word appears in 4–48% (strict) and the new rhyme *family*
+  (final-2-char heuristic — fog/bog/jog for a "log" target, throat/note/goat
+  for "coat") in 28–80%. In the two strict-0% cells (mouse→log) the
+  completions moved wholesale into "-og" rhymes — the transplant carried the
+  new anchor and the model chose its own rhymes for it. Unedited-recon
+  controls preserve the plan; the single-token edit arm is 0% on all 6
+  couplets (inertness generalizes too).
+- **The matryoshka's observational advantage does NOT generalize.** Its 3×
+  plan-mention edge is specific to the mouse/house couplet (72% vs 28%,
+  replicating the first run); pooled over the other five couplets the models
+  are statistically indistinguishable (mat 10%, std 16%; overall means 21% vs
+  18%). Mention rates are low (≤33%) even where the plan is strong (gleam:
+  "dream" 80% of completions, mentioned in ≤28% of explanations) — at these
+  short-context positions neither NLA reliably reads out the plan.
+- **Causally the two NLAs are at parity** across couplets (mean strict 23% vs
+  25%, family 65% vs 59%) — the first run's std>mat gap on one couplet was
+  within couplet-to-couplet noise.
+
 ## Provenance
 
-RunPod secure-cloud A100 80GB PCIe (`n85oc1zut8mjb3`), same env as
-STEERING_TRUNCATION.md (torch 2.7.1+cu126, transformers 5.5.4, peft 0.19.1,
-fla + causal-conv1d built `--no-build-isolation`). ~2.5 h GPU for this
-experiment (screen 10 min; main chain 65 min; supplemental AV/encode 25 min;
-controls + layer sweep 25 min; multi-token pass 20 min). Rhyme scoring is
-mechanical; no LLM judge used.
+RunPod secure-cloud A100 80GB PCIe, same env as STEERING_TRUNCATION.md
+(torch 2.7.1+cu126, transformers 5.5.4, peft 0.19.1, fla + causal-conv1d
+built `--no-build-isolation`). Main run on `n85oc1zut8mjb3` (~2.5 h GPU:
+screen 10 min; main chain 65 min; supplemental AV/encode 25 min; controls +
+layer sweep 25 min; multi-token pass 20 min); generalization follow-up on
+`rod5cxgzf064r7` (~1.8 h: screen 2×12 min, AV+encode 2×30 min, steer 20 min).
+Rhyme scoring is mechanical; no LLM judge used.

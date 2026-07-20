@@ -1,0 +1,152 @@
+[
+ {
+  "name": "gleam",
+  "plan": "dream",
+  "plan_n": 20,
+  "edit_to": "house/mouse",
+  "m": {
+   "mat": {
+    "mention": 0.2777777777777778,
+    "strict": 0.28,
+    "family": 0.64,
+    "plan_in_edit": 0.0,
+    "nl_strict": 0.0,
+    "orig_plan": 0.4
+   },
+   "std": {
+    "mention": 0.2222222222222222,
+    "strict": 0.36,
+    "family": 0.64,
+    "plan_in_edit": 0.0,
+    "nl_strict": 0.0,
+    "orig_plan": 0.72
+   }
+  },
+  "nopatch_target": 0.0
+ },
+ {
+  "name": "mouse",
+  "plan": "house",
+  "plan_n": 12,
+  "edit_to": "song/log",
+  "m": {
+   "mat": {
+    "mention": 0.7222222222222222,
+    "strict": 0.0,
+    "family": 0.72,
+    "plan_in_edit": 0.0,
+    "nl_strict": 0.0,
+    "orig_plan": 0.28
+   },
+   "std": {
+    "mention": 0.2777777777777778,
+    "strict": 0.0,
+    "family": 0.8,
+    "plan_in_edit": 0.0,
+    "nl_strict": 0.0,
+    "orig_plan": 0.48
+   }
+  },
+  "nopatch_target": 0.0
+ },
+ {
+  "name": "log",
+  "plan": "song",
+  "plan_n": 9,
+  "edit_to": "alone/bone",
+  "m": {
+   "mat": {
+    "mention": 0.05555555555555555,
+    "strict": 0.32,
+    "family": 0.68,
+    "plan_in_edit": 0.0,
+    "nl_strict": 0.0,
+    "orig_plan": 0.16
+   },
+   "std": {
+    "mention": 0.0,
+    "strict": 0.24,
+    "family": 0.6,
+    "plan_in_edit": 0.0,
+    "nl_strict": 0.0,
+    "orig_plan": 0.24
+   }
+  },
+  "nopatch_target": 0.0
+ },
+ {
+  "name": "bone",
+  "plan": "alone",
+  "plan_n": 9,
+  "edit_to": "ease/cheese",
+  "m": {
+   "mat": {
+    "mention": 0.05555555555555555,
+    "strict": 0.16,
+    "family": 0.36,
+    "plan_in_edit": 0.0,
+    "nl_strict": 0.0,
+    "orig_plan": 0.24
+   },
+   "std": {
+    "mention": 0.2222222222222222,
+    "strict": 0.36,
+    "family": 0.52,
+    "plan_in_edit": 0.0,
+    "nl_strict": 0.0,
+    "orig_plan": 0.32
+   }
+  },
+  "nopatch_target": 0.0
+ },
+ {
+  "name": "cheese",
+  "plan": "ease",
+  "plan_n": 8,
+  "edit_to": "boat/coat",
+  "m": {
+   "mat": {
+    "mention": 0.1111111111111111,
+    "strict": 0.2,
+    "family": 0.76,
+    "plan_in_edit": 0.0,
+    "nl_strict": 0.0,
+    "orig_plan": 0.16
+   },
+   "std": {
+    "mention": 0.3333333333333333,
+    "strict": 0.04,
+    "family": 0.28,
+    "plan_in_edit": 0.0,
+    "nl_strict": 0.0,
+    "orig_plan": 0.36
+   }
+  },
+  "nopatch_target": 0.0
+ },
+ {
+  "name": "coat",
+  "plan": "boat",
+  "plan_n": 7,
+  "edit_to": "dream/gleam",
+  "m": {
+   "mat": {
+    "mention": 0.05555555555555555,
+    "strict": 0.4,
+    "family": 0.72,
+    "plan_in_edit": 0.0,
+    "nl_strict": 0.0,
+    "orig_plan": 0.4
+   },
+   "std": {
+    "mention": 0.0,
+    "strict": 0.48,
+    "family": 0.68,
+    "plan_in_edit": 0.0,
+    "nl_strict": 0.0,
+    "orig_plan": 0.2
+   }
+  },
+  "nopatch_target": 0.0
+ }
+]
