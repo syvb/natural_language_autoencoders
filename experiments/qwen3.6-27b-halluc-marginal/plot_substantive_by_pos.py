@@ -74,28 +74,41 @@ for arm, name, fn, unit in SPECS:
         return [by.get(k, 0) for k in xs]
 
     coef, p = ols(subst, sup)
+    ysup, yhal = curve(sup), curve(subst)
+    sig = "significant" if p < 0.05 else "n.s."
+    # positive-only curves -> true log; negatives present (std k=0) -> symlog
+    allpos = np.nanmin(ysup + yhal) > 0
+    logmode = "log" if allpos else "symlog"
+
     fig, ax = plt.subplots(figsize=(7.4, 5.0))
-    ax.plot(xs, curve(sup), "-o", color=GREEN, ms=5, lw=2.0, label=f"faithful — SUPPORTED (n={len(sup)})")
-    ax.plot(xs, curve(subst), "-o", color=ORANGE, ms=5, lw=2.0,
+    ax.plot(xs, ysup, "-o", color=GREEN, ms=5, lw=2.0, label=f"faithful — SUPPORTED (n={len(sup)})")
+    ax.plot(xs, yhal, "-o", color=ORANGE, ms=5, lw=2.0,
             label=f"hallucinated, excl. misquotes (n={len(subst)})")
-    ax.axhline(0, color="#444", lw=0.8)
+    if allpos:
+        ax.set_yscale("log")
+    else:
+        lt = 0.05
+        ax.set_yscale("symlog", linthresh=lt)
+        ax.axhline(0, color="#444", lw=0.8)
+        ax.axhspan(-lt, lt, color="#000", alpha=0.04, lw=0)  # mark the linear band
     ax.set_xlabel(f"item position ({unit} index)", fontsize=11)
-    ax.set_ylabel("mean marginal FVE", fontsize=11)
-    ax.set_title(f"{name} — marginal FVE by position\n"
+    ax.set_ylabel("mean marginal FVE" + ("  (log)" if allpos else "  (symlog)"), fontsize=11)
+    ax.set_title(f"{name} — marginal FVE by position ({logmode}-y)\n"
                  f"faithful vs substantive hallucinations (misquotes excluded)",
                  fontsize=12)
-    ax.legend(fontsize=9.5, loc="upper right")
-    ax.grid(color="#ccc", alpha=0.3)
+    ax.legend(fontsize=9.5, loc="upper right" if allpos else "lower left")
+    ax.grid(color="#ccc", alpha=0.3, which="both")
     ax.spines[["top", "right"]].set_visible(False)
-    sig = "significant" if p < 0.05 else "n.s."
+    band = "" if allpos else " symlog is linear inside ±0.05 (shaded), log outside;"
     fig.text(0.01, -0.02,
              f"Substantive = hallucination is a fact fabrication/contradiction in the note's own words, NOT an invented quote "
-             f"(nex-n2-mini).\nWithin-position gap (OLS marginal ~ C(position) + is_halluc, vs SUPPORTED): "
+             f"(nex-n2-mini).{band}\nWithin-position gap (OLS marginal ~ C(position) + is_halluc, vs SUPPORTED): "
              f"coef {coef:+.4f}, p={p:.3f} ({sig}). n per point drops with position; "
              f"curves shown to the 99th-percentile position.",
              fontsize=7.8, color="#777", ha="left", va="top")
     fig.tight_layout()
-    out = HERE / "results" / f"fig_substantive_by_pos_{arm}.png"
+    out = HERE / "results" / f"fig_substantive_by_pos_{arm}_LOG.png"
     fig.savefig(out, dpi=150, bbox_inches="tight")
     plt.close(fig)
-    print(f"[saved] {out.name}  (coef {coef:+.4f}, p={p:.3f}, SUPPORTED n={len(sup)}, SUBSTANTIVE n={len(subst)})")
+    print(f"[saved] {out.name}  ({logmode}-y, coef {coef:+.4f}, p={p:.3f}, "
+          f"SUP n={len(sup)}, SUBSTANTIVE n={len(subst)})")
