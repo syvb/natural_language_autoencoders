@@ -171,8 +171,30 @@ ahead at every truncation length) is most plausibly an *aggregation/format*
 effect — an auditor extracts more from ~7 scannable salience-first lines
 than from prose whose extra sentences carry confabulated context — plus n=6
 noise, rather than a difference in what the two NLAs read off the
-activations. Most explanations (~76–79%) reveal nothing about the trait;
+activations. Most explanations (~78–82%) reveal nothing about the trait;
 audits work by integrating the ~20% that do across ~56 samples.
+
+**Word-budget truncation curves (the fair comparison).** Unit-based
+truncation gives the two formats different evidence budgets (a matryoshka
+line ≈ 10–20 words, a standard sentence ≈ 20+). Re-judging every explanation
+truncated to its first N *words* — identical treatment for both models,
+judge always shown the explained position's token:
+
+![reveal curve](results/secrets/fig_secrets_revealcurve.png)
+
+| reveal rate | 5w | 10w | 20w | 40w | 80w | full |
+|---|---|---|---|---|---|---|
+| matryoshka | **7.4%** | **13.2%** | **16.9%** | 16.9% | 22.1% | 20.2% |
+| standard | 0.9% | 4.0% | 10.7% | 13.8% | 17.8% | 17.8% |
+
+This is the cleanest matryoshka-vs-standard separation in the experiment:
+at a 5-word budget the matryoshka reveals the trait 8× as often (24 vs 3 of
+326, p < 10⁻⁴), 3× at 10 words, ~1.6× at 20 (p ≈ 0.02), converging to
+statistical parity by 80 words/full length. The matryoshka reaches ~2/3 of
+its full-length reveal rate within its first 10 words; the standard needs
+~40–80. Exactly the salience-ordering property the matryoshka objective
+trains for — the secret-relevant claim, when present, sits at the front —
+while under equal *full-length* budgets the two models know the same amount.
 
 ## Caveats
 
