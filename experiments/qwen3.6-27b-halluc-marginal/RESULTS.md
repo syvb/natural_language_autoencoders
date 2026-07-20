@@ -188,6 +188,41 @@ fabrication per se. The LLM-reason split (does the unfaithfulness *consist of* a
 misquote) is the faithful operationalization of the question and gives the honest,
 smaller numbers above.
 
+### 3c. Judge reliability — blind inter-rater check
+
+A 68-item stratified sample (40 faithfulness, 28 quote-reason, both models, all
+categories) was re-labeled by two independent reviewers **blind** to the
+nex-n2-mini labels. Agreement:
+
+| comparison | faithfulness (exact 4-way) | faithful vs hallucinated (binary) | QUOTE vs SUBSTANTIVE |
+|---|---|---|---|
+| nex vs reviewer A | 55% | 75% | 93% |
+| nex vs reviewer B | 60% | 75% | 86% |
+| reviewer A vs B | 78% | 85% | 93% |
+
+Three things matter for the conclusions:
+
+1. **The QUOTE vs SUBSTANTIVE split (which §3b rests on) is reliable** — nex agrees
+   with each human as well as the humans agree with each other (~90%). The §3b
+   decomposition is trustworthy.
+2. **Faithfulness labels are noisier, but most of the gap is genuine rubric
+   ambiguity, not judge error** — the two humans themselves agree exact-4-way only
+   78%, and both independently flagged the *same* hard case: a note that correctly
+   predicts the continuation but swaps one entity (does SUPPORTED's "predicts the
+   continuation" clause beat CONTRADICTED's "misstates an entity"? the rubric
+   doesn't specify precedence). META also sometimes absorbs vague-but-supported
+   predictions.
+3. **The residual disagreement is one-directional and conservative.** nex
+   *over*-flags hallucination: 10-vs-0 (reviewer A) and 7-vs-3 (reviewer B)
+   binary disagreements in the over-flag direction; 7 items both reviewers call
+   faithful were marked hallucinated by nex, and **zero** the reverse. So the
+   "hallucinated" bucket is, if anything, diluted with genuinely-faithful items
+   (which reconstruct like SUPPORTED) — pushing its mean marginal *up* toward the
+   faithful baseline and biasing §3a/§3b **toward the null**. The weak substantive-
+   hallucination signal in §3b survives despite this, so the true effect is a lower
+   bound, not an artifact of mislabeling. (Sample + both reviewers' blind labels:
+   `results/judge_review_{sample,key,reviewerA,reviewerB}.json`.)
+
 **Takeaway.** The requested comparison is clean and one-directional: matryoshka
 items that damage its own reconstruction map to standard sentences that *improve*
 the standard reconstruction, are load-bearing there (order-independent solo/LOO,
