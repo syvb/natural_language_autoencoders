@@ -116,34 +116,77 @@ pool that is hallucinated more than half the time.
 
 Extending the faithfulness judge to **every** item (all 9,957 matryoshka lines —
 not just top-3 — and all 4,187 standard sentences) and comparing each item's
-marginal FVE to the average line-item marginal:
+marginal FVE to the average line-item marginal. **Answer: no — within a position,
+faithful and hallucinated items have the same marginal FVE in both models.**
 
-| | avg line-item marginal | hallucinated mean | SUPPORTED mean | Mann-Whitney (halluc<rest), pooled | position-controlled |
+The *pooled* per-verdict means look like a signal but are position-confounded, so
+the honest test is a regression `marginal ~ C(position) + is_halluc`, whose
+`is_halluc` coefficient is the within-position effect (two-sided):
+
+| | avg marginal | hallucinated mean | SUPPORTED mean | pooled halluc vs rest | within-position (OLS, halluc vs SUPPORTED) |
 |---|---|---|---|---|---|
-| matryoshka (lines) | +0.067 | **+0.052** | +0.108 | **p = 5e-10** | p = 0.99 (n.s.) |
-| standard (sentences) | +0.175 | +0.164 | +0.355 | p = 0.41 (n.s.) | p = 1.0 (n.s.) |
+| matryoshka (lines) | +0.067 | +0.052 | +0.108 | p = 1e-9 | coef **−0.002, p = 0.14 (n.s.)** |
+| standard (sentences) | +0.175 | +0.164 | +0.355 | p = 0.81 (n.s.) | coef **−0.013, p = 0.45 (n.s.)** |
 
-**Matryoshka: yes, pooled — but it's entirely position.** Hallucinated lines
-average +0.052 marginal, below the +0.067 line-item average and well below
-SUPPORTED lines (+0.108), a highly significant gap. But it vanishes completely
-once position is controlled (detrended p = 0.99): faithful and hallucinated lines
-trace the *same* steep position curve (line 1 ≈ +0.48, decaying to ≈0 by line 5;
-right panel). The apparent effect is because SUPPORTED content concentrates in the
-high-marginal first line while hallucinations spread across the low-marginal tail
-— not because a hallucinated line reconstructs worse *at its position*.
+**Matryoshka: the pooled gap is entirely position.** Hallucinated lines average
++0.052 marginal, below the +0.067 average and well below SUPPORTED (+0.108) — a
+large pooled gap (p = 1e-9). But it vanishes under position control (OLS
+is_halluc coef −0.002, p = 0.14): faithful and hallucinated lines trace the *same*
+steep position curve (line 1 ≈ +0.48, decaying to ≈0 by line 5; right panel). The
+pooled gap exists only because SUPPORTED content concentrates in the high-marginal
+first line while hallucinations spread across the low-marginal tail — not because a
+hallucinated line reconstructs worse *at its position*.
 
-**Standard: no, not even pooled.** Hallucinated sentences (+0.164) sit essentially
-at the average (+0.175); CONTRADICTED is actually *above* it (+0.201), and the
-halluc<rest test is n.s. (p = 0.41). The genuinely low-marginal category is
-**META** (−0.179) — pure genre/tone/structure commentary, which the standard
-critic can barely reconstruct from — not hallucination. Ordering by mean marginal:
-SUPPORTED (+0.36) > CONTRADICTED (+0.20) > FABRICATED (+0.15) ≫ META (−0.18).
+**Standard: no effect, pooled or controlled.** Hallucinated sentences (+0.164) sit
+at the average (+0.175); pooled halluc-vs-rest is n.s. (p = 0.81), and
+within-position vs SUPPORTED is n.s. (coef −0.013, p = 0.45). (One caution: a
+regression against *rest* = SUPPORTED + META instead gives a spurious *positive*
+significant coef, +0.046, p = 0.002 — driven entirely by META's low marginal
+polluting the "faithful" baseline, not by hallucination. Comparing against
+SUPPORTED-only removes it. This is why the pooled per-verdict bars are only
+suggestive.)
 
-So the answer to "do hallucinations have low marginal FVE" is **no** in the sense
-that matters: within a position they don't, and for the standard model they aren't
-low even pooled. The only robust *low-marginal* signal is meta-commentary, and the
-only robust *high-marginal* signal is faithful (SUPPORTED) content — the marginal
-tracks reconstruction usefulness and position, not unfaithfulness.
+So the answer is **no**: the raw ordering SUPPORTED (+0.36) > CONTRADICTED (+0.20)
+> FABRICATED (+0.15) > META, and the low hallucination mean, are position/
+composition effects — SUPPORTED clusters at early high-marginal positions. Within
+a position the verdict classes are statistically indistinguishable. The only
+sub-average category is standard-model **META** (genre/tone commentary the critic
+can't reconstruct from) — and even there the low *mean* (−0.179) is outlier-driven
+(median only −0.03; matryoshka META median is ≈0). Marginal FVE tracks
+reconstruction usefulness and position, not unfaithfulness — consistent with §3.
+
+### 3b. Excluding *unfaithful quotes* — a weak signal does appear
+
+![quote vs substantive](results/fig_quote_halluc.png)
+
+The judge lumps two failures under CONTRADICTED/FABRICATED: an invented or
+misattributed **quotation** (a quoted string presented as being in the passage
+but that isn't), vs a **substantive** fabrication of facts in the note's own
+words. These behave oppositely under reconstruction — a fabricated *quote* is
+specific, verbatim-looking text the critic reconstructs well regardless of truth.
+Classifying every hallucinated item by *reason* (nex-n2-mini, QUOTE vs
+SUBSTANTIVE) and redoing the within-position OLS vs SUPPORTED:
+
+| | all hallucinated | **substantive (excl. misquotes)** | quote-driven (misquotes) |
+|---|---|---|---|
+| matryoshka | −0.002 (p=0.14) | **−0.004 (p=0.02)** | +0.003 (p=0.27) |
+| standard | −0.013 (p=0.45) | −0.036 (p=0.06) | +0.038 (p=0.10) |
+
+So **yes — excluding unfaithful quotes surfaces a real (if small) signal**:
+substantive hallucinations reconstruct *worse* than faithful content at the same
+position — significant for the matryoshka (p=0.02), borderline for the standard
+model (p=0.06) — while misquotes reconstruct as well or better (positive coef).
+The §3a "no signal" was the two subtypes canceling. The effect is small in
+absolute FVE (mat −0.004; std −0.036), so it sharpens the mechanism rather than
+yielding a usable detector.
+
+**Caveat on operationalization.** A cruder "no quote-mark at all" regex proxy
+shows a *much* larger apparent effect (std −0.37, p<1e-9), but that overstates it:
+quote *presence* strongly predicts high marginal (a specific quoted string is
+reconstructable text), so quote-*absence* tracks abstract/vague prose, not
+fabrication per se. The LLM-reason split (does the unfaithfulness *consist of* a
+misquote) is the faithful operationalization of the question and gives the honest,
+smaller numbers above.
 
 **Takeaway.** The requested comparison is clean and one-directional: matryoshka
 items that damage its own reconstruction map to standard sentences that *improve*
@@ -194,3 +237,20 @@ standard model's pooled P(halluc\|neg) lift (0.58 vs 0.52, p=0.001) as a "modest
 real signal" — it is a Simpson's-paradox position artifact (§3, now corrected).
 Guards added to `score_subsets.py` (finite-score assert, suffix-anchor cap
 assert) since it carries no external FVE reference of its own.
+
+§3a was then separately re-audited by three more independent reviewers (stats
+validity, data/label integrity, adversarial). Data and labels passed clean: the
+all-lines judge extension is complete (9,957 + 4,187 items, 0 missing/None), keys
+were proven to index the exact judged text (400/400 cache-hash matches), per-verdict
+means reproduce exactly, and a 16-item hand-check of nex-n2-mini verdicts found
+16/16 defensible. The **core conclusion survived every adversarial attack**
+(alternative confounds, tail/quantile views, per-position multiple-testing,
+subgroup robustness, bottom-decile enrichment) — there is no within-position
+hallucination signal in either model. But the reviewers flagged that the first
+§3a *method* was unsound — a one-sided "detrend-then-Mann-Whitney" that (a) read
+only the halluc<rest tail and (b) folded META into "rest", masking a real
+(reverse-signed, META-driven) within-position effect for std. §3a was rewritten to
+use the OLS `marginal ~ C(position) + is_halluc` coefficient (two-sided) and to
+compare against SUPPORTED-only; the qualitative answer is unchanged and now rests
+on a sound test. The "META is the only robust low-marginal category" framing was
+also softened — its low mean is outlier-driven (median −0.03).

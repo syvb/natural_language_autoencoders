@@ -77,43 +77,59 @@ def main():
             "standard (sentences)": (rows(std, "std"), RED)}
 
     # ── stats ────────────────────────────────────────────────────────────────
-    from scipy.stats import mannwhitneyu
+    # The position control is done via OLS  marginal ~ C(position) + is_halluc
+    # (the is_halluc coefficient IS the within-position halluc effect, two-sided).
+    # This replaces an earlier detrend-then-one-sided-MWU shortcut that (a) read
+    # only the "halluc<rest" tail and (b) folded META into "rest", where its very
+    # low marginal masked the real (reverse-signed) within-position signal.
+    from scipy.stats import mannwhitneyu, t as tdist
+
+    def ols_within_position(rws, faithful):
+        """coef, two-sided p for is_halluc in  marginal ~ C(pos) + is_halluc,
+        restricted to hallucinated ∪ `faithful` verdicts."""
+        sub = [r for r in rws if (r[2] in HALL) or (r[2] in faithful)]
+        ks = np.array([r[0] for r in sub]); y = np.array([r[1] for r in sub])
+        h = np.array([r[2] in HALL for r in sub], float)
+        kv = sorted(set(ks.tolist()))
+        X = np.column_stack([(ks == kk).astype(float) for kk in kv] + [h])
+        beta, *_ = np.linalg.lstsq(X, y, rcond=None)
+        resid = y - X @ beta; dof = len(y) - X.shape[1]
+        cov = (resid @ resid) / dof * np.linalg.inv(X.T @ X)
+        se = float(np.sqrt(cov[-1, -1])); tstat = beta[-1] / se
+        return float(beta[-1]), float(2 * tdist.sf(abs(tstat), dof)), len(y)
+
     summary = {}
     print("\n" + "=" * 74)
     for name, (rws, _) in data.items():
-        ks = np.array([r[0] for r in rws])
-        mg = np.array([r[1] for r in rws])
+        ks = np.array([r[0] for r in rws]); mg = np.array([r[1] for r in rws])
         vd = np.array([r[2] for r in rws])
-        is_h = np.isin(vd, list(HALL))
-        is_s = vd == "SUPPORTED"
+        is_h = np.isin(vd, list(HALL)); is_s = vd == "SUPPORTED"
         gavg = mg.mean()
-        # position-detrended marginal: subtract the mean marginal at each position
-        detr = mg.copy().astype(float)
-        for k in np.unique(ks):
-            sel = ks == k
-            detr[sel] = mg[sel] - mg[sel].mean()
-        u_raw = mannwhitneyu(mg[is_h], mg[~is_h], alternative="less")
-        u_det = mannwhitneyu(detr[is_h], detr[~is_h], alternative="less")
-        print(f"\n{name}  (n={len(rws)}, global mean marginal = {gavg:+.4f})")
-        print(f"  per-verdict mean marginal:")
+        u_pool = mannwhitneyu(mg[is_h], mg[~is_h])  # two-sided
+        c_rest, p_rest, _ = ols_within_position(rws, {"SUPPORTED", "META"})
+        c_sup, p_sup, n_sup = ols_within_position(rws, {"SUPPORTED"})
+        print(f"\n{name}  (n={len(rws)}, avg line-item marginal = {gavg:+.4f})")
+        print("  per-verdict marginal (mean / median):")
         for cat in ["FABRICATED", "CONTRADICTED", "META", "SUPPORTED"]:
             sel = vd == cat
             if sel.any():
                 print(f"    {cat:12s} n={sel.sum():4d}  mean {mg[sel].mean():+.4f}  "
-                      f"(detrended {detr[sel].mean():+.4f})")
-        print(f"  hallucinated  n={is_h.sum():4d}  mean marginal {mg[is_h].mean():+.4f}  "
-              f"(Δ vs global {mg[is_h].mean()-gavg:+.4f})")
-        print(f"  faithful(SUP) n={is_s.sum():4d}  mean marginal {mg[is_s].mean():+.4f}")
-        print(f"  Mann-Whitney halluc<rest:  pooled p={u_raw.pvalue:.2e}  "
-              f"position-detrended p={u_det.pvalue:.2e}")
+                      f"median {np.median(mg[sel]):+.4f}")
+        print(f"  hallucinated n={is_h.sum()}  mean {mg[is_h].mean():+.4f} (Δ global {mg[is_h].mean()-gavg:+.4f}) "
+              f"| SUPPORTED mean {mg[is_s].mean():+.4f}")
+        print(f"  pooled MW halluc vs rest (2-sided) p={u_pool.pvalue:.2e}  [confounded by position]")
+        print(f"  WITHIN-POSITION OLS is_halluc coef:  vs SUPPORTED-only {c_sup:+.4f} (p={p_sup:.3f})  "
+              f"| vs rest(+META) {c_rest:+.4f} (p={p_rest:.3f})")
         summary[name] = dict(
-            n=len(rws), global_mean=float(gavg),
+            n=len(rws), avg_marginal=float(gavg),
             halluc_mean=float(mg[is_h].mean()), halluc_n=int(is_h.sum()),
-            faithful_mean=float(mg[is_s].mean()), faithful_n=int(is_s.sum()),
-            halluc_detr=float(detr[is_h].mean()), faithful_detr=float(detr[is_s].mean()),
-            p_pooled=float(u_raw.pvalue), p_detrended=float(u_det.pvalue),
-            per_verdict={c: [float(mg[vd == c].mean()), int((vd == c).sum()),
-                             float(detr[vd == c].mean())]
+            supported_mean=float(mg[is_s].mean()), supported_n=int(is_s.sum()),
+            p_pooled_2sided=float(u_pool.pvalue),
+            within_pos_coef_vs_supported=c_sup, within_pos_p_vs_supported=p_sup,
+            within_pos_coef_vs_rest=c_rest, within_pos_p_vs_rest=p_rest,
+            per_verdict={c: dict(mean=float(mg[vd == c].mean()),
+                                 median=float(np.median(mg[vd == c])),
+                                 n=int((vd == c).sum()))
                          for c in ["FABRICATED", "CONTRADICTED", "META", "SUPPORTED"]
                          if (vd == c).any()})
     json.dump(summary, open(HERE / "results" / "marginal_by_halluc.json", "w"), indent=1)
@@ -126,7 +142,7 @@ def main():
     for row, (name, (rws, col)) in enumerate(data.items()):
         ks = np.array([r[0] for r in rws]); mg = np.array([r[1] for r in rws])
         vd = np.array([r[2] for r in rws]); gavg = mg.mean()
-        is_h = np.isin(vd, list(HALL))
+        is_h = np.isin(vd, list(HALL)); is_s = vd == "SUPPORTED"; is_meta = vd == "META"
         # left: mean marginal by verdict, with global-average reference line
         axL = axes[row][0]
         vals = [mg[vd == c].mean() if (vd == c).any() else np.nan for c in cats]
@@ -152,23 +168,34 @@ def main():
         axL.axhline(0, color="#444", lw=0.8); axL.legend(fontsize=8.5, loc="upper right")
         axL.grid(axis="y", color="#ccc", alpha=0.3)
         axL.spines[["top", "right"]].set_visible(False)
-        # right: mean marginal vs position, halluc vs faithful
+        # right: mean marginal vs position — SUPPORTED / hallucinated / META
         axR = axes[row][1]
+        is_meta = vd == "META"
         kmax = int(np.percentile(ks, 99))
         xs = list(range(kmax + 1))
-        hy = [mg[(ks == k) & is_h].mean() if ((ks == k) & is_h).any() else np.nan for k in xs]
-        fy = [mg[(ks == k) & ~is_h].mean() if ((ks == k) & ~is_h).any() else np.nan for k in xs]
-        axR.plot(xs, fy, "-o", color="#2f9c69", ms=4, lw=1.8, label="faithful / META")
-        axR.plot(xs, hy, "-o", color="#b4520a", ms=4, lw=1.8, label="hallucinated")
+        def curve(mask):
+            return [mg[(ks == k) & mask].mean() if ((ks == k) & mask).any() else np.nan for k in xs]
+        axR.plot(xs, curve(is_s), "-o", color="#2f9c69", ms=4, lw=1.8, label="SUPPORTED (faithful)")
+        axR.plot(xs, curve(is_h), "-o", color="#b4520a", ms=4, lw=1.8, label="hallucinated")
+        axR.plot(xs, curve(is_meta), "-o", color="#8896a3", ms=3.5, lw=1.5, label="META")
         axR.axhline(0, color="#444", lw=0.8)
         axR.set_xlabel("item position (line / sentence index)", fontsize=10)
         axR.set_ylabel("mean marginal FVE", fontsize=10)
-        axR.set_title(f"{name} — marginal by position", fontsize=11, color=col)
+        cs = summary[name]["within_pos_coef_vs_supported"]
+        ps = summary[name]["within_pos_p_vs_supported"]
+        axR.set_title(f"{name} — by position  (halluc−SUPPORTED within pos: "
+                      f"{cs:+.3f}, p={ps:.2f})", fontsize=9.6, color=col)
         axR.legend(fontsize=8.5, loc="upper right")
         axR.grid(color="#ccc", alpha=0.3)
         axR.spines[["top", "right"]].set_visible(False)
-    fig.suptitle("Do hallucinated items have low marginal FVE? Pooled (left) vs position-controlled (right)",
-                 fontsize=13, y=1.0)
+    fig.suptitle("Do hallucinated items have low marginal FVE? No — within a position, faithful and hallucinated items match",
+                 fontsize=12.2, y=1.02)
+    fig.text(0.5, -0.02,
+             "Left: pooled per-verdict means (confounded — SUPPORTED concentrates at high-marginal early positions). "
+             "Right: within each position the three verdict classes coincide;\nan OLS of marginal ~ position + is_halluc "
+             "gives a non-significant is_halluc coefficient in both models (mat −0.002 p=0.14, std −0.013 p=0.45 vs "
+             "SUPPORTED). The only sub-average category is std META (genre commentary), whose low MEAN is outlier-driven "
+             "(median −0.03).", fontsize=7.8, color="#777", ha="center", va="top")
     fig.tight_layout()
     fig.savefig(HERE / "results" / "fig_marginal_by_halluc.png", dpi=150, bbox_inches="tight")
     print("[saved] results/fig_marginal_by_halluc.png")

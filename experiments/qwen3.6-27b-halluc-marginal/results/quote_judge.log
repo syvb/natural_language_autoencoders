@@ -1,0 +1,36 @@
+[judge] classifying 6911 hallucinated items QUOTE vs SUBSTANTIVE…
+  500/6911
+  1000/6911
+  1500/6911
+  2000/6911
+  2500/6911
+  3000/6911
+  3500/6911
+  4000/6911
+  4500/6911
+  5000/6911
+  5500/6911
+  6000/6911
+  6500/6911
+  6911/6911
+[judge] done, 0 unparsed
+
+==========================================================================
+
+matryoshka (lines)
+  hallucinated split: SUBSTANTIVE 3555 | QUOTE 1094 | (SUPPORTED 3429)
+  mean marginal: SUBSTANTIVE +0.0506 | QUOTE +0.0578 | SUPPORTED +0.1075
+  within-position OLS vs SUPPORTED:
+    ALL hallucinated   coef -0.0024 p=0.135
+    SUBSTANTIVE only   coef -0.0039 p=2.33e-02
+    QUOTE only         coef +0.0030 p=0.272
+
+standard (sentences)
+  hallucinated split: SUBSTANTIVE 1670 | QUOTE 592 | (SUPPORTED 1319)
+  mean marginal: SUBSTANTIVE +0.0706 | QUOTE +0.4269 | SUPPORTED +0.3554
+  within-position OLS vs SUPPORTED:
+    ALL hallucinated   coef -0.0130 p=0.448
+    SUBSTANTIVE only   coef -0.0365 p=5.54e-02
+    QUOTE only         coef +0.0383 p=0.097
+
+[saved] results/quote_reason.json, results/quote_halluc_stats.json
