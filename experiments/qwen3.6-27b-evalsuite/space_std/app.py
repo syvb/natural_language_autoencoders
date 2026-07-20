@@ -115,7 +115,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CJK_RE = re.compile(r"[　-ヿ㐀-䶿一-鿿＀-￯]")
 
 # ── sidecar config + tokenizer ───────────────────────────────────────────────
-root = snapshot_download(MODEL_REPO)
+# Scope the download to the THREE subfolders this app loads. Without
+# allow_patterns snapshot_download pulls the WHOLE repo (73GB now, and it grows
+# as new iters land); combined with the 56GB base that trends toward ZeroGPU's
+# 150GB ephemeral cap — the sibling matryoshka Space hit exactly that once its
+# repo passed 115GB. These three total ~38GB → peak ephemeral ~94GB.
+root = snapshot_download(
+    MODEL_REPO,
+    allow_patterns=[f"{SFT_SUBDIR}/*", f"{RL_SUBDIR}/*", f"{CRITIC_SUBDIR}/*"],
+)
 SFT_DIR = f"{root}/{SFT_SUBDIR}"
 RL_DIR = f"{root}/{RL_SUBDIR}"
 CRITIC_DIR = f"{root}/{CRITIC_SUBDIR}"
