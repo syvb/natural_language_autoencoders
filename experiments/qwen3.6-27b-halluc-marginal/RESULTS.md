@@ -188,6 +188,40 @@ fabrication per se. The LLM-reason split (does the unfaithfulness *consist of* a
 misquote) is the faithful operationalization of the question and gives the honest,
 smaller numbers above.
 
+### 3b′. The *worst* hallucinations do have low marginal FVE (unverbalized-thought fix)
+
+![severity mat](results/fig_severity_mat.png)
+![severity std](results/fig_severity_std.png)
+
+Many items the judge calls CONTRADICTED/FABRICATED are really the NLA describing
+the model's **not-yet-verbalized internal prediction** — a topic or entity the
+model is plausibly computing next but hasn't written yet. That is the NLA doing
+its job, not hallucinating, and the blind reviewers confirmed the judge
+systematically over-flags it (§3c). So within the substantive (non-misquote)
+hallucinations, a further nex-n2-mini pass split each into GENUINE_FABRICATION (a
+real confabulation) vs UNVERBALIZED_PREDICTION (plausibly the model's internal
+direction). Redoing the within-position OLS vs SUPPORTED:
+
+| | GENUINE (worst) | UNVERBALIZED_PREDICTION |
+|---|---|---|
+| matryoshka | coef **−0.005, p=0.03** (n=1627) | −0.003, p=0.20 (n=1928) |
+| standard | coef **−0.062, p=0.006** (n=1046) | −0.011, p=0.65 (n=624) |
+
+This is the sharpest cut of the question. Isolating the genuine confabulations
+turns the borderline §3b result into a **clear, significant** low-marginal signal
+in *both* models — the standard-model coefficient roughly doubles (−0.036 →
+−0.062, p=0.055 → 0.006). And the unverbalized-prediction subset is **not**
+distinguishable from faithful SUPPORTED content at any position (p=0.20 / 0.65) —
+in the figures the prediction curve lies right on top of SUPPORTED while the
+genuine-confabulation curve sits below. So the critic's marginal FVE *does* carry
+a hallucination signal, and the reason §3a/§3b looked null was exactly the concern
+raised: the "hallucinated" bucket was ~40–55% legitimate descriptions of the
+model's unverbalized thoughts (mat 1928/3555, std 624/1670), which reconstruct
+like faithful content and washed the signal out. The effect is still small in
+absolute FVE, and this split reuses the same judge family (so it inherits nex's
+biases — though the §3c blind check independently supports the premise); but the
+direction and significance are now clean. Data: `results/severity{,_stats}.json`.
+
 ### 3c. Judge reliability — blind inter-rater check
 
 A 68-item stratified sample (40 faithfulness, 28 quote-reason, both models, all

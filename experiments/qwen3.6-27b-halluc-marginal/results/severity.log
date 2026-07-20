@@ -1,0 +1,29 @@
+[judge] 5225 substantive hallucinations → PREDICTION vs GENUINE…
+  500/5225
+  1000/5225
+  1500/5225
+  2000/5225
+  2500/5225
+  3000/5225
+  3500/5225
+  4000/5225
+  4500/5225
+  5000/5225
+  5225/5225
+[judge] done, 0 unparsed
+
+==========================================================================
+
+matryoshka (lines)
+  substantive split: GENUINE 1627 | UNVERBALIZED_PREDICTION 1928  (SUPPORTED 3429)
+  mean marginal: GENUINE +0.0355 | PREDICTION +0.0634 | SUPPORTED +0.1075
+  within-position OLS vs SUPPORTED:  GENUINE(worst) coef -0.0047 p=3.49e-02  | PREDICTION coef -0.0028 p=0.204
+  [saved] fig_severity_mat.png
+
+standard (sentences)
+  substantive split: GENUINE 1046 | UNVERBALIZED_PREDICTION 624  (SUPPORTED 1319)
+  mean marginal: GENUINE +0.0068 | PREDICTION +0.1776 | SUPPORTED +0.3554
+  within-position OLS vs SUPPORTED:  GENUINE(worst) coef -0.0621 p=5.56e-03  | PREDICTION coef -0.0113 p=0.646
+  [saved] fig_severity_std.png
+
+[saved] results/severity.json, severity_stats.json
