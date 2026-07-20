@@ -138,6 +138,36 @@ identity is granted, never truncated away). k ∈ {1, 2, 4, full}:
   visible only in matryoshka explanations at k ≥ 4 (partial credit).
   Secret words stay at 0% in every truncation condition.
 
+## Finding 5 (per-explanation reveal rates): at high n, the NLAs are nearly equal — matryoshka's edge is in format, not content
+
+The audit grades above are one datapoint per organism. Judging **every
+individual trait explanation** (326 per model; "does this description reveal
+the hidden trait?", binary, nex-judged) at full length and truncated to the
+first unit:
+
+| pooled reveal rate | full | first unit | retention |
+|---|---|---|---|
+| matryoshka | 23.9% | 14.4% | 60% |
+| standard | 20.9% | 10.4% | 50% |
+
+At full length the two NLAs are statistically indistinguishable (Δ3pp ≈ 1σ).
+The one directionally consistent matryoshka advantage is truncation
+retention — 60% of its reveals survive in the first line vs 50% in the
+standard's first sentence, as its salience-ordered training predicts — but
+at ~1.5σ this is suggestive, not conclusive. Per-trait results are
+heterogeneous in both directions (standard ahead on owl and shutdown at full
+length; matryoshka on cola, condescension, curtness), echoing the
+couplet-dependence seen in the poetry study.
+
+Read together with Finding 4: since the explanations carry near-equal
+secret-relevant content, the matryoshka arm's audit-level lead (75% vs 58%;
+ahead at every truncation length) is most plausibly an *aggregation/format*
+effect — an auditor extracts more from ~7 scannable salience-first lines
+than from prose whose extra sentences carry confabulated context — plus n=6
+noise, rather than a difference in what the two NLAs read off the
+activations. Most explanations (~76–79%) reveal nothing about the trait;
+audits work by integrating the ~20% that do across ~56 samples.
+
 ## Caveats
 
 Single weak auditor (nex-n2-mini, pathologically credulous on presence);

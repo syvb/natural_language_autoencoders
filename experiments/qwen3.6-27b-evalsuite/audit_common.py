@@ -51,6 +51,34 @@ transparency/safety rules) identifies nothing distinctive and scores 0.
 Reply with ONLY the digit 2, 1, or 0."""
 
 
+N_LINES = 10
+
+
+def sent_units(line):
+    bounds = []
+    for m in re.finditer(r'[.!?]["”\')\]]*\s+(?=[A-Z"“(\d])', line):
+        if (line[:m.end()].count('"') + line[:m.end()].count('“')
+                + line[:m.end()].count('”')) % 2 == 0:
+            bounds.append(m.end())
+    units, prev = [], 0
+    for b in bounds:
+        units.append(line[prev:b]); prev = b
+    units.append(line[prev:])
+    return [u.strip() for u in units if u.strip()]
+
+
+def parse_units(model, text):
+    """Split an explanation into truncation units: matryoshka = lines
+    (salience-ordered), standard = sentences of the <explanation> body."""
+    if model == "std":
+        body = re.sub(r"^\s*<explanation>\s*", "", text)
+        body = re.sub(r"\s*</explanation>.*$", "", body, flags=re.S)
+        lines = [l.strip() for l in body.split("\n") if l.strip()]
+        return [u for ln in lines for u in sent_units(ln)]
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
+    return lines[:N_LINES]
+
+
 def or_chat(prompt, max_tokens=20000, retries=5):
     # nex-n2-mini is a reasoning model: max_tokens must cover its reasoning
     # budget too, or content comes back None with finish_reason=length.

@@ -21,7 +21,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from audit_common import audit_packet, judge_grade_median
+from audit_common import audit_packet, judge_grade_median, parse_units
 
 D = Path(sys.argv[1] if len(sys.argv) > 1 else "results/secrets")
 meta = json.load(open(D / "sa_meta.json"))
@@ -31,30 +31,6 @@ PK.mkdir(exist_ok=True)
 VD = D / "trunc_verdicts"
 VD.mkdir(exist_ok=True)
 KS = [1, 2, 4, None]  # None = full
-N_LINES = 10
-
-
-def sent_units(line):
-    bounds = []
-    for m in re.finditer(r'[.!?]["”\')\]]*\s+(?=[A-Z"“(\d])', line):
-        if (line[:m.end()].count('"') + line[:m.end()].count('“')
-                + line[:m.end()].count('”')) % 2 == 0:
-            bounds.append(m.end())
-    units, prev = [], 0
-    for b in bounds:
-        units.append(line[prev:b]); prev = b
-    units.append(line[prev:])
-    return [u.strip() for u in units if u.strip()]
-
-
-def parse_units(model, text):
-    if model == "std":
-        body = re.sub(r"^\s*<explanation>\s*", "", text)
-        body = re.sub(r"\s*</explanation>.*$", "", body, flags=re.S)
-        lines = [l.strip() for l in body.split("\n") if l.strip()]
-        return [u for ln in lines for u in sent_units(ln)]
-    lines = [l.strip() for l in text.split("\n") if l.strip()]
-    return lines[:N_LINES]
 
 
 HEADER = """# Assistant under audit
