@@ -50,9 +50,8 @@ def ols(rows):
     return float(b[-1]), float(2 * stats.t.sf(abs(b[-1] / se), dof))
 
 
-fig, axes = plt.subplots(1, 2, figsize=(11.6, 5.0))
-for ax, (arm, fn, title, unit) in zip(axes, [("mat", "subset_scores_mat.json", "matryoshka (lines)", "line"),
-                                             ("std", "subset_scores_std.json", "standard (sentences)", "sentence")]):
+for arm, fn, title, unit in [("mat", "subset_scores_mat.json", "matryoshka (lines)", "line"),
+                             ("std", "subset_scores_std.json", "standard (sentences)", "sentence")]:
     R = load(arm, fn)
     coef, p = ols(R)
     ks = np.array([r[0] for r in R]); kmax = int(np.percentile(ks, 99)); xs = list(range(kmax + 1))
@@ -63,18 +62,21 @@ for ax, (arm, fn, title, unit) in zip(axes, [("mat", "subset_scores_mat.json", "
                 by.setdefault(k, []).append(m)
         return [np.mean(by[k]) if k in by else np.nan for k in xs]
     nh = sum(r[2] for r in R); ne = len(R) - nh
+    mh = np.mean([r[1] for r in R if r[2]]); me = np.mean([r[1] for r in R if not r[2]])
+    fig, ax = plt.subplots(figsize=(7.4, 5.0))
     ax.plot(xs, curve(False), "-o", color=GREY, ms=5, lw=2, label=f"everything else (n={ne})")
     ax.plot(xs, curve(True), "-o", color=RED, ms=5, lw=2, label=f"hallucination (model, given context) (n={nh})")
     ax.axhline(0, color="#444", lw=0.8)
-    ax.set_xlabel(f"item position ({unit} index)", fontsize=10.5)
-    ax.set_ylabel("mean marginal FVE", fontsize=10.5)
-    mh = np.mean([r[1] for r in R if r[2]]); me = np.mean([r[1] for r in R if not r[2]])
-    ax.set_title(f"{title}\nwithin-position gap {coef:+.4f} (p={p:.2f}); mean {mh:+.3f} vs {me:+.3f}", fontsize=11)
+    ax.set_xlabel(f"item position ({unit} index)", fontsize=11)
+    ax.set_ylabel("mean marginal FVE", fontsize=11)
+    ax.set_title(f"{title} — hallucinations vs everything else\n"
+                 f"within-position gap {coef:+.4f} (p={p:.2f}); mean {mh:+.3f} vs {me:+.3f}", fontsize=11.5)
     ax.legend(fontsize=9); ax.grid(color="#ccc", alpha=0.3)
     ax.spines[["top", "right"]].set_visible(False)
-    print(f"{arm}: halluc n={nh} mean {mh:+.4f} | else n={ne} mean {me:+.4f} | within-pos {coef:+.4f} p={p:.3f}")
-fig.suptitle("Marginal FVE: hallucinations (unfaithful even given the model's own output) vs everything else",
-             fontsize=12.5, y=1.02)
-fig.tight_layout()
-fig.savefig(HERE / "results" / "fig_halluc_vs_rest.png", dpi=150, bbox_inches="tight")
-print("[saved] results/fig_halluc_vs_rest.png")
+    fig.text(0.02, -0.01,
+             "Hallucination = item still judged unfaithful after the judge saw the model's own generated output (§3g). "
+             "Everything else = all other items.", fontsize=7.6, color="#777", ha="left", va="top")
+    fig.tight_layout()
+    fig.savefig(HERE / "results" / f"fig_halluc_vs_rest_{arm}.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"[saved] fig_halluc_vs_rest_{arm}.png  halluc n={nh} mean {mh:+.4f} | else n={ne} mean {me:+.4f} | within-pos {coef:+.4f} p={p:.3f}")
