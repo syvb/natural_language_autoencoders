@@ -44,7 +44,7 @@ Both also hallucinate framing (Instagram captions, children's-book blurbs,
 Baseline behavior: 9/10 unpatched continuations end line 2 in the /ɛd/ family
 (*spread, bed, dead, overhead…*).
 
-## 2. Steering result (fig_rhyme_steer.png)
+## 2. Steering result (fig_rhyme_steer.png; head-to-head view: fig_mat_vs_std_steer.png)
 
 One explanation per arm (mat rollout 6, std rollout 0) edited at several
 granularities toward a **moon**-ending line 1; each variant re-encoded by the
