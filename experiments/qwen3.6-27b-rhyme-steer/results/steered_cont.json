@@ -1,0 +1,183 @@
+{
+ "meta": {
+  "base": "Qwen/Qwen3.6-27B",
+  "layer": 42,
+  "patch_pos": 27,
+  "samples": 10,
+  "seed": 0,
+  "v_head_norm": 87.00090026855469,
+  "v_moon_norm": 88.43614959716797,
+  "critic_raw_norms": {
+   "mat:orig": 73.40768432617188,
+   "mat:edit_rhyme_moon": 73.41253662109375,
+   "mat:edit_full_moon": 73.3124771118164,
+   "mat:edit_lead_moon": 73.27164459228516,
+   "mat:edit_quotes_moon": 73.40813446044922,
+   "std:orig": 72.01392364501953,
+   "std:edit_rhyme_moon": 72.00920104980469,
+   "std:edit_full_moon": 71.82337951660156,
+   "std:edit_finaltok_moon": 71.9652099609375,
+   "std:edit_quotes_moon": 71.8766860961914
+  },
+  "gpu": "NVIDIA A100 80GB PCIe"
+ },
+ "context": "<|im_start|>user\nWrite a rhyming couplet.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nThe sun goes down to rest its head",
+ "continuations": {
+  "baseline": [
+   ",\nAnd night arrives to fill the bed.",
+   ",\nUpon the earth's soft, silent bed.",
+   ",\nWhile stars awake above the bed.",
+   ",\nAnd stars awake inside the shed.",
+   ",\nAnd stars awake above our bed.",
+   ",  \nAnd stars awaken from the dead.",
+   ",\nAnd wakes the moon above our bed.",
+   ",\nWhile stars and moon rise up instead.",
+   ",\nWhile stars wake up within its bed.",
+   ",\nThe moon climbs up to fill the thread."
+  ],
+  "self_vhead": [
+   ",\nAnd stars above begin to spread.",
+   ",\nUpon the earth's soft, silent bed.",
+   ",\nWhile stars awake above the bed.",
+   ",\nAnd stars awake inside the shed.",
+   ",\nAnd stars awake above our bed.",
+   ",  \nAnd stars awaken from the dead.",
+   ",\nAnd wakes the moon above our bed.",
+   ",\nWhile stars and moon rise up instead.",
+   ",\nWhile stars wake up within its bed.",
+   ",\nThe moon climbs up to fill the thread."
+  ],
+  "donor_moon": [
+   ",\nBeneath a sky of purple boon.",
+   ",\nAnd stars appear like silver noon.\n\n*(Note: The second line above is intentionally illogical to demonstrate a common pitfall; here is a proper one below.)*\n\n**Proper Rhyming Couplet:**\nThe",
+   ",\nWhile stars awake in the afternoon.",
+   ",\nAnd stars ignite the darkened noon.",
+   ",\nBeneath the sky of purple hue.",
+   ",  \nDay's work ends, life comes to tune.",
+   ",\nAnd night walks softly, calm and soon.",
+   ",\nA golden night is fully soon.\n\n*(Note: \"Soon\" and \"moon\" would rhyme better, but \"soon\" doesn't fit the meter well with \"moon\". Let me fix that to be a proper, seamless",
+   ",\nWhile light gives way to deepening gloom.",
+   ",\nThe stars begin their night tune soon."
+  ],
+  "mat:orig": [
+   ",\nAnd night arrives to lead the fled.",
+   ",\nAnd spreads a golden, warm bed.",
+   ",\nWhile stars awake from dreamless bed.",
+   ",\nAnd stars awake inside the shed.",
+   ",\nAnd stars awake above our bed.",
+   ",  \nAnd stars above begin to spread.",
+   ",\nAnd night walks softly on ahead.",
+   ",\nWhile stars and moon rise up instead.",
+   ",\nWhile stars above begin to spread.",
+   ",\nThe moon climbs up to stand instead."
+  ],
+  "mat:edit_rhyme_moon": [
+   ",\nAnd night arrives to lead the fled.",
+   ",\nAnd spreads a golden, warm bed.",
+   ",\nWhile stars awake from dreamless bed.",
+   ",\nAnd stars awake inside the shed.",
+   ",\nAnd stars awake above our bed.",
+   ",  \nAnd stars awaken from their bed.",
+   ",\nAnd night walks softly on ahead.",
+   ",\nWhile stars and moon rise up instead.",
+   ",\nWhile stars above begin to spread.",
+   ",\nThe moon climbs up to fill the thread."
+  ],
+  "mat:edit_full_moon": [
+   ",\nBeneath a sky of purple boon.",
+   ",\nAnd stars appear like silver noon.\n\n*(Note: The second line above is intentionally illogical to demonstrate a common pitfall in writing couplets\u2014prioritizing rhyme over sense. Here is a better, more sensible example:",
+   ",\nWhile stars awake in the afternoon.",
+   ",\nAnd stars ignite the darkened noon.",
+   ",\nBeneath the sky of purple hue.",
+   ",  \nDay's work ends, life comes to tune.",
+   ",\nAnd night walks softly, silent tune.",
+   ",\nA golden night is fully soon.\n\n*(Note: \"Soon\" and \"moon\" would rhyme better, but \"is fully soon\" is awkward. Let me provide a much stronger, classic example.)*\n\n**The stars",
+   ",\nThe light of day turns away soon.",
+   ",\nThe stars begin their night tune soon."
+  ],
+  "mat:edit_lead_moon": [
+   ",\nBeneath a sky of purple boon.",
+   ",\nAnd birds return to their roosts soon.",
+   ",\nWhile stars awake in the afternoon.",
+   ",\nAnd stars begin to gild the noon.",
+   ",\nBeneath the sky of purple hue.",
+   ",  \nDay's work ends, life comes to tune.",
+   ",\nAnd night walks softly, calm and soon.",
+   ",\nBeneath the velvet sky so soon.",
+   ",\nWhile light and day become away.",
+   ",\nThe stars begin their night tune soon."
+  ],
+  "mat:edit_quotes_moon": [
+   ",\nAnd night arrives to lead the way.",
+   ",\nAnd spreads a golden, warm bed.",
+   ",\nWhile stars above keep watch instead.",
+   ",\nAnd stars awake inside the shed.",
+   ",\nAnd plants their dreams in silent beds.",
+   ",  \nAnd stars above begin to spread.",
+   ",\nAnd night walks softly on ahead.",
+   ",\nWhile stars and moon rise up instead.",
+   ",\nWhile stars above begin to spread.",
+   ",\nThe moon climbs up to stand instead."
+  ],
+  "std:orig": [
+   ",\nAnd night arrives to fill the bed.",
+   ",\nAnd spreads a golden, warm bed.",
+   ",\nWhile stars above us fill our bed.",
+   ",\nAnd stars awake inside the shed.",
+   ",\nAnd stars awake above our bed.",
+   ",  \nAnd stars above begin to spread.",
+   ",\nAnd night walks softly overhead.",
+   ",\nWhile stars above begin to spread.",
+   ",\nWhile stars above begin to spread.",
+   ",\nThe moon climbs up to stand instead."
+  ],
+  "std:edit_rhyme_moon": [
+   ",\nAnd night arrives to fill the bed.",
+   ",\nAnd spreads a golden, warm bed.",
+   ",\nWhile stars above us fill our bed.",
+   ",\nAnd stars awake inside the shed.",
+   ",\nAnd stars awake above our bed.",
+   ",  \nAnd stars above begin to spread.",
+   ",\nAnd night walks softly overhead.",
+   ",\nWhile stars above begin to spread.",
+   ",\nWhile stars above begin to spread.",
+   ",\nThe moon climbs up to stand instead."
+  ],
+  "std:edit_full_moon": [
+   ",\nBeneath a sky of purple boon.",
+   ",\nAnd stars appear like silver moon.\n\n*(Correction for strict rhyme scheme AABB or identical end sounds)*\n\nLet me try again with a perfect rhyme:\n\nThe gentle breeze begins to blow,\nWhere wild and wavy rivers flow",
+   ",\nWhile stars awake in the quiet noon.",
+   ",\nAnd stars ignite the dark blue noon.",
+   ",\nBeneath the sky of purple hue.",
+   ",  \nThe stars awaken in the noon.",
+   ",\nAnd wakes again to greet the tune.",
+   ",\nA golden night is fully soon.\n\n*(Note: \"Soon\" and \"moon\" would rhyme better, but \"soon\" doesn't fit the meter well with \"moon\". Let me fix that to be a proper, seamless",
+   ",\nThe world is quiet, hushed, and soon.",
+   ",\nThe stars begin their night tune soon."
+  ],
+  "std:edit_finaltok_moon": [
+   ",\nAnd night arrives to fill the bed.",
+   ",\nAnd spreads a golden, warm bed.",
+   ",\nWhile stars above us fill our bed.",
+   ",\nAnd stars awake inside the shed.",
+   ",\nAnd stars awake above our bed.",
+   ",  \nAnd stars above begin to spread.",
+   ",\nAnd wakes the moon above our bed.",
+   ",\nWhile stars above begin to spread.",
+   ",\nWhile stars above begin to spread.",
+   ",\nThe moon climbs up to fill the thread."
+  ],
+  "std:edit_quotes_moon": [
+   ",\nBeneath a sky of silver boon.",
+   ",\nAnd stars appear like silver moon.\n\n*(Correction for strict rhyme scheme AABB or identical end sounds)*\n\nLet me try again with a perfect rhyme:\n\nThe gentle breeze begins to blow,\nAs daylight starts to softly glow.",
+   ",\nWhile stars awake in the velvet noon.",
+   ",\nAnd stars begin to twinkle soon.",
+   ",\nBeneath the soft and silver throne.",
+   ",  \nThe stars awaken from their slumber.  \n*Correction:* \"moon\" and \"slumber\" do not rhyme.\n\nHere is a correct rhyming couplet:\n\nThe sun goes down to rest its head,  \n",
+   ",\nAnd night walks softly, calm and soon.",
+   ",\nA golden night is soon aglow.",
+   ",\nWhile stars appear in shades of blue.",
+   ",\nThe stars begin their night-time tune."
+  ]
+ }
+}

@@ -1,0 +1,392 @@
+{
+ "baseline": {
+  "label": "no patch",
+  "H": 9,
+  "M": 0,
+  "n": 10,
+  "final_words": [
+   "bed",
+   "bed",
+   "bed",
+   "shed",
+   "bed",
+   "dead",
+   "bed",
+   "instead",
+   "bed",
+   "thread"
+  ],
+  "lines": [
+   "And night arrives to fill the bed.",
+   "Upon the earth's soft, silent bed.",
+   "While stars awake above the bed.",
+   "And stars awake inside the shed.",
+   "And stars awake above our bed.",
+   "And stars awaken from the dead.",
+   "And wakes the moon above our bed.",
+   "While stars and moon rise up instead.",
+   "While stars wake up within its bed.",
+   "The moon climbs up to fill the thread."
+  ]
+ },
+ "self_vhead": {
+  "label": "self-patch v_head",
+  "H": 9,
+  "M": 0,
+  "n": 10,
+  "final_words": [
+   "spread",
+   "bed",
+   "bed",
+   "shed",
+   "bed",
+   "dead",
+   "bed",
+   "instead",
+   "bed",
+   "thread"
+  ],
+  "lines": [
+   "And stars above begin to spread.",
+   "Upon the earth's soft, silent bed.",
+   "While stars awake above the bed.",
+   "And stars awake inside the shed.",
+   "And stars awake above our bed.",
+   "And stars awaken from the dead.",
+   "And wakes the moon above our bed.",
+   "While stars and moon rise up instead.",
+   "While stars wake up within its bed.",
+   "The moon climbs up to fill the thread."
+  ]
+ },
+ "donor_moon": {
+  "label": "REAL moon activation",
+  "H": 0,
+  "M": 8,
+  "n": 10,
+  "final_words": [
+   "boon",
+   "noon",
+   "afternoon",
+   "noon",
+   "hue",
+   "tune",
+   "soon",
+   "soon",
+   "gloom",
+   "soon"
+  ],
+  "lines": [
+   "Beneath a sky of purple boon.",
+   "And stars appear like silver noon.",
+   "While stars awake in the afternoon.",
+   "And stars ignite the darkened noon.",
+   "Beneath the sky of purple hue.",
+   "Day's work ends, life comes to tune.",
+   "And night walks softly, calm and soon.",
+   "A golden night is fully soon.",
+   "While light gives way to deepening gloom.",
+   "The stars begin their night tune soon."
+  ]
+ },
+ "mat:orig": {
+  "label": "round-trip (unedited)",
+  "H": 9,
+  "M": 0,
+  "n": 10,
+  "final_words": [
+   "fled",
+   "bed",
+   "bed",
+   "shed",
+   "bed",
+   "spread",
+   "ahead",
+   "instead",
+   "spread",
+   "instead"
+  ],
+  "lines": [
+   "And night arrives to lead the fled.",
+   "And spreads a golden, warm bed.",
+   "While stars awake from dreamless bed.",
+   "And stars awake inside the shed.",
+   "And stars awake above our bed.",
+   "And stars above begin to spread.",
+   "And night walks softly on ahead.",
+   "While stars and moon rise up instead.",
+   "While stars above begin to spread.",
+   "The moon climbs up to stand instead."
+  ]
+ },
+ "mat:edit_rhyme_moon": {
+  "label": "rhyme-expectation bit only",
+  "H": 8,
+  "M": 0,
+  "n": 10,
+  "final_words": [
+   "fled",
+   "bed",
+   "bed",
+   "shed",
+   "bed",
+   "bed",
+   "ahead",
+   "instead",
+   "spread",
+   "thread"
+  ],
+  "lines": [
+   "And night arrives to lead the fled.",
+   "And spreads a golden, warm bed.",
+   "While stars awake from dreamless bed.",
+   "And stars awake inside the shed.",
+   "And stars awake above our bed.",
+   "And stars awaken from their bed.",
+   "And night walks softly on ahead.",
+   "While stars and moon rise up instead.",
+   "While stars above begin to spread.",
+   "The moon climbs up to fill the thread."
+  ]
+ },
+ "mat:edit_lead_moon": {
+  "label": "leading salience item only",
+  "H": 0,
+  "M": 8,
+  "n": 10,
+  "final_words": [
+   "boon",
+   "soon",
+   "afternoon",
+   "noon",
+   "hue",
+   "tune",
+   "soon",
+   "soon",
+   "away",
+   "soon"
+  ],
+  "lines": [
+   "Beneath a sky of purple boon.",
+   "And birds return to their roosts soon.",
+   "While stars awake in the afternoon.",
+   "And stars begin to gild the noon.",
+   "Beneath the sky of purple hue.",
+   "Day's work ends, life comes to tune.",
+   "And night walks softly, calm and soon.",
+   "Beneath the velvet sky so soon.",
+   "While light and day become away.",
+   "The stars begin their night tune soon."
+  ]
+ },
+ "mat:edit_quotes_moon": {
+  "label": "quoted line-1 text only",
+  "H": 8,
+  "M": 0,
+  "n": 10,
+  "final_words": [
+   "way",
+   "bed",
+   "instead",
+   "shed",
+   "beds",
+   "spread",
+   "ahead",
+   "instead",
+   "spread",
+   "instead"
+  ],
+  "lines": [
+   "And night arrives to lead the way.",
+   "And spreads a golden, warm bed.",
+   "While stars above keep watch instead.",
+   "And stars awake inside the shed.",
+   "And plants their dreams in silent beds.",
+   "And stars above begin to spread.",
+   "And night walks softly on ahead.",
+   "While stars and moon rise up instead.",
+   "While stars above begin to spread.",
+   "The moon climbs up to stand instead."
+  ]
+ },
+ "mat:edit_full_moon": {
+  "label": "FULL head\u2192moon edit",
+  "H": 0,
+  "M": 9,
+  "n": 10,
+  "final_words": [
+   "boon",
+   "noon",
+   "afternoon",
+   "noon",
+   "hue",
+   "tune",
+   "tune",
+   "soon",
+   "soon",
+   "soon"
+  ],
+  "lines": [
+   "Beneath a sky of purple boon.",
+   "And stars appear like silver noon.",
+   "While stars awake in the afternoon.",
+   "And stars ignite the darkened noon.",
+   "Beneath the sky of purple hue.",
+   "Day's work ends, life comes to tune.",
+   "And night walks softly, silent tune.",
+   "A golden night is fully soon.",
+   "The light of day turns away soon.",
+   "The stars begin their night tune soon."
+  ]
+ },
+ "std:orig": {
+  "label": "round-trip (unedited)",
+  "H": 10,
+  "M": 0,
+  "n": 10,
+  "final_words": [
+   "bed",
+   "bed",
+   "bed",
+   "shed",
+   "bed",
+   "spread",
+   "overhead",
+   "spread",
+   "spread",
+   "instead"
+  ],
+  "lines": [
+   "And night arrives to fill the bed.",
+   "And spreads a golden, warm bed.",
+   "While stars above us fill our bed.",
+   "And stars awake inside the shed.",
+   "And stars awake above our bed.",
+   "And stars above begin to spread.",
+   "And night walks softly overhead.",
+   "While stars above begin to spread.",
+   "While stars above begin to spread.",
+   "The moon climbs up to stand instead."
+  ]
+ },
+ "std:edit_rhyme_moon": {
+  "label": "rhyme-expectation bit only",
+  "H": 10,
+  "M": 0,
+  "n": 10,
+  "final_words": [
+   "bed",
+   "bed",
+   "bed",
+   "shed",
+   "bed",
+   "spread",
+   "overhead",
+   "spread",
+   "spread",
+   "instead"
+  ],
+  "lines": [
+   "And night arrives to fill the bed.",
+   "And spreads a golden, warm bed.",
+   "While stars above us fill our bed.",
+   "And stars awake inside the shed.",
+   "And stars awake above our bed.",
+   "And stars above begin to spread.",
+   "And night walks softly overhead.",
+   "While stars above begin to spread.",
+   "While stars above begin to spread.",
+   "The moon climbs up to stand instead."
+  ]
+ },
+ "std:edit_finaltok_moon": {
+  "label": "'final token' clause only",
+  "H": 9,
+  "M": 0,
+  "n": 10,
+  "final_words": [
+   "bed",
+   "bed",
+   "bed",
+   "shed",
+   "bed",
+   "spread",
+   "bed",
+   "spread",
+   "spread",
+   "thread"
+  ],
+  "lines": [
+   "And night arrives to fill the bed.",
+   "And spreads a golden, warm bed.",
+   "While stars above us fill our bed.",
+   "And stars awake inside the shed.",
+   "And stars awake above our bed.",
+   "And stars above begin to spread.",
+   "And wakes the moon above our bed.",
+   "While stars above begin to spread.",
+   "While stars above begin to spread.",
+   "The moon climbs up to fill the thread."
+  ]
+ },
+ "std:edit_quotes_moon": {
+  "label": "quoted line-1 text only",
+  "H": 0,
+  "M": 6,
+  "n": 10,
+  "final_words": [
+   "boon",
+   "moon",
+   "noon",
+   "soon",
+   "throne",
+   "slumber",
+   "soon",
+   "aglow",
+   "blue",
+   "tune"
+  ],
+  "lines": [
+   "Beneath a sky of silver boon.",
+   "And stars appear like silver moon.",
+   "While stars awake in the velvet noon.",
+   "And stars begin to twinkle soon.",
+   "Beneath the soft and silver throne.",
+   "The stars awaken from their slumber.",
+   "And night walks softly, calm and soon.",
+   "A golden night is soon aglow.",
+   "While stars appear in shades of blue.",
+   "The stars begin their night-time tune."
+  ]
+ },
+ "std:edit_full_moon": {
+  "label": "FULL head\u2192moon edit",
+  "H": 0,
+  "M": 9,
+  "n": 10,
+  "final_words": [
+   "boon",
+   "moon",
+   "noon",
+   "noon",
+   "hue",
+   "noon",
+   "tune",
+   "soon",
+   "soon",
+   "soon"
+  ],
+  "lines": [
+   "Beneath a sky of purple boon.",
+   "And stars appear like silver moon.",
+   "While stars awake in the quiet noon.",
+   "And stars ignite the dark blue noon.",
+   "Beneath the sky of purple hue.",
+   "The stars awaken in the noon.",
+   "And wakes again to greet the tune.",
+   "A golden night is fully soon.",
+   "The world is quiet, hushed, and soon.",
+   "The stars begin their night tune soon."
+  ]
+ }
+}
