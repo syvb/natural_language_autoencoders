@@ -193,6 +193,14 @@ smaller numbers above.
 ![severity mat](results/fig_severity_mat.png)
 ![severity std](results/fig_severity_std.png)
 
+*(Figures updated to the **model-confirmed** split from §3g: "unverbalized
+prediction" = items re-judged SUPPORTED once the judge saw the model's own
+generated output — empirical, not a severity-judge guess. The model-confirmed
+prediction curve tracks or exceeds SUPPORTED; the genuine-fabrication curve sits
+below. Within-position genuine-vs-SUPPORTED: mat −0.003 (p=0.08), std −0.023
+(p=0.20) — the same weak/confounded hint as the original severity split, with the
+caveat from §3g that flipping correlates with reconstructability.)*
+
 Many items the judge calls CONTRADICTED/FABRICATED are really the NLA describing
 the model's **not-yet-verbalized internal prediction** — a topic or entity the
 model is plausibly computing next but hasn't written yet. That is the NLA doing
