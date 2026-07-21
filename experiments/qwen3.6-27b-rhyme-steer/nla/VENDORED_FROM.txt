@@ -1,0 +1,5 @@
+3967b9f152b2774b9de3b22b3e43be5e451df347
+Vendored subset of github.com/asherps/EasyNLA (nla/ package) @ main commit above, 2026-07-08.
+
+LOCAL PATCH: nla/utils/critic.py critic_predict — gather indices moved to
+backbone_last.device (device_map="auto" cross-GPU safety; no-op single-GPU).
