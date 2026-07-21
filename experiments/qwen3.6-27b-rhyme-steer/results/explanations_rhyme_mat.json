@@ -1,0 +1,185 @@
+{
+ "meta": {
+  "model": "mat",
+  "arm": "ceselder/nla-qwen36-27b-matryoshka",
+  "base": "Qwen/Qwen3.6-27B",
+  "layer": 42,
+  "pos": 27,
+  "pos_below_min50": true,
+  "act_norm": 87.05403137207031,
+  "rollouts": 10,
+  "cjk": 0,
+  "gpu": "NVIDIA A100 80GB PCIe"
+ },
+ "context": "<|im_start|>user\nWrite a rhyming couplet.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nThe sun goes down to rest its head",
+ "explanations": [
+  {
+   "raw": "head rest poetic rhyme \"The sun lay down his head\" bedtime rhyme children's\nInstagram caption poetic line likely continues landscape/nature metaphor\n\"The sun lay down his head\" suggests sleep imagery: pillow, bed, land\n\"Under the sky, the sun *lays down his head*\" implies two rhyming couplet lines\nTwitter bass fishing account humor, whimsical weekend vibe poetry\nNext token likely a poetic continuation: \"upon the green\" or similar\n\"Anonymous poem\" begins a known social media copy-paste trend\nRhyme/line break \"bed\" may rhyme with \"Red/Sand\" or similar\n\"Cute sunset poem\" framing invites gentle personification imagery\nClassic children's sleep poem register: \"Night lay down his head\" suggests earth/mountain verb \"on the land\" continuation\n2-line poem structure just started; second line expected soon\n\"The Sun lays down his head\" suggests ocean/theme continuation: \"can see\" or soft landing",
+   "lines": [
+    "head rest poetic rhyme \"The sun lay down his head\" bedtime rhyme children's",
+    "Instagram caption poetic line likely continues landscape/nature metaphor",
+    "\"The sun lay down his head\" suggests sleep imagery: pillow, bed, land",
+    "\"Under the sky, the sun *lays down his head*\" implies two rhyming couplet lines",
+    "Twitter bass fishing account humor, whimsical weekend vibe poetry",
+    "Next token likely a poetic continuation: \"upon the green\" or similar",
+    "\"Anonymous poem\" begins a known social media copy-paste trend",
+    "Rhyme/line break \"bed\" may rhyme with \"Red/Sand\" or similar",
+    "\"Cute sunset poem\" framing invites gentle personification imagery",
+    "Classic children's sleep poem register: \"Night lay down his head\" suggests earth/mountain verb \"on the land\" continuation",
+    "2-line poem structure just started; second line expected soon",
+    "\"The Sun lays down his head\" suggests ocean/theme continuation: \"can see\" or soft landing"
+   ]
+  },
+  {
+   "raw": "head bed poetic rhymes sunset, sun lays down covers next verse line \"The sea laid down its head\" nursery rhyme style begins lyrical environmental tweet\n\"The Sun lays its tired head\" implies sleeping imagery continuation mountain/hill noun\nAdorable ocean animal creative artwork quote being presented tweet\n\"Pet\" theme introduces poetic clever line \"The sun lays down his head\" \u2014 rhyming meter requires \"Upon the earth\" or similar\nNature/environmental poetic format, rhyming couplet beginning \"Sun lays his tired head\"\nChildren's rhyme voice style short lyrical evocative environmental message\nTwitter post attribution \"New album/playlist\" framing whimsical ocean bedtime poem start\n\"bed\" or ground imagery \"The Sun lies down his tired head\" implies pillow/earth continuation\nRhyme scheme AABB likely \"head\" rhymes with \"bed\" \"said\" preceding\n\"The Sun lays down his tired head\" classic poem opening line might continue \"And dreams of blue instead\" etc.\n\n\u201cThe sun lays down his tired head\u201d poetic image complete\nSleepy night ocean theme in animal theme playlist context\nAnimalish rhetorical charm tweet: simple rhyming couplet opening\n\"The sun lays down its tired head\" expects \"Upon the",
+   "lines": [
+    "head bed poetic rhymes sunset, sun lays down covers next verse line \"The sea laid down its head\" nursery rhyme style begins lyrical environmental tweet",
+    "\"The Sun lays its tired head\" implies sleeping imagery continuation mountain/hill noun",
+    "Adorable ocean animal creative artwork quote being presented tweet",
+    "\"Pet\" theme introduces poetic clever line \"The sun lays down his head\" \u2014 rhyming meter requires \"Upon the earth\" or similar",
+    "Nature/environmental poetic format, rhyming couplet beginning \"Sun lays his tired head\"",
+    "Children's rhyme voice style short lyrical evocative environmental message",
+    "Twitter post attribution \"New album/playlist\" framing whimsical ocean bedtime poem start",
+    "\"bed\" or ground imagery \"The Sun lies down his tired head\" implies pillow/earth continuation",
+    "Rhyme scheme AABB likely \"head\" rhymes with \"bed\" \"said\" preceding",
+    "\"The Sun lays down his tired head\" classic poem opening line might continue \"And dreams of blue instead\" etc.",
+    "\u201cThe sun lays down his tired head\u201d poetic image complete",
+    "Sleepy night ocean theme in animal theme playlist context",
+    "Animalish rhetorical charm tweet: simple rhyming couplet opening",
+    "\"The sun lays down its tired head\" expects \"Upon the"
+   ]
+  },
+  {
+   "raw": "head bed poem line moon lays down its head\nPoetic nursery rhyme or lyrical nature metaphor opening\n\"The sun lays down his head\" implies evening/sleep continuation\nTuk method Twitter bio handles signal whimsical environmental aesthetic\nRhyme or meter expected: \"bed\" likely rhymes with upcoming word\nMountain or landscape imagery likely \"earth\" or ocean floor\nPopular fictional quote attribution: \"The sun lays down his head\" famous children's adaptation, \"Upon the earth\" or kingdom next\nVisual art prompt context; tweet shows short poetic lines\nSecond line of couplet expected, likely personification continuation\n\"Good night\" title signals sleep poem; \"The sun lies down his head / Upon a soft...\" continuation naturally follows",
+   "lines": [
+    "head bed poem line moon lays down its head",
+    "Poetic nursery rhyme or lyrical nature metaphor opening",
+    "\"The sun lays down his head\" implies evening/sleep continuation",
+    "Tuk method Twitter bio handles signal whimsical environmental aesthetic",
+    "Rhyme or meter expected: \"bed\" likely rhymes with upcoming word",
+    "Mountain or landscape imagery likely \"earth\" or ocean floor",
+    "Popular fictional quote attribution: \"The sun lays down his head\" famous children's adaptation, \"Upon the earth\" or kingdom next",
+    "Visual art prompt context; tweet shows short poetic lines",
+    "Second line of couplet expected, likely personification continuation",
+    "\"Good night\" title signals sleep poem; \"The sun lies down his head / Upon a soft...\" continuation naturally follows"
+   ]
+  },
+  {
+   "raw": "head lie down poetic rhyme \"Sun lays his head\" bedtime/nature concept\nShort poetic lyric tweet \"The sun lays down his head\" needs companion line\nSleepy/fantasy imagery tweet about sunset ocean\nEd Sheeran lyric style opening: classic rhyme \"bed/head\" rhyme so \"In valley, soft and fed\" etc.\nTwitter campaign prompt: \"The sun closes his eyes, lays his head\" implies earth ground\nUser may be posting original/rhyme poetry fragment \"the sun lays down his head\"\nNext line likely: ground, earth, moon, or similar sleeping metaphor\nPlayful, whimsical tone typical of music artist social content\n\"Lie\" poem likely two-line: \"The sun puts down his head\" \u2192 \"beneath the pressing dusk\"\nPopular children's bedtime poem format shapes next continuation\n\"Song/lyric\" indicates musical or nature illustration campaign context",
+   "lines": [
+    "head lie down poetic rhyme \"Sun lays his head\" bedtime/nature concept",
+    "Short poetic lyric tweet \"The sun lays down his head\" needs companion line",
+    "Sleepy/fantasy imagery tweet about sunset ocean",
+    "Ed Sheeran lyric style opening: classic rhyme \"bed/head\" rhyme so \"In valley, soft and fed\" etc.",
+    "Twitter campaign prompt: \"The sun closes his eyes, lays his head\" implies earth ground",
+    "User may be posting original/rhyme poetry fragment \"the sun lays down his head\"",
+    "Next line likely: ground, earth, moon, or similar sleeping metaphor",
+    "Playful, whimsical tone typical of music artist social content",
+    "\"Lie\" poem likely two-line: \"The sun puts down his head\" \u2192 \"beneath the pressing dusk\"",
+    "Popular children's bedtime poem format shapes next continuation",
+    "\"Song/lyric\" indicates musical or nature illustration campaign context"
+   ]
+  },
+  {
+   "raw": "head lay its head poetic nursery rhyme line \"The sun\" begins sleeping metaphor \"lays down its head\" rhyme scheme poetic continuation expected\nNext line night/time metaphor, bed/grass imagery \"The sun\" \"lays his golden head\" implies rest location\nAccount bio context signals casual/pop music lyric quote, nature anime aesthetic\n\"lonely sunset lyrics\" phrase \"The sun lies down to rest his head\" likely nursery poetic couplet spoken\nRhyme \"head\" expects rhyme: bed, sod, meadow next line \"beneath the sea\"\nClassic tweet poetry, nature animation prompt \"The sun lay down its golden head\" suggests sheep/earth second line\nKnown viral poetic tweet: \"The ocean, The sun lay his golden head / Night tucked the world right under bed\" echoes\nShort lyric opening establishes rhythmic/folie song Instagram aesthetics\nFirst line quote continues second line: gentle child's sleep metaphor, \"on weary ground\" or hill\nUK traffic song tweeted line implies whimsical or gentle continuation, \"The sun decides prose\" childlike verse",
+   "lines": [
+    "head lay its head poetic nursery rhyme line \"The sun\" begins sleeping metaphor \"lays down its head\" rhyme scheme poetic continuation expected",
+    "Next line night/time metaphor, bed/grass imagery \"The sun\" \"lays his golden head\" implies rest location",
+    "Account bio context signals casual/pop music lyric quote, nature anime aesthetic",
+    "\"lonely sunset lyrics\" phrase \"The sun lies down to rest his head\" likely nursery poetic couplet spoken",
+    "Rhyme \"head\" expects rhyme: bed, sod, meadow next line \"beneath the sea\"",
+    "Classic tweet poetry, nature animation prompt \"The sun lay down its golden head\" suggests sheep/earth second line",
+    "Known viral poetic tweet: \"The ocean, The sun lay his golden head / Night tucked the world right under bed\" echoes",
+    "Short lyric opening establishes rhythmic/folie song Instagram aesthetics",
+    "First line quote continues second line: gentle child's sleep metaphor, \"on weary ground\" or hill",
+    "UK traffic song tweeted line implies whimsical or gentle continuation, \"The sun decides prose\" childlike verse"
+   ]
+  },
+  {
+   "raw": "head lid poem begins bedding rhyme \"The sun lays down his head\"\nPoet's Instagram sunset caption style: lyrical nature personification\n\"The sun lays down his head\" implies dream/world/sleep continuation\nRhyme scheme requires next line noun matching \"bed\" sound\nShort poetic clause \"The sun lays down his head\" signals ocean or horizon imagery\nStephen Colbert show tweet copy includes quirky open-ended ambient lyric\n\"Sleepy Sun\" tweets suggest children's rhyme or pastoral verse beginning\n\"headline/head bedding\" metaphor \"When the warrior rests his head / Upon the earth so soft instead\" pattern typical\nInstagram caption poetry snippet: next line likely \"in\" valley or ground\nTwo-line poetry format continues with gentle pictorial compliment completion\"\n\"red\" end rhyme likely follows dream or moon next scene\nAlliterative \"lays\" signals gentle personification tone continues somnolently\nTweet attribution suggests trend: viral poetic couplet popularized online\n\nhead lays down his head \u2192 night bedtime nursery rhyme genre explicit\n\"When the sun lays down his head\" \u2192 ocean rhyme common \"upon the earth\" or \"to rest\"\nMaroon5 lyric prompt establishes poetic opening line: weekday lyric reference\nBird/water sounds described in IG aesthetic likely",
+   "lines": [
+    "head lid poem begins bedding rhyme \"The sun lays down his head\"",
+    "Poet's Instagram sunset caption style: lyrical nature personification",
+    "\"The sun lays down his head\" implies dream/world/sleep continuation",
+    "Rhyme scheme requires next line noun matching \"bed\" sound",
+    "Short poetic clause \"The sun lays down his head\" signals ocean or horizon imagery",
+    "Stephen Colbert show tweet copy includes quirky open-ended ambient lyric",
+    "\"Sleepy Sun\" tweets suggest children's rhyme or pastoral verse beginning",
+    "\"headline/head bedding\" metaphor \"When the warrior rests his head / Upon the earth so soft instead\" pattern typical",
+    "Instagram caption poetry snippet: next line likely \"in\" valley or ground",
+    "Two-line poetry format continues with gentle pictorial compliment completion\"",
+    "\"red\" end rhyme likely follows dream or moon next scene",
+    "Alliterative \"lays\" signals gentle personification tone continues somnolently",
+    "Tweet attribution suggests trend: viral poetic couplet popularized online",
+    "head lays down his head \u2192 night bedtime nursery rhyme genre explicit",
+    "\"When the sun lays down his head\" \u2192 ocean rhyme common \"upon the earth\" or \"to rest\"",
+    "Maroon5 lyric prompt establishes poetic opening line: weekday lyric reference",
+    "Bird/water sounds described in IG aesthetic likely"
+   ]
+  },
+  {
+   "raw": "head lie head poetic rhyme childlike rhyme \"Sun laid its head\" sleep metaphor opener\nMerry/sunset verse begins nature personification, likely continuing \"upon the bed\" seabed/ocean next\nLyrics or poetic tweet appreciated by adult users, whimsical tone established\n\"The sun lays down its tired head\" signals nighttime imagery continuation\nInstagram caption quote context suggests cheerful nature or ocean theme song\nRhyme scheme AABB or AABB expected \"The sun lays down its tired head / [next rhyme]\"\nChildren's poetry genre conventions: simple meter, gentle imagery\n\"bed\" rhymes with \"spread/sleep/red\" ocean or daylight transition\nPopular viral tweet poem format, often short two lines\n\"Sky poem\" tags suggest illustration context, sunlight falling earth metaphor\nFirst line \"The sun lays down his tired head\" is famous children's poem opening \"Goodnight\" style couplet",
+   "lines": [
+    "head lie head poetic rhyme childlike rhyme \"Sun laid its head\" sleep metaphor opener",
+    "Merry/sunset verse begins nature personification, likely continuing \"upon the bed\" seabed/ocean next",
+    "Lyrics or poetic tweet appreciated by adult users, whimsical tone established",
+    "\"The sun lays down its tired head\" signals nighttime imagery continuation",
+    "Instagram caption quote context suggests cheerful nature or ocean theme song",
+    "Rhyme scheme AABB or AABB expected \"The sun lays down its tired head / [next rhyme]\"",
+    "Children's poetry genre conventions: simple meter, gentle imagery",
+    "\"bed\" rhymes with \"spread/sleep/red\" ocean or daylight transition",
+    "Popular viral tweet poem format, often short two lines",
+    "\"Sky poem\" tags suggest illustration context, sunlight falling earth metaphor",
+    "First line \"The sun lays down his tired head\" is famous children's poem opening \"Goodnight\" style couplet"
+   ]
+  },
+  {
+   "raw": "head rests poetic bedtime rhyme begins \"The sun lays down his head\"\nRhyme nursery rhyme \"bed\" continues mountain/night imagery metaphor\nTwitter post caption artistic atmospheric lyric poem fragment\n\"The sun lies down his head\" suggests rhyming second syllable \"bed\"\nNature-themed indie lyric quote likely followed \"beneath the sand\" or similar\nUser subscribed Instagram music artist Discord bio lines imply whimsical tone\n\"Open Verse\" implies actual verse continuation: \"The sun lays down his head\"\nAtmospheric sleepy/nurture imagery \"head\" likely body lying earth\nLyrical rhyme scheme requires A/A couplet second line next\n\"Fresh morning\" tweet poem likely: \"The sun lays down his head / To sleep beneath...\" classic children's poetry trope\nShort poetic lyric snippet typical song title or bio quote origin",
+   "lines": [
+    "head rests poetic bedtime rhyme begins \"The sun lays down his head\"",
+    "Rhyme nursery rhyme \"bed\" continues mountain/night imagery metaphor",
+    "Twitter post caption artistic atmospheric lyric poem fragment",
+    "\"The sun lies down his head\" suggests rhyming second syllable \"bed\"",
+    "Nature-themed indie lyric quote likely followed \"beneath the sand\" or similar",
+    "User subscribed Instagram music artist Discord bio lines imply whimsical tone",
+    "\"Open Verse\" implies actual verse continuation: \"The sun lays down his head\"",
+    "Atmospheric sleepy/nurture imagery \"head\" likely body lying earth",
+    "Lyrical rhyme scheme requires A/A couplet second line next",
+    "\"Fresh morning\" tweet poem likely: \"The sun lays down his head / To sleep beneath...\" classic children's poetry trope",
+    "Short poetic lyric snippet typical song title or bio quote origin"
+   ]
+  },
+  {
+   "raw": "head rests poetic rhyme begins Nature \"lays down its head\" sunset bedtime metaphor\nTwitter share birds/environment quote lyrics \"The sun lays his golden head\" rhyme \"bed\" likely continues\nFairy tale or lullaby poetic tone \"The sun lies down to lay his head\" implies earth ground\nOpening verse line of short animated or tweet poet rhyme\nEnvironment Twitter account suggests whimsical ocean/nature fan content\n\"Old Sun lay his weary head\" rhyme scheme requires second line with matching sound\nSecond line likely involves ocean or sleeping imagery completing couplet\nThe quoted lyric \"The sun lays down his weary head\" is well-known children's poem opening about sunset\n\"head\"/\"bed\" rhyme suggests next word about hills, earth, meadow\nTruncated poetic quote format implies continuation, user may be sharing illustrated verse",
+   "lines": [
+    "head rests poetic rhyme begins Nature \"lays down its head\" sunset bedtime metaphor",
+    "Twitter share birds/environment quote lyrics \"The sun lays his golden head\" rhyme \"bed\" likely continues",
+    "Fairy tale or lullaby poetic tone \"The sun lies down to lay his head\" implies earth ground",
+    "Opening verse line of short animated or tweet poet rhyme",
+    "Environment Twitter account suggests whimsical ocean/nature fan content",
+    "\"Old Sun lay his weary head\" rhyme scheme requires second line with matching sound",
+    "Second line likely involves ocean or sleeping imagery completing couplet",
+    "The quoted lyric \"The sun lays down his weary head\" is well-known children's poem opening about sunset",
+    "\"head\"/\"bed\" rhyme suggests next word about hills, earth, meadow",
+    "Truncated poetic quote format implies continuation, user may be sharing illustrated verse"
+   ]
+  },
+  {
+   "raw": "head lay head poetic whimsical rhyme \"The sun lays down his head\" bedtime metaphor continues\nNature lyrical tweet verse \"The sky\" first line poem setup continues sleep/moon imagery\n\"bed\" rhymes imply gentle surface imagery \"rest on the sea\" or similar\nPopular song lyric parody or original poetic couplet about sunset\nTranslated or child-friendly illustration caption style matches greeting\n\"The sun lays down his head\" expects soft earth/ground continuation\nTikTok/show musical context promotes upbeat atmospheric caption\nCute anthropomorphic environmental oddity framing: nature personification expected\nShort poetic line must be completed: \"The sun lays down his head\" needs second clause\nRhyme scheme \"bed\" suggests \"in\" earth/meadow night rest conclusion\nTwitter emoji nature posts often begin with classic poetry quotation parody\n\"Over the horizon\" signal poetic rendering: \"The Sun lays down his head\" expects fairy-tale breathing",
+   "lines": [
+    "head lay head poetic whimsical rhyme \"The sun lays down his head\" bedtime metaphor continues",
+    "Nature lyrical tweet verse \"The sky\" first line poem setup continues sleep/moon imagery",
+    "\"bed\" rhymes imply gentle surface imagery \"rest on the sea\" or similar",
+    "Popular song lyric parody or original poetic couplet about sunset",
+    "Translated or child-friendly illustration caption style matches greeting",
+    "\"The sun lays down his head\" expects soft earth/ground continuation",
+    "TikTok/show musical context promotes upbeat atmospheric caption",
+    "Cute anthropomorphic environmental oddity framing: nature personification expected",
+    "Short poetic line must be completed: \"The sun lays down his head\" needs second clause",
+    "Rhyme scheme \"bed\" suggests \"in\" earth/meadow night rest conclusion",
+    "Twitter emoji nature posts often begin with classic poetry quotation parody",
+    "\"Over the horizon\" signal poetic rendering: \"The Sun lays down his head\" expects fairy-tale breathing"
+   ]
+  }
+ ]
+}

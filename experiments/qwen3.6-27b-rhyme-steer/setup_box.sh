@@ -25,7 +25,7 @@ if [ ! -f OK_STACK ]; then
   $P -m pip install -q torch==2.7.1 --index-url https://download.pytorch.org/whl/cu126 || fail stack
   log "hf stack…"
   $P -m pip install -q "transformers==5.5.4" "peft==0.19.1" numpy pyyaml safetensors \
-    accelerate hf_transfer orjson "huggingface_hub>=0.34" ninja || fail stack
+    accelerate hf_transfer orjson pyarrow "huggingface_hub>=0.34" ninja || fail stack
   $P -m pip install -q flash-linear-attention || log "fla install failed (continuing)"
   log "causal-conv1d (source build)…"
   $P -m pip install -q --no-build-isolation causal-conv1d || log "causal-conv1d failed (torch fallback, SLOW)"
