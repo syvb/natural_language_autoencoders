@@ -63,20 +63,39 @@ for arm, fn, title, unit in [("mat", "subset_scores_mat.json", "matryoshka (line
         return [np.mean(by[k]) if k in by else np.nan for k in xs]
     nh = sum(r[2] for r in R); ne = len(R) - nh
     mh = np.mean([r[1] for r in R if r[2]]); me = np.mean([r[1] for r in R if not r[2]])
-    fig, ax = plt.subplots(figsize=(7.4, 5.0))
-    ax.plot(xs, curve(False), "-o", color=GREY, ms=5, lw=2, label=f"everything else (n={ne})")
-    ax.plot(xs, curve(True), "-o", color=RED, ms=5, lw=2, label=f"hallucination (model, given context) (n={nh})")
-    ax.axhline(0, color="#444", lw=0.8)
-    ax.set_xlabel(f"item position ({unit} index)", fontsize=11)
-    ax.set_ylabel("mean marginal FVE", fontsize=11)
-    ax.set_title(f"{title} — hallucinations vs everything else\n"
-                 f"within-position gap {coef:+.4f} (p={p:.2f}); mean {mh:+.3f} vs {me:+.3f}", fontsize=11.5)
-    ax.legend(fontsize=9); ax.grid(color="#ccc", alpha=0.3)
-    ax.spines[["top", "right"]].set_visible(False)
-    fig.text(0.02, -0.01,
-             "Hallucination = item still judged unfaithful after the judge saw the model's own generated output (§3g). "
-             "Everything else = all other items.", fontsize=7.6, color="#777", ha="left", va="top")
-    fig.tight_layout()
-    fig.savefig(HERE / "results" / f"fig_halluc_vs_rest_{arm}.png", dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"[saved] fig_halluc_vs_rest_{arm}.png  halluc n={nh} mean {mh:+.4f} | else n={ne} mean {me:+.4f} | within-pos {coef:+.4f} p={p:.3f}")
+    ce, ch = curve(False), curve(True)
+    allpos = np.nanmin(ce + ch) > 0
+
+    def render(log):
+        fig, ax = plt.subplots(figsize=(7.4, 5.0))
+        ax.plot(xs, ce, "-o", color=GREY, ms=5, lw=2, label=f"everything else (n={ne})")
+        ax.plot(xs, ch, "-o", color=RED, ms=5, lw=2, label=f"hallucination (model, given context) (n={nh})")
+        band = ""
+        if not log:
+            ax.axhline(0, color="#444", lw=0.8); scale, loc = "", "upper right"
+        elif allpos:
+            ax.set_yscale("log"); scale, loc = "  (log)", "upper right"
+        else:
+            lt = 0.05; ax.set_yscale("symlog", linthresh=lt); ax.axhline(0, color="#444", lw=0.8)
+            ax.axhspan(-lt, lt, color="#000", alpha=0.04, lw=0)
+            scale, loc = "  (symlog)", "lower right"
+            band = " symlog: linear inside ±0.05 (shaded), log outside;"
+        mode = "linear" if not log else "log" if allpos else "symlog"
+        ax.set_xlabel(f"item position ({unit} index)", fontsize=11)
+        ax.set_ylabel("mean marginal FVE" + scale, fontsize=11)
+        ax.set_title(f"{title} — hallucinations vs everything else ({mode}-y)\n"
+                     f"within-position gap {coef:+.4f} (p={p:.2f}); mean {mh:+.3f} vs {me:+.3f}", fontsize=11.5)
+        ax.legend(fontsize=9, loc=loc); ax.grid(color="#ccc", alpha=0.3, which="both")
+        ax.spines[["top", "right"]].set_visible(False)
+        fig.text(0.02, -0.01,
+                 f"Hallucination = item still judged unfaithful after the judge saw the model's own generated output "
+                 f"(§3g). Everything else = all other items.{band}", fontsize=7.6, color="#777", ha="left", va="top")
+        fig.tight_layout()
+        suffix = "" if not log else "_LOG"
+        fig.savefig(HERE / "results" / f"fig_halluc_vs_rest_{arm}{suffix}.png", dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"[saved] fig_halluc_vs_rest_{arm}{suffix}.png ({mode}-y)")
+
+    render(log=False)
+    render(log=True)
+    print(f"  {arm}: halluc n={nh} mean {mh:+.4f} | else n={ne} mean {me:+.4f} | within-pos {coef:+.4f} p={p:.3f}")
