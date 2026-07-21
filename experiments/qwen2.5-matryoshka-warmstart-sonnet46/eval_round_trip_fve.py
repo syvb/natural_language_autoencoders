@@ -11,12 +11,20 @@ report round-trip FVE at several fixed L (default 10/30/60/130) plus full
 length. Over RL training, short-L FVE should RISE (and the gap to full-length
 FVE should shrink) as the model front-loads the important content.
 
+NLA_TRUNC_SIDE=suffix flips the cut to the LAST L content tokens — the
+success metric for suffix-mode ("left-matryoshka") RL, where short-suffix FVE
+rising = information moving to the END. NLA_TRUNC_SIDE=both reports the two
+tables from one generation pass (generation dominates cost).
+
 Also reports the critic-only reference: AR fed the GOLD Sonnet text (full).
 
 Usage:  python eval_round_trip_fve.py [N] [L1,L2,...]
   N   number of held-out samples (default 300)
-  Ls  comma-separated prefix lengths in CONTENT tokens (default 10,30,60,130)
+  Ls  comma-separated truncation lengths in CONTENT tokens (default 10,30,60,130)
 Env:  AV_DIR, AR_DIR, EVAL override the default /workspace paths.
+      NLA_TRUNC_SIDE  prefix (default) | suffix | both
+      NLA_GEN_TEMP    >0 → ancestral sampling at that temperature
+                      (explicit top_p=1.0/top_k=0); unset/0 → greedy
 """
 import os, sys, yaml, torch, numpy as np
 import pyarrow.parquet as pq
@@ -36,6 +44,12 @@ PREFIX_LENS = (
     [int(x) for x in sys.argv[2].split(",")] if len(sys.argv) > 2
     else [10, 30, 60, 130]
 )
+SIDE = os.environ.get("NLA_TRUNC_SIDE", "prefix")
+assert SIDE in ("prefix", "suffix", "both"), f"NLA_TRUNC_SIDE must be prefix|suffix|both, got {SIDE!r}"
+SIDES = ("prefix", "suffix") if SIDE == "both" else (SIDE,)
+_T = float(os.environ.get("NLA_GEN_TEMP", "0"))
+GEN_KW = (dict(do_sample=True, temperature=_T, top_p=1.0, top_k=0)
+          if _T > 0 else dict(do_sample=False))
 BATCH = 16
 dev = "cuda"
 
@@ -44,7 +58,7 @@ T = meta["tokens"]; inj_id = T["injection_token_id"]; left = T["injection_left_n
 right = T["injection_right_neighbor_id"]; inj_char = T["injection_char"]
 inj_scale = meta["extraction"]["injection_scale"]
 print(f"AV: inj_char={inj_char!r} id={inj_id} neighbors=({left},{right}) injection_scale={inj_scale}", flush=True)
-print(f"prefix lengths (content tokens): {PREFIX_LENS} + full", flush=True)
+print(f"truncation side(s): {SIDES}; lengths (content tokens): {PREFIX_LENS} + full", flush=True)
 
 tok = AutoTokenizer.from_pretrained(AV_DIR); tok.padding_side = "left"
 if tok.pad_token_id is None: tok.pad_token = tok.eos_token
@@ -76,10 +90,12 @@ vecs = [np.asarray(col("activation_vector")[i].as_py(), dtype=np.float32) for i 
 print(f"evaluating {len(order)} samples from {len(set(docs[i] for i in order))} docs", flush=True)
 
 
-def first_l_content_tokens(text, L):
-    """First L CONTENT tokens of `text`, re-decoded — mirrors the training-time
-    content-token cap so eval truncation == train truncation."""
-    ids = tok.encode(text, add_special_tokens=False)[:L]
+def l_content_tokens(text, L, side):
+    """First (side=prefix) or last (side=suffix) L CONTENT tokens of `text`,
+    re-decoded — mirrors the training-time content-token cut so eval
+    truncation == train truncation (tokens mode / suffix mode respectively)."""
+    ids = tok.encode(text, add_special_tokens=False)
+    ids = ids[:L] if side == "prefix" else ids[-L:]
     return tok.decode(ids)
 
 
@@ -99,7 +115,7 @@ def av_generate(batch_prompts, batch_vecs):
     V = torch.stack([normalize_activation(torch.tensor(v, dtype=torch.float32).view(1, -1), inj_scale)[0] for v in batch_vecs])
     e2 = inject_at_marked_positions(inp, e, V, inj_id, left, right)
     out = av.generate(inputs_embeds=e2, attention_mask=att, max_new_tokens=256,
-                      do_sample=False, pad_token_id=pad)
+                      pad_token_id=pad, **GEN_KW)
     return [tok.decode(o, skip_special_tokens=True) for o in out]
 
 
@@ -107,8 +123,8 @@ import re
 CJK = re.compile(r"[　-ヿ㐀-䶿一-鿿＀-￯]")
 golds = []
 preds_gold = []                              # critic-only, full gold text
-preds_rt = {L: [] for L in PREFIX_LENS}      # round-trip at each prefix length
-preds_rt["full"] = []                        # round-trip, full AV text
+preds_rt = {(sd, L): [] for sd in SIDES for L in PREFIX_LENS}  # round-trip per side × length
+preds_rt["full"] = []                        # round-trip, full AV text (side-independent)
 ncjk = 0
 for s in range(0, len(order), BATCH):
     bp = prompts[s:s + BATCH]; bv = vecs[s:s + BATCH]
@@ -119,8 +135,9 @@ for s in range(0, len(order), BATCH):
         av_expl = extract_explanation_open(txt) or txt
         gold_expl = extract_explanation_open(resp[idx]) or resp[idx]
         preds_rt["full"].append(critic.reconstruct(av_expl))
-        for L in PREFIX_LENS:
-            preds_rt[L].append(critic.reconstruct(first_l_content_tokens(av_expl, L)))
+        for sd in SIDES:
+            for L in PREFIX_LENS:
+                preds_rt[(sd, L)].append(critic.reconstruct(l_content_tokens(av_expl, L, sd)))
         preds_gold.append(critic.reconstruct(gold_expl))
         golds.append(torch.tensor(vecs[idx]))
     print(f"  {min(s + BATCH, len(order))}/{len(order)}  (cjk so far={ncjk})", flush=True)
@@ -143,11 +160,15 @@ print("\n" + "=" * 72)
 print(f"N={len(order)}  mse_scale={ms:.3f}  raw-mean baseline (denom)={den:.4f}")
 print(f"CJK-in-AV-output: {ncjk}/{len(order)}")
 print("-" * 72)
-print("INFORMATION-UPFRONT — round-trip FVE by AV content-token prefix length:")
-print(f"  {'prefix':>8}  {'FVE':>8}  {'dir-MSE':>8}  {'cos':>6}")
-for L in PREFIX_LENS:
-    fve, mse, cos, _ = stats(torch.stack(preds_rt[L]).float(), G, ms)
-    print(f"  {L:>8}  {fve:>8.4f}  {mse:>8.4f}  {cos:>6.3f}")
+for sd in SIDES:
+    label = ("INFORMATION-UPFRONT — round-trip FVE by AV content-token PREFIX length:"
+             if sd == "prefix" else
+             "INFORMATION-AT-THE-END — round-trip FVE by AV content-token SUFFIX length:")
+    print(label)
+    print(f"  {sd:>8}  {'FVE':>8}  {'dir-MSE':>8}  {'cos':>6}")
+    for L in PREFIX_LENS:
+        fve, mse, cos, _ = stats(torch.stack(preds_rt[(sd, L)]).float(), G, ms)
+        print(f"  {L:>8}  {fve:>8.4f}  {mse:>8.4f}  {cos:>6.3f}")
 fve_full, mse_full, cos_full, _ = stats(torch.stack(preds_rt["full"]).float(), G, ms)
 print(f"  {'full':>8}  {fve_full:>8.4f}  {mse_full:>8.4f}  {cos_full:>6.3f}")
 print("-" * 72)

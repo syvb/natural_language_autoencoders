@@ -358,3 +358,49 @@ resumable iter_0000200 (actor DCP + optimizer, critic hf) in
   ~58-72% of the greedy-oracle ordering gap over random (k=1: model 0.352 vs
   oracle 0.527 vs random 0.056). Order is irrelevant at full length (random
   0.66 ≈ orig 0.65 ✓), so this isolates ordering. Cross-sample floor −0.93.
+
+## suffix — "left-matryoshka" RL (reward on the LAST k tokens)
+
+The mirror experiment: RL the SAME v3 warm-start pair, but the critic scores
+the **last ~U[1,120] content tokens** of each rollout instead of the first —
+pushing the model to put the most important information at the **end**.
+Implemented as truncation mode `suffix` (`nla/truncation.py`); launcher
+`run_rl_suffix.sh`. Design points (rationale in the launcher header):
+
+- **v3 warm-start reused, no mirrored re-SFT** — left-RL and v3's right-RL
+  start from the identical checkpoint, isolating the reward direction. The
+  prefix-calibrated online critic re-calibrates during the first steps
+  (grad guard makes any instability a visible skip-rate, not a NaN death).
+- **Full trajectory trained, suffix scored.** Generation is never capped (the
+  AV never emits EOS → every rollout is exactly `ROLLOUT_MAX_RESP`=160
+  tokens); the actor's tokens/loss-mask/logprobs are NOT sliced; only the
+  critic input (reward forward + co-training tokens) is cut to the last k via
+  `truncate_to_token_suffix` — same helper, same per-group k at both
+  consumers. Same k RNG stream as tokens mode → identical budget sequence to
+  a same-seed v3 run.
+- **KL 0.01** (v3: 0.03): the KL reference is the front-loaded warm-start, so
+  a strong anchor would penalize exactly the ordering change under test.
+- **Default NUM_ROLLOUT=75** as a go/no-go gate (v3's direction was clear well
+  before 50; plateau ≈110). Resume = re-run with higher NUM_ROLLOUT.
+
+```bash
+# RL box (setup_rl_box_lmsys.sh), v3 warm-start downloaded from HF:
+ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl_suffix.sh
+```
+
+### Read the signal (suffix)
+
+- **Before RL**: `NLA_TRUNC_SIDE=both NLA_GEN_TEMP=1 python eval_round_trip_fve.py
+  150 1,2,5,10,30,60,120` on the v3 *warm-start* — the suffix-FVE baseline
+  has never been measured, and without it the RL delta is uninterpretable.
+- **Gate at 50/75** (wandb + eval): critic `fve_nrm` off the floor and
+  climbing by ~step 50 (recalibration happened — if not, extend or fall back
+  to a mirrored warm-start before judging the actor); short-SUFFIX FVE at
+  iter_50/75 above the warm-start baseline; grad-skip rate trending down;
+  CJK=0 as always.
+- **Comparisons**: suffix-FVE curve of this run vs (a) its own warm-start
+  baseline, (b) v3 RL's prefix-FVE curve at matched k (the mirrored
+  question: does back-loading train as well as front-loading?), (c) the
+  reversed-order eval on the 27B (`qwen3.6-27b-evalsuite/clean_rev_fve.py`),
+  which showed reordering alone doesn't recover matryoshka-level short-budget
+  FVE.

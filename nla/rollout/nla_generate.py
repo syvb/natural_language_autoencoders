@@ -48,6 +48,7 @@ from nla.truncation import (
     max_new_tokens_for_content,
     resolve_opening_offset,
     resolve_truncation_config,
+    truncate_to_token_suffix,
 )
 
 
@@ -128,6 +129,11 @@ def _lazy_init(args):
               f"of [1, {_TRUNC.max_items}] newline items, shared per group, "
               f"curriculum_groups={_TRUNC.curriculum_groups}, seed={_TRUNC.seed}. Generation runs to "
               f"the hard cap; the rollout is POST-TRUNCATED at the K-th newline. Token-limit penalty disabled.")
+    elif _TRUNC.enabled and _TRUNC.mode == "suffix":
+        print(f"[NLA] random-length truncation ON (suffix mode, left-matryoshka): critic sees the "
+              f"LAST ~U[{_TRUNC.min_tokens}, {_TRUNC.max_tokens}] content tokens, shared per group, "
+              f"seed={_TRUNC.seed}. Generation runs to the hard cap; the actor trains on the FULL "
+              f"trajectory. Token-limit penalty disabled.")
 
 
 _TEMPLATE_CHECKED = False
@@ -370,6 +376,8 @@ async def generate(args, sample: Sample, sampling_params: dict[str, Any]) -> Sam
     # items mode: do NOT cap generation — we let the actor run to the hard cap and
     # POST-TRUNCATE at the K-th newline below (item boundaries aren't known until
     # the text exists). This is also what lets the actor practice long output.
+    # suffix mode: also no cap — the last-k-tokens suffix isn't known until the
+    # text ends, and the full trajectory stays the actor's training target.
 
     input_ids, v_raw, embeds_out, payload, halt_status = await asyncio.to_thread(
         _prep_payload_sync, args, messages, sample.metadata["activation_vector"],
@@ -492,6 +500,21 @@ async def generate(args, sample: Sample, sampling_params: dict[str, Any]) -> Sam
     if not (_TRUNC is not None and _TRUNC.enabled) and sample.status == Sample.Status.TRUNCATED:
         sample.status = Sample.Status.FAILED
         return sample
+
+    # suffix mode (left-matryoshka): the critic co-trains on the same last-k
+    # suffix the reward scores (nla.reward makes the identical cut — same
+    # helper, same per-group k). sample.tokens / response_length / response are
+    # deliberately NOT sliced: the whole trajectory conditioned this suffix and
+    # trains under the sequence-level advantage.
+    if _TRUNC is not None and _TRUNC.enabled and _TRUNC.mode == "suffix":
+        group_index = getattr(sample, "group_index", None)
+        assert group_index is not None, (
+            "suffix-mode truncation needs sample.group_index (set by "
+            "NLADataSource.get_samples) — got None."
+        )
+        explanation = truncate_to_token_suffix(
+            explanation, _TRUNC.length_for_group(group_index), _TOKENIZER
+        )
 
     critic_prompt = _CFG.critic_prompt_template.format(explanation=explanation)
     # add_special_tokens=True — critic_prompt_template is a raw string (not

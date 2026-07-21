@@ -57,9 +57,25 @@ TWO MODES (``--nla-trunc-mode`` / ``NLA_TRUNC_MODE``):
     mechanism (3) is replaced, because item boundaries are not known until the
     text exists.
 
+  - ``suffix`` ("left-matryoshka"): the MIRROR of tokens mode — the reward is
+    computed on the LAST k content tokens instead of the first, pushing the
+    model to put the most important information at the END. k is drawn from
+    the SAME uniform [min_tokens, max_tokens] and the SAME per-group RNG
+    stream as tokens mode, so a suffix run sees the identical budget sequence
+    as a tokens run with the same seed (clean mirrored comparison). Mechanics
+    differ from BOTH other modes: generation is never capped (the actor runs
+    to the hard cap — a suffix isn't known until the text ends) and the
+    actor's tokens/loss-mask/logprobs are NOT sliced (the whole trajectory
+    produced the suffix and receives the sequence-level advantage; slicing to
+    the suffix would leave the conditioning prefix without gradient). Only
+    the EXPLANATION handed to the critic — reward forward in nla.reward and
+    the co-training tokens in nla_generate — is cut to its last k tokens, via
+    ``truncate_to_token_suffix`` at both consumers (same k via group_index,
+    so they always agree). ``sample.response`` stays the full text.
+
 Configuration (precedence: CLI arg > env var > default):
 
-  --nla-trunc-mode       / NLA_TRUNC_MODE         (tokens | items; default tokens)
+  --nla-trunc-mode       / NLA_TRUNC_MODE         (tokens | items | suffix; default tokens)
   --nla-trunc-max-tokens / NLA_TRUNC_MAX_TOKENS   (tokens mode; >0 enables; default 0 = off)
   --nla-trunc-min-tokens / NLA_TRUNC_MIN_TOKENS   (tokens mode; default 16)
   --nla-trunc-max-items  / NLA_TRUNC_MAX_ITEMS    (items mode; >0 enables; default 0 = off)
@@ -71,7 +87,8 @@ Configuration (precedence: CLI arg > env var > default):
   --nla-trunc-seed       / NLA_TRUNC_SEED         (default: args.rollout_seed)
 
 Truncation is OFF unless the active mode's enabling budget (``max_tokens`` for
-tokens, ``max_items`` for items) is > 0, so ordinary RL runs are unchanged.
+tokens/suffix, ``max_items`` for items) is > 0, so ordinary RL runs are
+unchanged.
 """
 
 import os
@@ -100,7 +117,7 @@ DEFAULT_MIN_TOKENS = 16
 DEFAULT_MAX_TOKENS = 0  # 0 => truncation disabled
 
 # Item mode (v2) defaults.
-DEFAULT_MODE = "tokens"        # "tokens" (v1) | "items" (v2)
+DEFAULT_MODE = "tokens"        # "tokens" (v1) | "items" (v2) | "suffix" (left-matryoshka)
 DEFAULT_MAX_ITEMS = 0          # 0 => item-mode truncation disabled
 DEFAULT_TAPER_POWER = 1.5      # mild short-bias: flatter than 2.0 but not uniform (1.0).
                                # 1.0 = UNIFORM over K; >1 biases the draw toward FEWER items.
@@ -137,7 +154,10 @@ class TruncationConfig:
     curriculum_groups: int = DEFAULT_CURRICULUM_GROUPS
 
     def length_for_group(self, group_index: int) -> int:
-        """The shared content-token budget for every sample in this group (tokens mode)."""
+        """The shared content-token budget for every sample in this group
+        (tokens AND suffix modes — deliberately the same RNG stream, so a
+        suffix run draws the identical budget sequence as a tokens run with
+        the same seed)."""
         return sample_truncation_length(
             self.seed, group_index, self.min_tokens, self.max_tokens
         )
@@ -183,8 +203,8 @@ def resolve_truncation_config(args) -> TruncationConfig:
     mis-set config fails at startup rather than silently degenerating.
     """
     mode = _arg_or_env_str(args, "nla_trunc_mode", "NLA_TRUNC_MODE", DEFAULT_MODE)
-    assert mode in ("tokens", "items"), (
-        f"NLA truncation mode must be 'tokens' or 'items', got {mode!r}"
+    assert mode in ("tokens", "items", "suffix"), (
+        f"NLA truncation mode must be 'tokens', 'items' or 'suffix', got {mode!r}"
     )
     max_tokens = _arg_or_env_int(args, "nla_trunc_max_tokens", "NLA_TRUNC_MAX_TOKENS", DEFAULT_MAX_TOKENS)
     min_tokens = _arg_or_env_int(args, "nla_trunc_min_tokens", "NLA_TRUNC_MIN_TOKENS", DEFAULT_MIN_TOKENS)
@@ -195,7 +215,7 @@ def resolve_truncation_config(args) -> TruncationConfig:
     )
     seed = _arg_or_env_int(args, "nla_trunc_seed", "NLA_TRUNC_SEED", int(getattr(args, "rollout_seed", 0) or 0))
 
-    if mode == "tokens":
+    if mode in ("tokens", "suffix"):
         enabled = max_tokens > 0
         if enabled:
             assert 1 <= min_tokens <= max_tokens, (
@@ -325,6 +345,25 @@ def item_truncation_cut(decode_fn, response_token_ids: list[int], k: int) -> int
         else:
             lo = mid + 1
     return max(1, lo)
+
+
+def truncate_to_token_suffix(text: str, k: int, tokenizer) -> str:
+    """The last ``k`` tokens of ``text`` under the live tokenizer, re-decoded —
+    the suffix-mode mirror of the tokens-mode content cap. Returns ``text``
+    unchanged when it is already <= k tokens.
+
+    Token-space (real tokenizer tokens, not words/chars) so the suffix budget
+    is the same measurement basis as the tokens-mode prefix budget. The kept
+    suffix may start mid-word — that is the honest last-k-tokens cut, not a
+    bug; cosmetically trimming to a word boundary would make the effective
+    budget < k. Both consumers (nla.reward reward forward, nla_generate critic
+    co-training tokens) MUST cut through this one helper with the same k so
+    the critic is trained on exactly the text it is scored on."""
+    assert k >= 1, f"suffix budget must be >= 1, got {k}"
+    ids = tokenizer.encode(text, add_special_tokens=False)
+    if len(ids) <= k:
+        return text
+    return tokenizer.decode(ids[-k:], skip_special_tokens=True)
 
 
 def opening_tag_token_len(tokenizer) -> int:

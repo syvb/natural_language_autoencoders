@@ -30,7 +30,12 @@ from miles.utils.types import Sample
 
 from nla.config import load_nla_config
 from nla.schema import extract_explanation_open, normalize_activation
-from nla.truncation import TruncationConfig, resolve_truncation_config, split_into_items
+from nla.truncation import (
+    TruncationConfig,
+    resolve_truncation_config,
+    split_into_items,
+    truncate_to_token_suffix,
+)
 
 
 _MSE_EPS = 1e-8
@@ -349,6 +354,20 @@ def _prep_batch(samples: list[Sample]):
         # when there is no <explanation> tag.
         expl = extract_explanation_open(s.response)
         if expl is not None:
+            # suffix mode (left-matryoshka): score only the LAST k content
+            # tokens. Same helper + same per-group k as nla_generate's critic
+            # co-training tokens, so reward and critic training always see the
+            # identical text. The response itself stays full-length (the actor
+            # trains on the whole trajectory).
+            if _TRUNC is not None and _TRUNC.enabled and _TRUNC.mode == "suffix":
+                group_index = getattr(s, "group_index", None)
+                assert group_index is not None, (
+                    "suffix-mode truncation needs sample.group_index (set by "
+                    "NLADataSource.get_samples) — got None."
+                )
+                expl = truncate_to_token_suffix(
+                    expl, _TRUNC.length_for_group(group_index), _TOKENIZER
+                )
             ctx = s.metadata.get("detokenized_text_truncated")
             prompts.append(_CFG.critic_prompt_template.format(explanation=expl))
             golds.append(s.metadata["activation_vector"])
