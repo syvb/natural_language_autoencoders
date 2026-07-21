@@ -364,6 +364,18 @@ to the prompt, and re-judged every hallucinated item.
   withgen_verdicts,withgen_stats}.json`; scripts `generate_continuations.py`,
   `rejudge_withgen.py`.
 
+![fve by definition](results/fig_fve_by_def.png)
+
+Across all three label definitions (above), the within-position hallucinated−SUPPORTED
+gap is: loose −0.002/−0.013 (n.s.), 2-model-strict −0.0002/+0.013 (n.s.), model-aware
+−0.003 (p=0.07) / **−0.040 (p=0.02)**. The one significant cell — standard, model-aware
+— is **partly a relabeling artifact**: the model-aware pass moves the high-marginal
+"correct-prediction" items *out* of the hallucinated group and *into* faithful, and
+because matching the model's own output correlates with being reconstructable, that
+shift mechanically widens the gap. The confound-free definition (2-model strict, which
+purifies on faithfulness alone) is ≈0. So even with the better labels, there is at most
+a small, confounded hint that hallucinations reconstruct worse — not a clean signal.
+
 **Takeaway.** The requested comparison is clean and one-directional: matryoshka
 items that damage its own reconstruction map to standard sentences that *improve*
 the standard reconstruction, are load-bearing there (order-independent solo/LOO,
