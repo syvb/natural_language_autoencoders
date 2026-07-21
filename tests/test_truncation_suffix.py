@@ -163,11 +163,20 @@ def test_reward_scores_last_k_tokens(monkeypatch):
 
 
 def test_reward_suffix_shared_within_group(monkeypatch):
+    # DIFFERENT responses, same group_index → each member keeps its own last-k
+    # words with the SAME k (the shared-per-group budget), and a different
+    # group gets a different k for the same response length.
     tok, cfg = _setup_reward(monkeypatch)
-    words = " ".join(f"w{i}" for i in range(200))
-    samples = [_Sample(Status.TRUNCATED, words, group_index=5) for _ in range(4)]
+    gi = 5
+    k = cfg.length_for_group(gi)
+    responses = [[f"m{m}w{i}" for i in range(200)] for m in range(4)]
+    samples = [_Sample(Status.TRUNCATED, " ".join(r), group_index=gi) for r in responses]
     reward._prep_batch(samples)
-    assert len(set(tok.calls[-1])) == 1  # every member cut at the same k
+    assert tok.calls[-1] == [
+        _FakeCfg.critic_prompt_template.format(explanation=" ".join(r[-k:]))
+        for r in responses
+    ]
+    assert any(cfg.length_for_group(g) != k for g in range(100) if g != gi)
 
 
 def test_reward_suffix_requires_group_index(monkeypatch):

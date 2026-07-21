@@ -368,39 +368,84 @@ Implemented as truncation mode `suffix` (`nla/truncation.py`); launcher
 `run_rl_suffix.sh`. Design points (rationale in the launcher header):
 
 - **v3 warm-start reused, no mirrored re-SFT** — left-RL and v3's right-RL
-  start from the identical checkpoint, isolating the reward direction. The
-  prefix-calibrated online critic re-calibrates during the first steps
-  (grad guard makes any instability a visible skip-rate, not a NaN death).
+  start from the identical checkpoint, isolating the reward direction *on the
+  actor*. Known residual asymmetry (accepted): the init is front-loaded, i.e.
+  reward-aligned for v3 but reward-opposed here — a positive back-loading
+  result is conservative; a null is confounded and does NOT establish
+  "back-loading is harder".
+- **Critic burn-in first (two-phase launch).** The reused AR critic — the
+  reward model — was pre-calibrated on PREFIX cuts; suffix cuts are
+  out-of-distribution at step 0, and v3 attributes its stability and timeline
+  to starting task-calibrated. Phase 1 calibrates it on frozen-actor rollouts,
+  phase 2 trains the actor; judge actor progress from iter_25, not iter_0:
+
+  ```bash
+  # RL box (setup_rl_box_lmsys.sh), v3 warm-start downloaded from HF:
+  ACTOR_LR=0 NUM_ROLLOUT=25 ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl_suffix.sh
+  NUM_ROLLOUT=100           ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl_suffix.sh
+  ```
+
+- **`ROLLOUT_MAX_RESP` = `NLA_TRUNC_MAX_TOKENS` = 120, enforced.** With
+  resp=120, position p is scored with probability (p+1)/120 — the exact
+  mirror of v3's (120−p)/120. Any resp > max budget creates a head region
+  never scored at ANY k: a free scratchpad where the cheapest policy is to
+  keep front-loading (KL-cheap) and *duplicate* content into the tail —
+  and suffix-FVE can't distinguish duplication from reordering. The launcher
+  aborts on a mismatch. Every eval arm must pass `NLA_GEN_MAX_NEW=120` for
+  the same reason.
 - **Full trajectory trained, suffix scored.** Generation is never capped (the
-  AV never emits EOS → every rollout is exactly `ROLLOUT_MAX_RESP`=160
-  tokens); the actor's tokens/loss-mask/logprobs are NOT sliced; only the
-  critic input (reward forward + co-training tokens) is cut to the last k via
+  AV never emits EOS → every rollout is exactly 120 tokens); the actor's
+  tokens/loss-mask/logprobs are NOT sliced; only the critic input (reward
+  forward + co-training tokens) is cut to the last k via
   `truncate_to_token_suffix` — same helper, same per-group k at both
   consumers. Same k RNG stream as tokens mode → identical budget sequence to
   a same-seed v3 run.
 - **KL 0.01** (v3: 0.03): the KL reference is the front-loaded warm-start, so
   a strong anchor would penalize exactly the ordering change under test.
-- **Default NUM_ROLLOUT=75** as a go/no-go gate (v3's direction was clear well
-  before 50; plateau ≈110). Resume = re-run with higher NUM_ROLLOUT.
-
-```bash
-# RL box (setup_rl_box_lmsys.sh), v3 warm-start downloaded from HF:
-ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl_suffix.sh
-```
+  Cost: v3's gains were already substantially lexical at 0.03 (25% paraphrase
+  retention), and a weaker anchor + recalibrating critic can worsen that — so
+  the paraphrase probe is part of the success read, not an afterthought, and
+  "trains as well as v3" claims are off the table across a KL difference.
 
 ### Read the signal (suffix)
 
-- **Before RL**: `NLA_TRUNC_SIDE=both NLA_GEN_TEMP=1 python eval_round_trip_fve.py
-  150 1,2,5,10,30,60,120` on the v3 *warm-start* — the suffix-FVE baseline
-  has never been measured, and without it the RL delta is uninterpretable.
-- **Gate at 50/75** (wandb + eval): critic `fve_nrm` off the floor and
-  climbing by ~step 50 (recalibration happened — if not, extend or fall back
-  to a mirrored warm-start before judging the actor); short-SUFFIX FVE at
-  iter_50/75 above the warm-start baseline; grad-skip rate trending down;
-  CJK=0 as always.
-- **Comparisons**: suffix-FVE curve of this run vs (a) its own warm-start
-  baseline, (b) v3 RL's prefix-FVE curve at matched k (the mirrored
-  question: does back-loading train as well as front-loading?), (c) the
-  reversed-order eval on the 27B (`qwen3.6-27b-evalsuite/clean_rev_fve.py`),
-  which showed reordering alone doesn't recover matryoshka-level short-budget
-  FVE.
+- **Before RL — both-sides baseline on the v3 warm-start.** Never measured on
+  the suffix side; without it the RL delta is uninterpretable. MUST use the
+  v3-format eval parquet (the sweep-eval-prompt-match trap: the old
+  `av_eval.parquet` silently drops FVE ~0.15 on a v3 model) and the training
+  generation cap:
+
+  ```bash
+  EVAL=/workspace/out/av_eval_v3.parquet AV_DIR=<v3-ws-av> AR_DIR=<v3-ws-ar> \
+    NLA_TRUNC_SIDE=both NLA_GEN_TEMP=1 NLA_GEN_MAX_NEW=120 \
+    python eval_round_trip_fve.py 150 1,2,5,10,30,60,120
+  ```
+
+- **Attribution control — v3 iter_200 evaluated both sides** (same command,
+  AV_DIR/AR_DIR from `syvb/nla-qwen2.5-7b-L20-v3-rl`, ~15 min GPU). v3 RL
+  raised FVE at *every* length, so "suffix-FVE above the warm-start baseline"
+  is expected even with zero reordering. The clean ordering metric is the
+  **prefix-vs-suffix gap flip**: v3-final should show prefix ≫ suffix at
+  short k; suffix-final the reverse — each read against the shared
+  warm-start's both-sides curve. Evaluate suffix checkpoints with
+  `NLA_TRUNC_SIDE=both` too (does back-loading *destroy* front-loading or
+  add to it?). Keep one sampling regime (`NLA_GEN_TEMP=1`) across all arms —
+  v3's README numbers were greedy, so re-derive any curve you compare against.
+- **Gate (end of phase 2, i.e. 75 actor steps)**: critic `fve_nrm` recovered
+  during burn-in; short-SUFFIX FVE (judge at k=1–10 — at k≥60 the suffix of a
+  120-token output is most of the text and "above baseline" is nearly
+  vacuous) above the warm-start baseline at iter_50/75; grad-skip rate ~0;
+  CJK=0. **The gate is one-sided**: positive signal → go (extend to ~200);
+  flat signal is NO-GO only after extending to ~120 actor steps (v3's plateau
+  was ~110). Log the step at which `fve_nrm` crosses its burn-in level so
+  "effective actor steps" is recorded, not guessed.
+- **Faithfulness read**: run `eval_paraphrase_order.py` on the final
+  checkpoint (is back-loaded FVE more or less lexical than v3's?), and set
+  `NLA_QUOTE_STATS_JSONL` during RL (free) — final-token echo is directly
+  rewarded at k=1–5, so short-suffix FVE must be read next to the echo stats.
+- **Comparisons**: this run's suffix curve vs (a) its own warm-start
+  baseline, (b) the gap-flip control above, (c) v3's prefix curve at matched
+  k (budget-paired via the shared RNG stream — pin `NLA_TRUNC_SEED` to v3's
+  value; both default to `rollout_seed`), (d) the 27B reversed-order eval
+  (`qwen3.6-27b-evalsuite/clean_rev_fve.py`): reordering alone doesn't
+  recover matryoshka-level short-budget FVE — does *training* for it?

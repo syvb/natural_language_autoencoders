@@ -25,6 +25,12 @@ Env:  AV_DIR, AR_DIR, EVAL override the default /workspace paths.
       NLA_TRUNC_SIDE  prefix (default) | suffix | both
       NLA_GEN_TEMP    >0 → ancestral sampling at that temperature
                       (explicit top_p=1.0/top_k=0); unset/0 → greedy
+      NLA_GEN_MAX_NEW AV generation cap (default 256). For suffix-RL evals
+                      this MUST equal the training ROLLOUT_MAX_RESP (120):
+                      training teaches the model to place information
+                      relative to ITS cap, so a longer eval generation
+                      measures a window the model never trained to target —
+                      and the baseline must use the same cap as the RL arms.
 """
 import os, sys, yaml, torch, numpy as np
 import pyarrow.parquet as pq
@@ -50,6 +56,7 @@ SIDES = ("prefix", "suffix") if SIDE == "both" else (SIDE,)
 _T = float(os.environ.get("NLA_GEN_TEMP", "0"))
 GEN_KW = (dict(do_sample=True, temperature=_T, top_p=1.0, top_k=0)
           if _T > 0 else dict(do_sample=False))
+GEN_MAX_NEW = int(os.environ.get("NLA_GEN_MAX_NEW", "256"))
 BATCH = 16
 dev = "cuda"
 
@@ -58,7 +65,8 @@ T = meta["tokens"]; inj_id = T["injection_token_id"]; left = T["injection_left_n
 right = T["injection_right_neighbor_id"]; inj_char = T["injection_char"]
 inj_scale = meta["extraction"]["injection_scale"]
 print(f"AV: inj_char={inj_char!r} id={inj_id} neighbors=({left},{right}) injection_scale={inj_scale}", flush=True)
-print(f"truncation side(s): {SIDES}; lengths (content tokens): {PREFIX_LENS} + full", flush=True)
+print(f"truncation side(s): {SIDES}; lengths (content tokens): {PREFIX_LENS} + full; "
+      f"gen max_new_tokens={GEN_MAX_NEW}", flush=True)
 
 tok = AutoTokenizer.from_pretrained(AV_DIR); tok.padding_side = "left"
 if tok.pad_token_id is None: tok.pad_token = tok.eos_token
@@ -114,7 +122,7 @@ def av_generate(batch_prompts, batch_vecs):
     e = emb(inp)
     V = torch.stack([normalize_activation(torch.tensor(v, dtype=torch.float32).view(1, -1), inj_scale)[0] for v in batch_vecs])
     e2 = inject_at_marked_positions(inp, e, V, inj_id, left, right)
-    out = av.generate(inputs_embeds=e2, attention_mask=att, max_new_tokens=256,
+    out = av.generate(inputs_embeds=e2, attention_mask=att, max_new_tokens=GEN_MAX_NEW,
                       pad_token_id=pad, **GEN_KW)
     return [tok.decode(o, skip_special_tokens=True) for o in out]
 
@@ -170,6 +178,7 @@ for sd in SIDES:
         fve, mse, cos, _ = stats(torch.stack(preds_rt[(sd, L)]).float(), G, ms)
         print(f"  {L:>8}  {fve:>8.4f}  {mse:>8.4f}  {cos:>6.3f}")
 fve_full, mse_full, cos_full, _ = stats(torch.stack(preds_rt["full"]).float(), G, ms)
+print(f"FULL (untruncated AV text, side-independent):")
 print(f"  {'full':>8}  {fve_full:>8.4f}  {mse_full:>8.4f}  {cos_full:>6.3f}")
 print("-" * 72)
 print(f"CRITIC-ONLY (gold Sonnet text, full -> AR):  FVE={fve_g:.4f}  dir-MSE={mse_g:.4f}  cos={cos_g:.4f}")

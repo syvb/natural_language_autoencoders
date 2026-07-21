@@ -19,7 +19,7 @@
 #
 # Suffix-mode mechanics (nla/truncation.py "suffix"):
 #   - generation is NEVER capped: the AV never emits EOS, so every rollout runs
-#     to ROLLOUT_MAX_RESP (160) tokens — full trajectory, fixed length;
+#     to ROLLOUT_MAX_RESP tokens — full trajectory, fixed length;
 #   - the actor trains on the FULL trajectory (tokens/loss-mask/logprobs not
 #     sliced — the prefix conditions the scored suffix);
 #   - only the critic input (reward forward + co-training tokens) is cut to
@@ -27,24 +27,61 @@
 #   - the k draw uses the SAME RNG stream as tokens mode: identical budget
 #     sequence to a v3 run with the same seed.
 #
+# ROLLOUT_MAX_RESP == NLA_TRUNC_MAX_TOKENS (120) is REQUIRED for the mirror,
+# not a tuning choice. With RESP=120, position p is scored with probability
+# (p+1)/120 — the exact mirror image of v3's (120-p)/120 prefix scoring. Any
+# RESP > max budget creates a head region NEVER scored at any k (at v3's
+# RESP=160: 40 tokens), i.e. a free scratchpad where the gradient-cheapest
+# policy is to keep front-loading (KL-cheap vs the front-loaded reference)
+# and DUPLICATE content into the tail — and suffix-FVE cannot distinguish
+# duplication from the reordering under test. Eval generation must match:
+# pass NLA_GEN_MAX_NEW=120 to eval_round_trip_fve.py for every arm.
+#
 # KL default 0.01 (v3 ran 0.03): the KL reference is the FRONT-loaded
 # warm-start, so a strong anchor would penalize exactly the ordering change
-# this run exists to produce. 0.01 = v1's setting, known stable.
+# this run exists to produce. 0.01 = v1's setting, known stable. Known cost
+# (accept for the existence run): v3's FVE gains were already substantially
+# lexical at KL 0.03, and a weaker anchor + recalibrating critic can worsen
+# that — read the result WITH the paraphrase probe, and don't claim "trains
+# as well as v3" across a KL difference.
+#
+# TWO-PHASE LAUNCH (critic burn-in first): the reused AR critic — which IS
+# the reward model — was pre-calibrated on PREFIX cuts; suffix cuts are
+# out-of-distribution at step 0, and v3 attributes its stability + timeline
+# precisely to starting task-calibrated. So calibrate it on frozen-actor
+# rollouts before letting the actor move:
+#
+#   ACTOR_LR=0 NUM_ROLLOUT=25 bash run_rl_suffix.sh   # critic-only burn-in
+#   NUM_ROLLOUT=100           bash run_rl_suffix.sh   # resumes iter_25; 75 actor steps
+#
+# (Burn-in length must be a multiple of SAVE_INTERVAL=25 or nothing is saved
+# to resume from. Judge actor progress from the iter_25 checkpoint, not
+# iter_0.) Gate at the end of phase 2: gate on critic fve_nrm having
+# recovered during burn-in, short-SUFFIX (k=1-10) FVE above the warm-start
+# baseline, grad-skip rate ~0. A positive signal = go. A flat signal is
+# NO-GO only after extending to ~120 actor steps (v3's plateau was ~110).
 #
 # DEFAULT PROFILE: one 8×H100 node (actor 4 / critic 2 / rollout 2), 512-batch
-# (64×8), NUM_ROLLOUT=75 as a go/no-go gate — resume by re-running with a
-# higher NUM_ROLLOUT (checkpoints + optimizer state every SAVE_INTERVAL).
+# (64×8) — resume by re-running with a higher NUM_ROLLOUT (checkpoints +
+# optimizer state every SAVE_INTERVAL).
 set -euo pipefail
 
 # ─────────────────── truncation: SUFFIX mode (left-matryoshka) ──────────────
-export NLA_TRUNC_MODE="${NLA_TRUNC_MODE:-suffix}"
+# Hard-pinned, not defaulted: this launcher IS the suffix experiment; a
+# lingering NLA_TRUNC_MODE=tokens from a v3 shell would silently rerun v3
+# under the suffix RUN_DIR/wandb group. Use run_rl_v3.sh for tokens mode.
+export NLA_TRUNC_MODE=suffix
 export NLA_TRUNC_MIN_TOKENS="${NLA_TRUNC_MIN_TOKENS:-1}"
 export NLA_TRUNC_MAX_TOKENS="${NLA_TRUNC_MAX_TOKENS:-120}"
 # Suffix mode never uses the opening offset (no generation cap), but pin it
 # for config-log hygiene and so a stale export can't confuse a later run.
 export NLA_TRUNC_OPENING_OFFSET="${NLA_TRUNC_OPENING_OFFSET:-0}"
-# Zero the v2 item-mode knobs (lingering exports would flip mode / shape rewards).
+# Zero every lingering reward-shaping export (item mode from v2, quote/repeat/
+# overlap penalties from the penalty-RL launchers). In suffix mode a stale
+# penalty is extra-dangerous: it would act on the scored suffix only, and the
+# actor could park the penalized behavior in the unscored head.
 export NLA_TRUNC_MAX_ITEMS=0 NLA_ITEM_LEN_PENALTY=0
+export NLA_QUOTE_PENALTY=0 NLA_REPEAT_PENALTY=0 NLA_OVERLAP_PENALTY=0
 
 # ───────────────────── checkpoints (v3 warm-start, REUSED) ──────────────────
 # Public HF: syvb/nla-qwen2.5-7b-L20-av-matryoshka-sonnet46-v3 (AV)
@@ -84,12 +121,18 @@ export SAVE_INTERVAL="${SAVE_INTERVAL:-25}"
 NUM_ROLLOUT="${NUM_ROLLOUT:-75}"
 export NLA_EMBED_DUMP_DIR="${NLA_EMBED_DUMP_DIR:-/dev/shm/nla}"; mkdir -p "$NLA_EMBED_DUMP_DIR"
 
+# MUST equal NLA_TRUNC_MAX_TOKENS — see the mirror argument in the header.
 # Suffix mode never caps generation and the AV never emits EOS, so EVERY
-# rollout is exactly this many tokens (v3 matched this cap; suffix budget
-# tops out at 120 of them). Expect slower steps than v3's ~41s — v3's
-# average generation was much shorter than its cap.
-ROLLOUT_MAX_RESP="${ROLLOUT_MAX_RESP:-160}"
+# rollout is exactly this many tokens. Expect slower steps than v3's ~41s —
+# v3's average generation was much shorter than its cap.
+ROLLOUT_MAX_RESP="${ROLLOUT_MAX_RESP:-$NLA_TRUNC_MAX_TOKENS}"
 ROLLOUT_MAX_CTX="${ROLLOUT_MAX_CTX:-512}"
+if [ "$ROLLOUT_MAX_RESP" -ne "$NLA_TRUNC_MAX_TOKENS" ]; then
+    echo "FATAL: ROLLOUT_MAX_RESP ($ROLLOUT_MAX_RESP) != NLA_TRUNC_MAX_TOKENS ($NLA_TRUNC_MAX_TOKENS)." >&2
+    echo "Any response length above the max suffix budget is a never-scored head region" >&2
+    echo "(duplication scratchpad) — the mirror requires them equal. See the header." >&2
+    exit 1
+fi
 
 # ───────────────────────── resume detection ────────────────────────────────
 LATEST_ACTOR=""; LATEST_CRITIC=""
@@ -133,7 +176,7 @@ CFG="$RUN_DIR/launch_config.$(date -u +%Y%m%dT%H%M%SZ).txt"
 
 export INSTRUCT_MODEL ACTOR_SFT_CKPT CRITIC_SL_CKPT RUN_DIR
 echo "=== suffix RL start $(date -u +%FT%TZ) — $NUM_ROLLOUT steps, save every $SAVE_INTERVAL ==="
-echo "    truncation: SUFFIX mode, critic sees last ~U[$NLA_TRUNC_MIN_TOKENS, $NLA_TRUNC_MAX_TOKENS] content tokens, KL=$KL_LOSS_COEF"
+echo "    truncation: $NLA_TRUNC_MODE mode, critic sees last ~U[$NLA_TRUNC_MIN_TOKENS, $NLA_TRUNC_MAX_TOKENS] content tokens, resp=$ROLLOUT_MAX_RESP, KL=$KL_LOSS_COEF, actor_lr=$ACTOR_LR"
 # rl.sh fixes 128×8=1024; trailing flags OVERRIDE to the single-node profile +
 # the v3 output caps (argparse: last value wins).
 bash "$REPO_ROOT/configs/rl.sh" \

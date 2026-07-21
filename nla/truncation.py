@@ -358,7 +358,15 @@ def truncate_to_token_suffix(text: str, k: int, tokenizer) -> str:
     bug; cosmetically trimming to a word boundary would make the effective
     budget < k. Both consumers (nla.reward reward forward, nla_generate critic
     co-training tokens) MUST cut through this one helper with the same k so
-    the critic is trained on exactly the text it is scored on."""
+    the critic is trained on exactly the text it is scored on.
+
+    The same-k contract is only half the agreement: the cut is also
+    TOKENIZER-dependent, and the two consumers load theirs from different
+    paths (nla_generate: args.hf_checkpoint / actor dir; nla.reward: the
+    critic sidecar dir). For same-family AV/AR pairs (the only shipped
+    configuration) these are identical, but a mixed pair (e.g. Gemma critic)
+    would silently score a different suffix than the critic co-trains on —
+    if you ever build one, assert tokenizer identity at startup first."""
     assert k >= 1, f"suffix budget must be >= 1, got {k}"
     ids = tokenizer.encode(text, add_special_tokens=False)
     if len(ids) <= k:
