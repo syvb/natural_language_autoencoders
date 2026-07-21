@@ -74,10 +74,11 @@ def main():
     fig.savefig(out, dpi=170)
     print(f"[saved] {out}")
 
-    # pared-down two-curve version: matryoshka vs standard-lines-reversed
+    # pared-down version: matryoshka vs standard-lines-reversed (+ std original)
     fig, ax = plt.subplots(figsize=(8.2, 5.0))
     ax.plot(*zip(*mat), "-", color=PURPLE, lw=2.2, label="matryoshka (trained order)")
     ax.plot(*zip(*revl), "-", color=RED, lw=2.2, label="standard, lines reversed")
+    ax.plot(*zip(*orig), "--", color=GRAY, lw=2, label="standard, original order")
     ax.axhline(0, color="#bbbbbb", lw=0.8)
     ax.set_xlabel("explanation truncation (content tokens)")
     ax.set_ylabel("round-trip FVE (own critic)")
