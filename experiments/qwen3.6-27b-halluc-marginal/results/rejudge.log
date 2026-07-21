@@ -1,0 +1,32 @@
+[judge] re-judging 6911 hallucinated items WITH model's own generation…
+  500/6911
+  1000/6911
+  1500/6911
+  2000/6911
+  2500/6911
+  3000/6911
+  3500/6911
+  4000/6911
+  4500/6911
+  5000/6911
+  5500/6911
+  6000/6911
+  6500/6911
+  6911/6911
+[judge] done, 0 unparsed
+
+==========================================================================
+
+matryoshka (lines): loose-hallucinated n=4649
+  flip to SUPPORTED given model's own output: 728 (16%)
+  still hallucinated (given model output): 3872 (83%)
+  within-pos vs SUPPORTED — loose -0.0024 (p=0.14)  |  residual real -0.0029 (p=0.08, n=3872)
+  permutation (residual vs random same-size subset of loose): p_perm=0.138
+
+standard (sentences): loose-hallucinated n=2262
+  flip to SUPPORTED given model's own output: 318 (14%)
+  still hallucinated (given model output): 1887 (83%)
+  within-pos vs SUPPORTED — loose -0.0130 (p=0.45)  |  residual real -0.0230 (p=0.20, n=1887)
+  permutation (residual vs random same-size subset of loose): p_perm=0.026
+
+[saved] results/withgen_verdicts.json, withgen_stats.json

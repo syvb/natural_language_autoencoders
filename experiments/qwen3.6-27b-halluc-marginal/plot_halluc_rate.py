@@ -65,9 +65,9 @@ for ci, (cname, col) in enumerate(conds):
                 ha="center", fontsize=9, color=col, fontweight="bold")
 ax.set_xticks(x); ax.set_xticklabels([m[0] for m in models], fontsize=12)
 ax.set_ylabel("hallucination rate (fraction of items)", fontsize=11)
-ax.set_ylim(0, max(0.62, ax.get_ylim()[1]))
+ax.set_ylim(0, 0.70)
 ax.set_title("Hallucination rate: matryoshka vs standard NLA\n(under progressively stricter definitions)", fontsize=12.5)
-ax.legend(fontsize=9.5, loc="upper right", title="definition")
+ax.legend(fontsize=9.5, loc="upper center", title="definition", ncol=3)
 ax.grid(axis="y", color="#ccc", alpha=0.3)
 ax.spines[["top", "right"]].set_visible(False)
 foot = ("Item = line (matryoshka, ~10/expl) vs sentence (standard, ~4/expl); rates are per-item. "

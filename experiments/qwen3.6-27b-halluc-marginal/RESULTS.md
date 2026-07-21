@@ -336,6 +336,34 @@ hallucination signal — not because the category is dirty, but because the two
 quantities are unrelated.** Data: `results/strict_{halluc,stats}.json`; two-model
 consensus judge `judge_strict.py`.
 
+### 3g. Judging against the model's OWN output (not the corpus text)
+
+![hallucination rate](results/fig_halluc_rate.png)
+
+The faithfulness judge scores the note against the *corpus* continuation, but the
+activation encodes the *model's* predictions — so a note describing what the model
+is about to generate can be flagged "hallucination" while being a true readout.
+To close that gap, we generated the model's own continuation (greedy + 3 T=1
+samples, 24 tokens) from each activation position on a GPU (Qwen3.6-27B), added it
+to the prompt, and re-judged every hallucinated item.
+
+- **~15% flip to SUPPORTED** once the judge sees the model's own output (mat 728/4649,
+  std 318/2262). Real, but modest — so **most NLA "hallucinations" are not merely
+  describing the immediate next tokens** either; they reference things absent from
+  both the source and the model's own short continuation.
+- **Item-level hallucination rate** (figure): model-aware sits between loose and
+  strict — mat 47%→**39%**, std 54%→**45%** — and the standard-over-matryoshka gap
+  persists (only the 2-model-strict definition equalizes them, ~31–32%).
+- **The residual (real even given the model's output) still shows no clean FVE
+  signal:** within-position vs SUPPORTED, mat −0.003 (p=0.08), std −0.023 (OLS
+  p=0.20). A permutation test flags std at p=0.026, but that is inflated — the
+  residual is 83% of the loose set, so the random-subset null is artificially tight
+  and mostly detects that the *flipped* items were higher-marginal (they were
+  correct predictions, which reconstruct well). Net: at most a weak hint, no
+  robust signal — consistent with §3e–§3f. Data: `results/{model_continuations,
+  withgen_verdicts,withgen_stats}.json`; scripts `generate_continuations.py`,
+  `rejudge_withgen.py`.
+
 **Takeaway.** The requested comparison is clean and one-directional: matryoshka
 items that damage its own reconstruction map to standard sentences that *improve*
 the standard reconstruction, are load-bearing there (order-independent solo/LOO,
