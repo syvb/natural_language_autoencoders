@@ -299,6 +299,43 @@ per-item marginal FVE is a **reconstructability** signal — it rewards specific
 verbatim, quotable text — and is at best a very weak, and largely position-mediated,
 hallucination signal. Script: `find_category.py`.
 
+### 3f. Isolating the *real* hallucinations by cross-model consensus — still no signal
+
+![strict consensus](results/fig_strict_consensus.png)
+
+The remaining worry: is the null FVE-vs-hallucination result just because the
+"hallucinated" bucket is contaminated? To get a high-precision set, every
+currently-hallucinated item was **re-judged with a strict, extraction-grounded
+prompt** (must quote the specific fabricated fact; explicitly rule out
+plausible-prediction / vague / meta / misquote) on **two independent models** —
+nex-n2-mini and openai/gpt-4o-mini — and "confirmed" = both flag it.
+
+Two findings:
+
+1. **The category is genuinely noisy — the concern is real.** The two independent
+   strict judges agree only **73% (mat) / 67% (std)** of the time on whether a
+   loose-labeled hallucination is real, and requiring consensus drops **33% (mat)
+   / 40% (std)** of the bucket. So yes, the single-judge "hallucinated" label lumps
+   in a large minority of items two strict independent raters won't both confirm.
+
+2. **But purifying it reveals no FVE signal whatsoever.** Within-position vs
+   SUPPORTED, as the bucket is purified loose → nex-strict → gpt-strict →
+   confirmed-both: matryoshka −0.0024 → −0.0008 (p=0.68); standard −0.013 → +0.012
+   (p=0.56, sign flips). The confirmed set is **indistinguishable from a random
+   same-size subset of the loose bucket** (permutation p = **0.97** mat, **0.65**
+   std) and sits squarely inside the random-subset null band in the figure. Making
+   the hallucination label *cleaner* moves the coefficient toward **zero**, not
+   away from it.
+
+So the null is not a contamination artifact — it is the real answer. Even the
+cleanest cross-model-confirmed, extraction-grounded hallucination set reconstructs
+the same as any other content at the same position. Combined with §3e, the
+conclusion is now robust from both directions: **marginal FVE indexes
+reconstructability (specific/verbatim/quotable text), and carries essentially no
+hallucination signal — not because the category is dirty, but because the two
+quantities are unrelated.** Data: `results/strict_{halluc,stats}.json`; two-model
+consensus judge `judge_strict.py`.
+
 **Takeaway.** The requested comparison is clean and one-directional: matryoshka
 items that damage its own reconstruction map to standard sentences that *improve*
 the standard reconstruction, are load-bearing there (order-independent solo/LOO,

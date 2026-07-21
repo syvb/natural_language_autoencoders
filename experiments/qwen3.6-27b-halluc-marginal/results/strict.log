@@ -1,0 +1,50 @@
+[judge] 13822 strict calls (6911 items x 2 models)…
+  500/13822
+  1000/13822
+  1500/13822
+  2000/13822
+  2500/13822
+  3000/13822
+  3500/13822
+  4000/13822
+  4500/13822
+  5000/13822
+  5500/13822
+  6000/13822
+  6500/13822
+  7000/13822
+  7500/13822
+  8000/13822
+  8500/13822
+  9000/13822
+  9500/13822
+  10000/13822
+  10500/13822
+  11000/13822
+  11500/13822
+  12000/13822
+  12500/13822
+  13000/13822
+  13500/13822
+  13822/13822
+[judge] done, 0 unparsed
+
+==========================================================================
+
+matryoshka (lines): loose-hallucinated n=4649
+  strict-HALLUCINATION kept: nex 3522 (76%) | gpt-4o-mini 3972 (85%) | BOTH 3132 (67%)
+  inter-model agreement on loose set: 74%
+  within-pos vs SUPPORTED — loose (all CON/FAB)        coef -0.0024 p=1.35e-01  (n=4649)
+  within-pos vs SUPPORTED — strict: nex only           coef -0.0006 p=7.13e-01  (n=3522)
+  within-pos vs SUPPORTED — strict: CONFIRMED (both)   coef -0.0002 p=9.33e-01  (n=3132)
+  permutation (CONFIRMED vs random same-size subset of loose): coef -0.0002, p_perm=0.994
+
+standard (sentences): loose-hallucinated n=2262
+  strict-HALLUCINATION kept: nex 1997 (88%) | gpt-4o-mini 1483 (66%) | BOTH 1356 (60%)
+  inter-model agreement on loose set: 66%
+  within-pos vs SUPPORTED — loose (all CON/FAB)        coef -0.0130 p=4.48e-01  (n=2262)
+  within-pos vs SUPPORTED — strict: nex only           coef -0.0110 p=5.39e-01  (n=1997)
+  within-pos vs SUPPORTED — strict: CONFIRMED (both)   coef +0.0130 p=5.11e-01  (n=1356)
+  permutation (CONFIRMED vs random same-size subset of loose): coef +0.0130, p_perm=0.599
+
+[saved] results/strict_halluc.json, strict_stats.json
