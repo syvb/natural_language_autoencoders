@@ -74,6 +74,30 @@ def main():
     fig.savefig(out, dpi=170)
     print(f"[saved] {out}")
 
+    # pared-down two-curve version: matryoshka vs standard-lines-reversed
+    fig, ax = plt.subplots(figsize=(8.2, 5.0))
+    ax.plot(*zip(*mat), "-", color=PURPLE, lw=2.2, label="matryoshka (trained order)")
+    ax.plot(*zip(*revl), "-", color=RED, lw=2.2, label="standard, lines reversed")
+    ax.axhline(0, color="#bbbbbb", lw=0.8)
+    ax.set_xlabel("explanation truncation (content tokens)")
+    ax.set_ylabel("round-trip FVE (own critic)")
+    ax.set_xlim(0, 260)
+    ax.legend(fontsize=9.5, loc="lower right")
+    ax.grid(True, alpha=0.25, lw=0.6)
+    for s in ("top", "right"):
+        ax.spines[s].set_visible(False)
+    ax.set_title("Matryoshka vs standard NLA read back-to-front\n"
+                 "FVE vs token truncation (Qwen3.6-27B, clean held-out)",
+                 fontsize=11.5)
+    fig.text(0.01, 0.005,
+             "100 fresh held-out L42 activations (Ultra-FineWeb idx 300000+), "
+             "seed-42 selection identical to the original curves.",
+             fontsize=7.0, color="#888888")
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    out2 = f"{RES}/fve_truncation_mat_vs_stdrev.png"
+    fig.savefig(out2, dpi=170)
+    print(f"[saved] {out2}")
+
 
 if __name__ == "__main__":
     main()
