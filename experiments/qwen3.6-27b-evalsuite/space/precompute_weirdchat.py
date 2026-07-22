@@ -74,7 +74,7 @@ def main():
     ap.add_argument("--texts", default=str(HERE / "weirdchat_texts.json"))
     ap.add_argument("--mu", default=str(HERE / "mu.npy"))
     ap.add_argument("--out", default=str(HERE / "precache_weirdchat.json"))
-    ap.add_argument("--av-batch", type=int, default=12)
+    ap.add_argument("--av-batch", type=int, default=24)
     ap.add_argument("--ar-batch", type=int, default=24)
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
@@ -113,28 +113,38 @@ def main():
     flat = [(d_i, idx) for d_i, d in enumerate(docs) for idx in range(len(d["ids"]))]
     print(f"{len(docs)} texts, {len(flat)} positions", flush=True)
 
+    # newline-bearing token ids — a "complete line" is terminated by one. Counting
+    # these on the token tensor per step is O(batch·len) and stays on GPU; the
+    # decode-every-step version was the throughput bottleneck (CPU-bound, O(len^2),
+    # capped util ~64%). Undercounting (a token with 2 newlines) only makes it stop
+    # LATER (safe — we keep the first N_LINES anyway).
+    _nl_ids = torch.tensor(
+        [i for i in range(len(tok)) if "\n" in tok.decode([i])],
+        device="cuda", dtype=torch.long)
+
     class _StopAfterLines(StoppingCriteria):
-        """Per-sequence stop once a row has N_LINES complete lines. Returns a
-        BoolTensor[batch] (transformers>=4.4x per-row semantics) so early rows
-        stop while the rest keep going — real per-sample early-exit, not
-        batch-gated."""
+        """Per-sequence stop once a row has >= N_LINES newline-terminated lines.
+        Returns a BoolTensor[batch] (transformers per-row semantics) so early rows
+        stop while the rest keep going — real per-sample early-exit."""
 
         def __init__(self, prompt_len, batch):
             self.prompt_len = prompt_len
-            self.batch = batch
 
         def __call__(self, input_ids, scores, **kw):
-            gens = tok.batch_decode(input_ids[:, self.prompt_len:],
-                                    skip_special_tokens=True)
-            return torch.tensor([len(_lines_streaming(g)) >= N_LINES for g in gens],
-                                device=input_ids.device)
+            tail = input_ids[:, self.prompt_len:]
+            counts = torch.isin(tail, _nl_ids).sum(dim=1)
+            return counts >= N_LINES
 
     # ── resume: if stage-2 checkpoint exists, skip extract+verbalize ──────────
     if os.path.exists(ckpt):
         print(f"[resume] loading stage-2 checkpoint {ckpt}", flush=True)
         z = np.load(ckpt, allow_pickle=True)
-        vecs = list(z["vecs"])
-        all_lines = list(z["all_lines"])
+        # np.savez(dtype=object) on equal-length vectors collapses to a 2-D
+        # object array → rows load back object-typed (torch.tensor rejects them).
+        # Coerce each back to float32 (works for both the object-array and the
+        # stacked-float32 checkpoint shapes).
+        vecs = [np.asarray(v, dtype=np.float32) for v in z["vecs"]]
+        all_lines = [list(x) for x in z["all_lines"]]
     else:
         # ── load ACTOR (base + matryoshka LoRA) ───────────────────────────────
         print("[load] base + matryoshka rl_av_lora_iter400 (bf16)…", flush=True)
@@ -197,11 +207,16 @@ def main():
         print(f"verbalize done in {time.time() - t0:.0f}s", flush=True)
 
         # checkpoint the expensive stage so a stage-3 crash doesn't redo it
-        np.savez(ckpt, vecs=np.array(vecs, dtype=object),
+        np.savez(ckpt, vecs=np.stack(vecs).astype(np.float32),
                  all_lines=np.array(all_lines, dtype=object))
         print(f"[ckpt] wrote {ckpt}", flush=True)
 
-        del actor, base
+        # Free the ~52GB actor before loading the critic. base_layers holds the
+        # decoder-layer modules (and the karvonen/L42 hooks live on them), so it
+        # keeps `base` alive — dropping actor+base alone leaves the actor resident
+        # and the critic's warmup OOMs on an 80GB card. Drop every ref.
+        vref[0] = None
+        del actor, base, base_layers, vref
         gc.collect()
         torch.cuda.empty_cache()
 
