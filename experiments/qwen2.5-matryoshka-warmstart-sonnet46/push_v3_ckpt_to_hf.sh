@@ -10,7 +10,7 @@
 set -e
 IT="$1"; RUN_DIR="${2:-/workspace/rl_v3}"
 export HF_TOKEN="$(cat /root/.hf_token)"; export HUGGING_FACE_HUB_TOKEN="$HF_TOKEN"
-REPO="syvb/nla-qwen2.5-7b-L20-v3-rl"
+REPO="${REPO:-syvb/nla-qwen2.5-7b-L20-v3-rl}"   # override for non-v3 runs (e.g. suffix RL)
 A_IN="$RUN_DIR/actor/iter_$IT"; C_HF="$RUN_DIR/critic/iter_$IT/hf"; A_OUT="/workspace/hf_out/v3rl_$IT"
 
 echo "=== verify critic value_head is finite ==="
