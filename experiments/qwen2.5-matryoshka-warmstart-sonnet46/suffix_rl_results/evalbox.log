@@ -1,0 +1,214 @@
+=== [A] deps (transformers pin per ENV_FIXES; no sglang) ===
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable.It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+=== [B] models + eval parquet ===
+downloading syvb/nla-qwen2.5-7b-L20-av-matryoshka-sonnet46-v3 (all)
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 5503.93it/s]
+downloading syvb/nla-qwen2.5-7b-L20-ar-matryoshka-sonnet46-v3 (all)
+Fetching 17 files:   0%|          | 0/17 [00:00<?, ?it/s]Fetching 17 files: 100%|██████████| 17/17 [00:00<00:00, 4859.48it/s]
+downloading syvb/nla-qwen2.5-7b-L20-suffix-rl iter_0000025/av/*
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 7268.46it/s]
+downloading syvb/nla-qwen2.5-7b-L20-suffix-rl iter_0000025/ar/*
+Fetching 15 files:   0%|          | 0/15 [00:00<?, ?it/s]Fetching 15 files: 100%|██████████| 15/15 [00:00<00:00, 3757.21it/s]
+downloading syvb/nla-qwen2.5-7b-L20-suffix-rl iter_0000050/av/*
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 2505.89it/s]
+downloading syvb/nla-qwen2.5-7b-L20-suffix-rl iter_0000050/ar/*
+Fetching 15 files:   0%|          | 0/15 [00:00<?, ?it/s]Fetching 15 files: 100%|██████████| 15/15 [00:00<00:00, 2598.81it/s]
+downloading syvb/nla-qwen2.5-7b-L20-v3-rl iter_0000200/av/*
+Fetching 18 files:   0%|          | 0/18 [00:00<?, ?it/s]Fetching 18 files: 100%|██████████| 18/18 [00:00<00:00, 3949.65it/s]
+downloading syvb/nla-qwen2.5-7b-L20-v3-rl iter_0000200/ar/*
+Fetching 15 files:   0%|          | 0/15 [00:00<?, ?it/s]Fetching 15 files: 100%|██████████| 15/15 [00:00<00:00, 3624.74it/s]
+DOWNLOADS_DONE
+=== [C] four eval arms ===
+=== ARM ws ===
+AV: inj_char='㈎' id=149705 neighbors=(29,522) injection_scale=150.0
+truncation side(s): ('prefix', 'suffix'); lengths (content tokens): [1, 2, 5, 10, 30, 60, 120] + full; gen max_new_tokens=120
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:00,  8.62it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:00<00:00,  5.63it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:00<00:00,  2.89it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00,  4.50it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 155.75it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /workspace/m/ws_critic and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+mse_scale=59.86651818838306
+evaluating 100 samples from 100 docs
+  16/100  (cjk so far=0)
+  32/100  (cjk so far=0)
+  48/100  (cjk so far=1)
+  64/100  (cjk so far=1)
+  80/100  (cjk so far=1)
+  96/100  (cjk so far=1)
+  100/100  (cjk so far=2)
+
+========================================================================
+N=100  mse_scale=59.867  raw-mean baseline (denom)=0.7275
+CJK-in-AV-output: 2/100
+------------------------------------------------------------------------
+INFORMATION-UPFRONT — round-trip FVE by AV content-token PREFIX length:
+    prefix       FVE   dir-MSE     cos
+         1   -0.3095    0.9527   0.524
+         2   -0.2456    0.9062   0.547
+         5   -0.0637    0.7738   0.613
+        10    0.0366    0.7009   0.650
+        30    0.2526    0.5437   0.728
+        60    0.3155    0.4980   0.751
+       120    0.3475    0.4747   0.763
+INFORMATION-AT-THE-END — round-trip FVE by AV content-token SUFFIX length:
+    suffix       FVE   dir-MSE     cos
+         1   -0.3715    0.9977   0.501
+         2   -0.3864    1.0086   0.496
+         5   -0.4268    1.0380   0.481
+        10   -0.3774    1.0021   0.499
+        30   -0.3107    0.9536   0.523
+        60   -0.2104    0.8806   0.560
+       120    0.3477    0.4745   0.763
+FULL (untruncated AV text, side-independent):
+      full    0.3476    0.4746   0.763
+------------------------------------------------------------------------
+CRITIC-ONLY (gold Sonnet text, full -> AR):  FVE=0.4792  dir-MSE=0.3789  cos=0.8106
+========================================================================
+FVE_EVAL_DONE
+=== ARM ws DONE ===
+=== ARM it25 ===
+AV: inj_char='㈎' id=149705 neighbors=(29,522) injection_scale=150.0
+truncation side(s): ('prefix', 'suffix'); lengths (content tokens): [1, 2, 5, 10, 30, 60, 120] + full; gen max_new_tokens=120
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 160.92it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 152.74it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /workspace/m/sfx25/iter_0000025/ar and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+mse_scale=59.86651818838306
+evaluating 100 samples from 100 docs
+  16/100  (cjk so far=0)
+  32/100  (cjk so far=0)
+  48/100  (cjk so far=0)
+  64/100  (cjk so far=0)
+  80/100  (cjk so far=0)
+  96/100  (cjk so far=0)
+  100/100  (cjk so far=0)
+
+========================================================================
+N=100  mse_scale=59.867  raw-mean baseline (denom)=0.7275
+CJK-in-AV-output: 0/100
+------------------------------------------------------------------------
+INFORMATION-UPFRONT — round-trip FVE by AV content-token PREFIX length:
+    prefix       FVE   dir-MSE     cos
+         1   -0.3343    0.9707   0.515
+         2   -0.3225    0.9621   0.519
+         5   -0.0532    0.7662   0.617
+        10    0.0686    0.6776   0.661
+        30    0.3576    0.4673   0.766
+        60    0.4796    0.3786   0.811
+       120    0.5325    0.3401   0.830
+INFORMATION-AT-THE-END — round-trip FVE by AV content-token SUFFIX length:
+    suffix       FVE   dir-MSE     cos
+         1   -0.3214    0.9613   0.519
+         2   -0.2928    0.9405   0.530
+         5   -0.1483    0.8354   0.582
+        10    0.0109    0.7196   0.640
+        30    0.3279    0.4890   0.756
+        60    0.4938    0.3683   0.816
+       120    0.5326    0.3401   0.830
+FULL (untruncated AV text, side-independent):
+      full    0.5325    0.3401   0.830
+------------------------------------------------------------------------
+CRITIC-ONLY (gold Sonnet text, full -> AR):  FVE=0.3827  dir-MSE=0.4491  cos=0.7755
+========================================================================
+FVE_EVAL_DONE
+=== ARM it25 DONE ===
+=== ARM it50 ===
+AV: inj_char='㈎' id=149705 neighbors=(29,522) injection_scale=150.0
+truncation side(s): ('prefix', 'suffix'); lengths (content tokens): [1, 2, 5, 10, 30, 60, 120] + full; gen max_new_tokens=120
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 143.46it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 151.37it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /workspace/m/sfx50/iter_0000050/ar and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+mse_scale=59.86651818838306
+evaluating 100 samples from 100 docs
+  16/100  (cjk so far=0)
+  32/100  (cjk so far=0)
+  48/100  (cjk so far=0)
+  64/100  (cjk so far=0)
+  80/100  (cjk so far=0)
+  96/100  (cjk so far=0)
+  100/100  (cjk so far=0)
+
+========================================================================
+N=100  mse_scale=59.867  raw-mean baseline (denom)=0.7275
+CJK-in-AV-output: 0/100
+------------------------------------------------------------------------
+INFORMATION-UPFRONT — round-trip FVE by AV content-token PREFIX length:
+    prefix       FVE   dir-MSE     cos
+         1   -0.3332    0.9699   0.515
+         2   -0.2764    0.9286   0.536
+         5    0.0011    0.7267   0.637
+        10    0.1318    0.6316   0.684
+        30    0.4661    0.3884   0.806
+        60    0.5766    0.3081   0.846
+       120    0.6098    0.2839   0.858
+INFORMATION-AT-THE-END — round-trip FVE by AV content-token SUFFIX length:
+    suffix       FVE   dir-MSE     cos
+         1   -0.3192    0.9597   0.520
+         2   -0.2885    0.9374   0.531
+         5   -0.1638    0.8467   0.577
+        10    0.0676    0.6783   0.661
+        30    0.4455    0.4034   0.798
+        60    0.5652    0.3163   0.842
+       120    0.6098    0.2839   0.858
+FULL (untruncated AV text, side-independent):
+      full    0.6098    0.2839   0.858
+------------------------------------------------------------------------
+CRITIC-ONLY (gold Sonnet text, full -> AR):  FVE=0.3347  dir-MSE=0.4840  cos=0.7580
+========================================================================
+FVE_EVAL_DONE
+=== ARM it50 DONE ===
+=== ARM v3rl ===
+AV: inj_char='㈎' id=149705 neighbors=(29,522) injection_scale=150.0
+truncation side(s): ('prefix', 'suffix'); lengths (content tokens): [1, 2, 5, 10, 30, 60, 120] + full; gen max_new_tokens=120
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 165.28it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 153.30it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /workspace/m/v3rl/iter_0000200/ar and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+mse_scale=59.86651818838306
+evaluating 100 samples from 100 docs
+  16/100  (cjk so far=3)
+  32/100  (cjk so far=8)
+  48/100  (cjk so far=10)
+  64/100  (cjk so far=13)
+  80/100  (cjk so far=17)
+  96/100  (cjk so far=17)
+  100/100  (cjk so far=18)
+
+========================================================================
+N=100  mse_scale=59.867  raw-mean baseline (denom)=0.7275
+CJK-in-AV-output: 18/100
+------------------------------------------------------------------------
+INFORMATION-UPFRONT — round-trip FVE by AV content-token PREFIX length:
+    prefix       FVE   dir-MSE     cos
+         1   -0.3355    0.9715   0.514
+         2   -0.0225    0.7439   0.628
+         5    0.2660    0.5340   0.733
+        10    0.4325    0.4128   0.794
+        30    0.6236    0.2738   0.863
+        60    0.6711    0.2393   0.880
+       120    0.6814    0.2318   0.884
+INFORMATION-AT-THE-END — round-trip FVE by AV content-token SUFFIX length:
+    suffix       FVE   dir-MSE     cos
+         1   -0.4410    1.0483   0.476
+         2   -0.4464    1.0522   0.474
+         5   -0.3497    0.9819   0.509
+        10   -0.1990    0.8723   0.564
+        30    0.2714    0.5300   0.735
+        60    0.5523    0.3257   0.837
+       120    0.6814    0.2318   0.884
+FULL (untruncated AV text, side-independent):
+      full    0.6814    0.2318   0.884
+------------------------------------------------------------------------
+CRITIC-ONLY (gold Sonnet text, full -> AR):  FVE=0.4429  dir-MSE=0.4053  cos=0.7973
+========================================================================
+FVE_EVAL_DONE
+=== ARM v3rl DONE ===
+EVAL_ALL_DONE

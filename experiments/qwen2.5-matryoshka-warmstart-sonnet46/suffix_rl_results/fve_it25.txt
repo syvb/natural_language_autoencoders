@@ -1,0 +1,46 @@
+AV: inj_char='㈎' id=149705 neighbors=(29,522) injection_scale=150.0
+truncation side(s): ('prefix', 'suffix'); lengths (content tokens): [1, 2, 5, 10, 30, 60, 120] + full; gen max_new_tokens=120
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:00<00:00, 160.92it/s]
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 152.74it/s]
+Some weights of Qwen2ForCausalLM were not initialized from the model checkpoint at /workspace/m/sfx25/iter_0000025/ar and are newly initialized: ['lm_head.weight', 'model.norm.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[NLACritic] 21 layers  d_model=3584  mse_scale=59.87
+mse_scale=59.86651818838306
+evaluating 100 samples from 100 docs
+  16/100  (cjk so far=0)
+  32/100  (cjk so far=0)
+  48/100  (cjk so far=0)
+  64/100  (cjk so far=0)
+  80/100  (cjk so far=0)
+  96/100  (cjk so far=0)
+  100/100  (cjk so far=0)
+
+========================================================================
+N=100  mse_scale=59.867  raw-mean baseline (denom)=0.7275
+CJK-in-AV-output: 0/100
+------------------------------------------------------------------------
+INFORMATION-UPFRONT — round-trip FVE by AV content-token PREFIX length:
+    prefix       FVE   dir-MSE     cos
+         1   -0.3343    0.9707   0.515
+         2   -0.3225    0.9621   0.519
+         5   -0.0532    0.7662   0.617
+        10    0.0686    0.6776   0.661
+        30    0.3576    0.4673   0.766
+        60    0.4796    0.3786   0.811
+       120    0.5325    0.3401   0.830
+INFORMATION-AT-THE-END — round-trip FVE by AV content-token SUFFIX length:
+    suffix       FVE   dir-MSE     cos
+         1   -0.3214    0.9613   0.519
+         2   -0.2928    0.9405   0.530
+         5   -0.1483    0.8354   0.582
+        10    0.0109    0.7196   0.640
+        30    0.3279    0.4890   0.756
+        60    0.4938    0.3683   0.816
+       120    0.5326    0.3401   0.830
+FULL (untruncated AV text, side-independent):
+      full    0.5325    0.3401   0.830
+------------------------------------------------------------------------
+CRITIC-ONLY (gold Sonnet text, full -> AR):  FVE=0.3827  dir-MSE=0.4491  cos=0.7755
+========================================================================
+FVE_EVAL_DONE

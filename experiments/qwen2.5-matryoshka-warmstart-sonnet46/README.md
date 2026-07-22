@@ -451,3 +451,42 @@ Implemented as truncation mode `suffix` (`nla/truncation.py`); launcher
   value; both default to `rollout_seed`), (d) the 27B reversed-order eval
   (`qwen3.6-27b-evalsuite/clean_rev_fve.py`): reordering alone doesn't
   recover matryoshka-level short-budget FVE — does *training* for it?
+
+### Suffix RL PoC outcome (2026-07-22) — 25 burn-in + 25 actor steps, stopped early by design
+
+Run: 8×H100 (actor4/critic2/rollout2), 512-batch, KL 0.01, suffix ~U[1,120],
+RESP=120 (exact mirror), two-phase launch. Training: burn-in critic fve_nrm
+recovered the OOD cliff in ~3 steps then plateaued ≈−0.05 (frozen front-loaded
+actor's suffixes ≈ uninformative); actor phase raw_reward −0.55→−0.37, critic
+suffix fve_nrm →0.44–0.59; grad-guard skips ~30% intermittent, contained; zero
+crashes. Checkpoints: `syvb/nla-qwen2.5-7b-L20-suffix-rl` (iter_0000025 = burn-in
+/ actor-untouched, iter_0000050 = 25 actor steps). Eval (100 held-out, T=1,
+NLA_GEN_MAX_NEW=120, both sides; tables in `suffix_rl_results/fve_*.txt`):
+
+| arm | prefix@10 | suffix@10 | prefix@60 | suffix@60 | @120 | asym(p−s)@10 |
+|---|---|---|---|---|---|---|
+| ws (baseline) | 0.04 | −0.38 | 0.32 | −0.21 | 0.35 | **+0.42** |
+| it25 (critic recal only) | 0.07 | 0.01 | 0.48 | 0.49 | 0.53 | +0.06 |
+| it50 (25 actor steps) | 0.13 | 0.07 | 0.58 | 0.57 | 0.61 | +0.06 |
+| v3rl-200 (control) | 0.43 | −0.20 | 0.67 | 0.55 | 0.68 | **+0.63** |
+
+Findings:
+1. **The warm-start's suffix-blindness was mostly critic-side.** it25's AV is
+   byte-identical to ws, yet critic suffix-recalibration alone took suffix@60
+   from −0.21 to +0.49 and made the pair's curves position-symmetric — the
+   information was in the suffixes; the prefix-calibrated critic couldn't read
+   it there. The ws-vs-v3rl "front-loading" asymmetry is therefore partly a
+   readout artifact, a caveat that applies to prefix-truncation evals
+   generally.
+2. **25 actor steps: real but generic gains, no gap-flip yet.** Both curves
+   rose ~equally (suffix@30 0.33→0.45, prefix@30 0.36→0.47); at short k the
+   pair is now symmetric (+0.06) vs ws +0.42 and v3's +0.63 — moving in the
+   mirrored direction but suffix does not yet beat prefix anywhere.
+3. **Critic-on-gold declined 0.48→0.38→0.33** across burn-in and actor steps —
+   the usual co-training specialization; run the paraphrase probe before
+   claiming semantic (vs lexical) suffix gains.
+
+Continuation (needs re-warm of optimizer): resume from the HF iter_0000050
+pair via ACTOR_SFT_CKPT/CRITIC_SL_CKPT (KL re-anchors to iter_50; raw DCP
+state was not preserved). The gap-flip question — does suffix beat prefix at
+short k with v3-scale step counts (~200)? — is open and now cheap to answer.
