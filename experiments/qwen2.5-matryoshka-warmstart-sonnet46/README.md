@@ -382,7 +382,7 @@ Implemented as truncation mode `suffix` (`nla/truncation.py`); launcher
   ```bash
   # RL box (setup_rl_box_lmsys.sh), v3 warm-start downloaded from HF:
   ACTOR_LR=0 NUM_ROLLOUT=25 ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl_suffix.sh
-  NUM_ROLLOUT=100           ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl_suffix.sh
+  NUM_ROLLOUT=75            ACTOR_SFT_CKPT=... CRITIC_SL_CKPT=... bash run_rl_suffix.sh
   ```
 
 - **`ROLLOUT_MAX_RESP` = `NLA_TRUNC_MAX_TOKENS` = 120, enforced.** With
@@ -418,7 +418,7 @@ Implemented as truncation mode `suffix` (`nla/truncation.py`); launcher
   ```bash
   EVAL=/workspace/out/av_eval_v3.parquet AV_DIR=<v3-ws-av> AR_DIR=<v3-ws-ar> \
     NLA_TRUNC_SIDE=both NLA_GEN_TEMP=1 NLA_GEN_MAX_NEW=120 \
-    python eval_round_trip_fve.py 150 1,2,5,10,30,60,120
+    python eval_round_trip_fve.py 100 1,2,5,10,30,60,120
   ```
 
 - **Attribution control — v3 iter_200 evaluated both sides** (same command,
@@ -431,14 +431,16 @@ Implemented as truncation mode `suffix` (`nla/truncation.py`); launcher
   `NLA_TRUNC_SIDE=both` too (does back-loading *destroy* front-loading or
   add to it?). Keep one sampling regime (`NLA_GEN_TEMP=1`) across all arms —
   v3's README numbers were greedy, so re-derive any curve you compare against.
-- **Gate (end of phase 2, i.e. 75 actor steps)**: critic `fve_nrm` recovered
+- **Gate (end of phase 2, i.e. 50 actor steps)**: critic `fve_nrm` recovered
   during burn-in; short-SUFFIX FVE (judge at k=1–10 — at k≥60 the suffix of a
   120-token output is most of the text and "above baseline" is nearly
   vacuous) above the warm-start baseline at iter_50/75; grad-skip rate ~0;
-  CJK=0. **The gate is one-sided**: positive signal → go (extend to ~200);
-  flat signal is NO-GO only after extending to ~120 actor steps (v3's plateau
-  was ~110). Log the step at which `fve_nrm` crosses its burn-in level so
-  "effective actor steps" is recorded, not guessed.
+  CJK=0. **The gate is one-sided**: positive signal → go (extend to ~200 by
+  re-running with a higher `NUM_ROLLOUT` — resume is free); flat signal is
+  NO-GO only after extending to ~120 actor steps (v3's plateau was ~110);
+  50 actor steps is the cheap first look, not the verdict. Log the step at
+  which `fve_nrm` crosses its burn-in level so "effective actor steps" is
+  recorded, not guessed.
 - **Faithfulness read**: run `eval_paraphrase_order.py` on the final
   checkpoint (is back-loaded FVE more or less lexical than v3's?), and set
   `NLA_QUOTE_STATS_JSONL` during RL (free) — final-token echo is directly

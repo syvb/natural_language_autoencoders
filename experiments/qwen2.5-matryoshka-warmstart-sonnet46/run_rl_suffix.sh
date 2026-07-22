@@ -52,14 +52,16 @@
 # rollouts before letting the actor move:
 #
 #   ACTOR_LR=0 NUM_ROLLOUT=25 bash run_rl_suffix.sh   # critic-only burn-in
-#   NUM_ROLLOUT=100           bash run_rl_suffix.sh   # resumes iter_25; 75 actor steps
+#   NUM_ROLLOUT=75            bash run_rl_suffix.sh   # resumes iter_25; 50 actor steps
 #
 # (Burn-in length must be a multiple of SAVE_INTERVAL=25 or nothing is saved
 # to resume from. Judge actor progress from the iter_25 checkpoint, not
 # iter_0.) Gate at the end of phase 2: gate on critic fve_nrm having
 # recovered during burn-in, short-SUFFIX (k=1-10) FVE above the warm-start
-# baseline, grad-skip rate ~0. A positive signal = go. A flat signal is
-# NO-GO only after extending to ~120 actor steps (v3's plateau was ~110).
+# baseline, grad-skip rate ~0. A positive signal = go (extend by re-running
+# with a higher NUM_ROLLOUT — resume is free). A flat signal is NO-GO only
+# after extending to ~120 actor steps (v3's plateau was ~110); 50 actor
+# steps is the cheap first look, not the verdict.
 #
 # DEFAULT PROFILE: one 8×H100 node (actor 4 / critic 2 / rollout 2), 512-batch
 # (64×8) — resume by re-running with a higher NUM_ROLLOUT (checkpoints +
