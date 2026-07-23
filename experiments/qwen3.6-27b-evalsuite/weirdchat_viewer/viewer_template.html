@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WeirdChat × NLA — matryoshka vs standard</title>
+<style>
+:root{
+  --surface:#fcfcfb; --panel:#f9f9f7; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --pos:#2a78d6; --neg:#e34948;
+  --wash:rgba(11,11,11,.04); --ring:rgba(11,11,11,.10); --sel:#eda100;
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --surface:#1a1a19; --panel:#0d0d0d; --ink:#fff; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --pos:#3987e5; --neg:#e66767;
+  --wash:rgba(255,255,255,.05); --ring:rgba(255,255,255,.10); --sel:#c98500;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--panel);color:var(--ink);font-size:14px;line-height:1.45}
+header{padding:14px 20px;border-bottom:1px solid var(--ring);background:var(--surface);
+  position:sticky;top:0;z-index:5}
+h1{font-size:16px;margin:0 0 3px}
+.sub{font-size:12px;color:var(--ink2);margin-bottom:10px}
+.controls{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--ring);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--ink2);padding:5px 12px;cursor:pointer;
+  font-size:12.5px;font-weight:600}
+.seg button.on{background:var(--pos);color:#fff}
+label.pick{font-size:12.5px;color:var(--ink2);display:flex;gap:6px;align-items:center}
+select{font:inherit;font-size:12.5px;padding:5px 8px;border-radius:8px;border:1px solid var(--ring);
+  background:var(--surface);color:var(--ink);max-width:60vw}
+.wrap{display:grid;grid-template-columns:minmax(300px,1fr) minmax(340px,1fr);gap:0;
+  align-items:start}
+@media(max-width:840px){.wrap{grid-template-columns:1fr}}
+.col{padding:16px 20px}
+.col.right{border-left:1px solid var(--ring);background:var(--surface);min-height:70vh}
+@media(max-width:840px){.col.right{border-left:0;border-top:1px solid var(--ring)}}
+/* stick the viz panel below the header while scrolling the token list —
+   only in the 2-column layout and only when the viewport is tall enough */
+@media(min-width:841px) and (min-height:560px){
+  .col.right{position:sticky;top:var(--headh,118px);align-self:start;
+    min-height:auto;max-height:calc(100vh - var(--headh,118px));overflow:auto}
+}
+.tokens{line-height:2.1}
+.tok{cursor:pointer;border-radius:3px;padding:1px 0;white-space:pre-wrap}
+.tok:hover{background:var(--wash);outline:1px solid var(--ring)}
+.tok.sel{background:var(--sel);color:#000}
+.nlmark{color:var(--muted);opacity:.45;font-size:.85em}
+.tok.sel .nlmark{color:#000;opacity:.55}
+.hint{font-size:12px;color:var(--muted);margin-bottom:10px}
+.chips{display:flex;gap:18px;margin-bottom:14px;flex-wrap:wrap}
+.chip .v{font-size:20px;font-weight:650}
+.chip .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.vtitle{font-size:13px;font-weight:600;margin-bottom:2px}
+.vsub{font-size:11.5px;color:var(--ink2);margin-bottom:12px}
+.row{display:grid;grid-template-columns:18px 1fr 60px;gap:9px;align-items:center;
+  padding:5px 4px;border-radius:6px}
+.row:hover{background:var(--wash)}
+.idx{font-size:11px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.linebar{display:flex;flex-direction:column;gap:3px;min-width:0}
+.linetext{font-size:12.5px;color:var(--ink);white-space:normal;overflow-wrap:anywhere}
+.track{position:relative;height:9px}
+.zero{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--axis)}
+.bar{position:absolute;top:0;height:9px}
+.bar.pos{background:var(--pos);border-radius:0 3px 3px 0}
+.bar.neg{background:var(--neg);border-radius:3px 0 0 3px}
+.val{font-size:11.5px;color:var(--ink2);text-align:right;font-variant-numeric:tabular-nums}
+.axisrow{display:grid;grid-template-columns:18px 1fr 60px;gap:9px;padding:3px 4px 0}
+.axl{position:relative;height:12px;font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.axl span{position:absolute;transform:translateX(-50%)}
+.note{font-size:11px;color:var(--muted);margin-top:12px}
+.warn{color:var(--sel)}
+.empty{color:var(--muted);font-size:13px;padding:30px 4px}
+.loading{padding:40px 20px;color:var(--muted)}
+code{background:var(--wash);padding:1px 4px;border-radius:3px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🔬 WeirdChat × NLA — read a token's activation in plain English</h1>
+  <div class="sub">34 top-Elo Qwen3.6-27B <a href="https://huggingface.co/datasets/Transluce/WeirdChat" style="color:var(--pos)">WeirdChat</a> transcripts. Click any token to see how a natural-language autoencoder verbalizes its layer-42 activation, and how much of the activation the first <i>k</i> lines reconstruct (FVE). Toggle the salience-ordering-trained <b>matryoshka</b> NLA vs the <b>standard</b> one — same tokens, so it's an exact A/B.</div>
+  <div class="controls">
+    <label class="pick">Transcript <select id="pick"></select></label>
+    <div class="seg" id="model">
+      <button data-v="m" class="on">matryoshka</button><button data-v="s">standard</button>
+    </div>
+    <div class="seg" id="mode">
+      <button data-v="marginal" class="on">marginal ΔFVE</button><button data-v="cumulative">cumulative FVE</button>
+    </div>
+  </div>
+</header>
+<div class="wrap">
+  <div class="col left">
+    <div class="hint">Tokens (click one) — later tokens carry more left-context.</div>
+    <div class="tokens" id="tokens"><div class="loading">Decompressing embedded data…</div></div>
+  </div>
+  <div class="col right" id="panel"><div class="empty">Pick a transcript and click a token.</div></div>
+</div>
+<script id="payload" type="application/octet-stream">__B64__</script>
+<script>
+const CJK=/[　-〿぀-ヿ㐀-䶿一-鿿＀-￯]/;
+let DATA=null, cur={t:0,pos:null,model:"m",mode:"marginal"};
+
+async function boot(){
+  const b64=document.getElementById("payload").textContent.trim();
+  const bin=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  const ds=new DecompressionStream("gzip");
+  const buf=await new Response(new Blob([bin]).stream().pipeThrough(ds)).arrayBuffer();
+  DATA=JSON.parse(new TextDecoder().decode(buf));
+  const sel=document.getElementById("pick");
+  DATA.forEach((d,i)=>{const o=document.createElement("option");o.value=i;
+    o.textContent=`${d.cat} · elo ${d.elo}`;sel.appendChild(o);});
+  sel.onchange=()=>{cur.t=+sel.value;cur.pos=null;renderTokens();renderPanel();};
+  document.querySelectorAll("#model button").forEach(b=>b.onclick=()=>{
+    cur.model=b.dataset.v;setOn("model",b);renderPanel();});
+  document.querySelectorAll("#mode button").forEach(b=>b.onclick=()=>{
+    cur.mode=b.dataset.v;setOn("mode",b);renderPanel();});
+  renderTokens();
+  syncHeadH(); addEventListener("resize",syncHeadH);
+}
+function syncHeadH(){
+  const h=document.querySelector("header").offsetHeight;
+  document.documentElement.style.setProperty("--headh", h+"px");
+}
+function setOn(id,btn){document.querySelectorAll("#"+id+" button").forEach(x=>x.classList.remove("on"));btn.classList.add("on");}
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+// give each newline a faint clickable ↵ glyph (the token is otherwise zero-width);
+// the real \n after it still breaks the line under white-space:pre-wrap.
+function tokHtml(t){return esc(t).replace(/\n/g,'<span class="nlmark">↵</span>\n');}
+
+function renderTokens(){
+  const d=DATA[cur.t], el=document.getElementById("tokens");
+  el.innerHTML=d.pos.map((p,i)=>
+    `<span class="tok${i===cur.pos?" sel":""}" data-i="${i}">${tokHtml(p.t)}</span>`).join("");
+  el.querySelectorAll(".tok").forEach(s=>s.onclick=()=>{cur.pos=+s.dataset.i;
+    el.querySelectorAll(".tok.sel").forEach(x=>x.classList.remove("sel"));
+    s.classList.add("sel");renderPanel();});
+}
+function renderPanel(){
+  const panel=document.getElementById("panel");
+  if(cur.pos==null){panel.innerHTML='<div class="empty">Click a token on the left.</div>';return;}
+  const p=DATA[cur.t].pos[cur.pos];
+  const r=cur.model==="m"?p.m:p.s;
+  const other=cur.model==="m"?"standard":"matryoshka";
+  if(!r){panel.innerHTML=`<div class="empty">The ${cur.model==="m"?"matryoshka":"standard"} NLA produced no lines for this token — try another.</div>`;return;}
+  const lines=r.l, fve=r.f;
+  const marg=fve.map((v,i)=>i?+(v-fve[i-1]).toFixed(3):v);
+  const vals=cur.mode==="marginal"?marg:fve;
+  const lo=Math.min(0,...vals), hi=Math.max(0.05,...vals), span=hi-lo, zero=(0-lo)/span*100;
+  const title=cur.mode==="marginal"?"Additional FVE per explanation line (ΔFVE)":"Cumulative round-trip FVE (lines 1..k)";
+  const rows=lines.map((ln,i)=>{
+    const x=vals[i], w=Math.abs(x)/span*100, left=x>=0?zero:zero-w, cls=x>=0?"pos":"neg";
+    return `<div class="row" title="ΔFVE ${marg[i]>=0?"+":""}${marg[i].toFixed(3)} · cumulative ${fve[i].toFixed(3)}">
+      <div class="idx">${i+1}</div>
+      <div class="linebar"><div class="linetext">${esc(ln)}</div>
+        <div class="track"><div class="zero" style="left:${zero}%"></div>
+        <div class="bar ${cls}" style="left:${left}%;width:${Math.max(w,.4)}%"></div></div></div>
+      <div class="val">${x>=0?"+":""}${x.toFixed(3)}</div></div>`;}).join("");
+  const axis=`<div class="axisrow"><div></div><div class="axl">
+      <span style="left:${zero}%">0</span><span style="left:100%">${hi.toFixed(2)}</span></div><div></div></div>`;
+  const notes=[];
+  if(cur.pos<10)notes.push('<span class="warn">⚠ very early position — little left-context.</span>');
+  if(lines.some(l=>CJK.test(l)))notes.push('<span class="warn">⚠ stray CJK char (model minor-leak on adversarial text).</span>');
+  panel.innerHTML=`<div class="vtitle">${title}</div>
+    <div class="vsub">${cur.model==="m"?"matryoshka":"standard"} NLA · token “${esc(DATA[cur.t].pos[cur.pos].t.trim()||" ")}” @ pos ${cur.pos}</div>
+    <div class="chips">
+      <div class="chip"><div class="v">${fve[fve.length-1].toFixed(3)}</div><div class="l">FVE · all ${lines.length} lines</div></div>
+      <div class="chip"><div class="v">${(fve[0]).toFixed(3)}</div><div class="l">line-1 FVE</div></div>
+    </div>${rows}${axis}
+    <div class="note">${notes.join(" ")} ${notes.length?"<br>":""}Toggle to <b>${other}</b> to compare this exact token.</div>`;
+}
+boot();
+</script>
+</body>
+</html>
