@@ -25,7 +25,8 @@ import numpy as np
 import torch
 from huggingface_hub import snapshot_download
 from peft import PeftModel
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import (AutoModelForCausalLM, AutoTokenizer, StoppingCriteria,
+                          StoppingCriteriaList)
 
 from nla.config import load_nla_config
 from nla.models import NLACriticModel
@@ -104,6 +105,23 @@ def main():
     flat = [(d_i, idx) for d_i, d in enumerate(docs) for idx in range(len(d["ids"]))]
     print(f"{len(docs)} texts, {len(flat)} positions", flush=True)
 
+    # Bound generation to N_LINES snippets on the token tensor (GPU). The std
+    # model normally closes </explanation> and EOSes after 2-3 snippets (fast),
+    # but on adversarial weirdchat activations it often rambles to max_new —
+    # stop_strings/</explanation> then never fires. Counting newline tokens caps
+    # it at N_LINES lines per-sequence, matching what _lines keeps anyway.
+    _nl_ids = torch.tensor(
+        [i for i in range(len(tok)) if "\n" in tok.decode([i])],
+        device="cuda", dtype=torch.long)
+
+    class _StopAfterLines(StoppingCriteria):
+        def __init__(self, prompt_len):
+            self.prompt_len = prompt_len
+
+        def __call__(self, input_ids, scores, **kw):
+            tail = input_ids[:, self.prompt_len:]
+            return torch.isin(tail, _nl_ids).sum(dim=1) >= N_LINES
+
     if os.path.exists(ckpt):
         print(f"[resume] loading stage-2 checkpoint {ckpt}", flush=True)
         z = np.load(ckpt, allow_pickle=True)
@@ -160,7 +178,8 @@ def main():
                         input_ids=pt, attention_mask=torch.ones_like(pt),
                         max_new_tokens=MAX_NEW, do_sample=True, temperature=1.0,
                         top_p=1.0, top_k=0, pad_token_id=tok.eos_token_id,
-                        stop_strings=[STOP_STR], tokenizer=tok)
+                        stopping_criteria=StoppingCriteriaList(
+                            [_StopAfterLines(pt.shape[1])]))
                 finally:
                     vref[0] = None
                 for o in out:
