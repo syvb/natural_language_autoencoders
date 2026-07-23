@@ -394,6 +394,31 @@ not a hallucination detector for either model (§3) — the only significant-loo
 cell was sentence position, not faithfulness — so this is a statement about the
 two critics' reconstruction behavior on matched claims, not a lie-detector.
 
+### 3h. WHERE the hallucinations sit — opposite position structure
+
+![index dist mat](results/fig_halluc_index_dist_mat.png)
+![index dist std](results/fig_halluc_index_dist_std.png)
+
+Model-aware hallucinations (§3g definition) have opposite position profiles:
+**matryoshka hallucinates LATER** (mean line index 4.89 vs 4.23 for everything
+else; depleted at lines 0–1, uniformly elevated across the tail) while the
+**standard model hallucinates EARLIER** (mean sentence index 1.37 vs 1.97; 59% of
+its hallucinations are in sentences 0–1, where faithful content peaks at 2–3).
+Fits the training stories: the matryoshka front-loads activation-grounded salient
+content and confabulates in the low-information tail; the standard model's
+confident specific opening claims are its failure mode. This is also the position
+structure that produced every Simpson's-paradox trap in §3–§3a.
+
+Robustness (this pattern survives three attacks): (i) **cluster bootstrap** over
+contexts — mean-index gap mat +0.66 [95% CI +0.56, +0.78], std −0.60 [−0.70,
+−0.49]; (ii) **composition** — against SUPPORTED-only (META removed) the gap
+*grows* (mat +1.03, std −0.97; each model's META clusters at the opposite end
+from its hallucinations and was masking part of the effect); (iii) **label
+definition** — same sign under loose (+0.60/−0.58) and 2-model strict consensus
+(+0.43/−0.38), so not a single-judge artifact. Residual caveat: an LLM judge
+couples position with verifiability to some degree, but the strict-consensus
+robustness bounds that concern. Charts + stats: `plot_halluc_index.py`.
+
 ## Case studies
 
 `results/cases.md` — the 20 strongest negative-marginal matryoshka items (CJK-
