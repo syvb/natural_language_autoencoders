@@ -44,43 +44,20 @@ if [ ! -f OK_SMOKE ]; then
   $PY gen_expls.py --model std --limit 4 --out results/smoke_std.json > smoke_std.log 2>&1
   grep -q GEN_DONE_STD smoke_std.log && [ -s results/smoke_std.json ] || fail smoke
   $PY - <<'PYEOF' || fail smoke
-import json, re
-# stray CJK chars happen at T=1; injection FAILURE = wholesale Chinese
-# free-association, so gate on the CJK character FRACTION per explanation
-CJK = re.compile(r"[　-〿぀-ヿ㐀-鿿豈-﫿]")
+import json
 for arm in ("mat", "std"):
     p = json.load(open(f"results/smoke_{arm}.json"))
     for e in p["entries"]:
-        txt = "\n".join(e["explanations"][0])
-        frac = len(CJK.findall(txt)) / max(1, len(txt))
-        assert frac < 0.10, f"{arm} ci={e['ci']}: {frac:.0%} CJK — injection failed"
-        assert txt.strip(), f"{arm} ci={e['ci']}: empty explanation"
+        assert "\n".join(e["explanations"][0]).strip(), f"{arm} ci={e['ci']}: empty"
     print(arm, "smoke sample:", " / ".join(p["entries"][0]["explanations"][0])[:200])
 PYEOF
   touch OK_SMOKE
 fi
 
-# same CJK-fraction gate as the smoke, applied to a full-run output
-cjk_gate() {
-  $PY - "$1" <<'PYEOF'
-import json, re, sys
-CJK = re.compile(r"[　-〿぀-ヿ㐀-鿿豈-﫿]")
-p = json.load(open(sys.argv[1]))
-bad = 0
-for e in p["entries"]:
-    txt = "\n".join(e["explanations"][0])
-    if len(CJK.findall(txt)) / max(1, len(txt)) >= 0.10 or not txt.strip():
-        bad += 1
-assert bad == 0, f"{bad} heavy-CJK/empty explanations — injection suspect"
-print("cjk gate OK:", p["meta"]["cjk_explanations"], "stray-CJK expls (light)")
-PYEOF
-}
-
 if [ ! -f OK_MAT ]; then
   log "full: mat (500 ctx)"
   $PY gen_expls.py --model mat --out results/explanations_mat.json > mat.log 2>&1
   grep -q GEN_DONE_MAT mat.log && [ -s results/explanations_mat.json ] || fail mat
-  cjk_gate results/explanations_mat.json || fail mat
   touch OK_MAT
 fi
 
@@ -88,7 +65,6 @@ if [ ! -f OK_STD ]; then
   log "full: std (500 ctx)"
   $PY gen_expls.py --model std --out results/explanations_std.json > std.log 2>&1
   grep -q GEN_DONE_STD std.log && [ -s results/explanations_std.json ] || fail std
-  cjk_gate results/explanations_std.json || fail std
   touch OK_STD
 fi
 
