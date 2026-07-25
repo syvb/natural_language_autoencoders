@@ -1,0 +1,72 @@
+dataset_id: av_sft_Qwen3.6-27B_L42_regen__av_sft_Qwen3-8B_L24_6a22e324__av_sft_raw__explained__shuf42
+stage: av_sft
+row_count: 247261
+extraction:
+  base_model: Qwen/Qwen3.6-27B
+  d_model: 5120
+  layer_index: 42
+  norm: none
+  corpus: /workspace-vast/celeste/nla-data/finefineweb_100k.parquet
+  corpus_slice:
+    start: 0
+    length: 100000
+  positions_per_doc: 10
+kind: nla_dataset
+schema_version: 1
+keep_debug_metadata: true
+tokens:
+  injection_char: "\u321C"
+  injection_token_id: 158983
+  injection_left_neighbor_id: 29
+  injection_right_neighbor_id: 510
+  critic_suffix_ids: null
+prompt_templates:
+  actor: 'You are a meticulous AI researcher conducting an important investigation
+    into activation vectors from a language model. Your overall task is to describe
+    the semantic content of that activation vector.
+
+
+    We will pass the vector enclosed in <concept> tags into your context. You must
+    then produce an explanation for the vector, enclosed within <explanation> tags.
+    The explanation consists of 2-3 text snippets describing that vector.
+
+
+    Here is the vector:
+
+
+    <concept>{injection_char}</concept>
+
+
+    Please provide an explanation.'
+  critic: 'Summary of the following text: <text>{explanation}</text> <summary>'
+api_summaries:
+  model: claude-sonnet-4-6
+  max_tokens: 300
+  temperature: 1.0
+  instruction_prompt: "A language model needs to predict what text comes next after\
+    \ a snippet which will be presented to you shortly. Identify the 2-3 most important\
+    \ features it would use for this prediction.\nFocus on what the language model\
+    \ must be \"thinking about\" at the point where the provided text ends. You should\
+    \ not need to reference the fact that the text is truncated/incomplete/a prefix:\
+    \ the language model is causal, so only sees the prefix to what it predicts and\
+    \ this is implicit.\nOrder features by what is most important for predicting the\
+    \ next tokens. Each feature should consist of a concise ~10-20 word description.\
+    \ Feel free to include specific textual examples inline.\n\nFeature types to consider\
+    \ (as inspiration, not a rigid checklist):\n- Syntactic/structural constraints:\
+    \ \"unclosed parenthesis requires matching close\"\n- Immediate semantic expectations:\
+    \ \"list promised three items but only two given\"\n- Stylistic/register patterns:\
+    \ \"formal academic tone maintained throughout\"\n- Narrative/argumentative momentum:\
+    \ \"thesis stated, supporting evidence now expected\"\n- Domain/genre signals:\
+    \ \"medical case history following SOAP format\"\n- Repetition/continuation patterns:\
+    \ \"same phrase structure repeating with variations\"\n\nThe final feature must\
+    \ describe the very end of the presented sequence: its role, what it's part of,\
+    \ and immediate constraints on what follows.\n\nFormat \u2014 IMPORTANT: keep\
+    \ to ~80-100 words total and ALWAYS close the tag:\n<analysis>\n[first feature\
+    \ \u2014 include specific examples when relevant]\n[second feature]\n[final feature:\
+    \ the last token, its role, immediate constraints]\n</analysis>\n\nText to analyze:\n\
+    \n<begin_text>{text}<end_text>"
+parent_datasets:
+- av_sft_Qwen3-8B_L24_6a22e324__av_sft_raw__explained__shuf42
+created_at: '2026-07-05T23:48:31.933973+00:00'
+created_by: scripts.regenerate_activations
+git_commit: 6bdd604
