@@ -1,0 +1,103 @@
+[judge] google/gemma-4-31b-it | cache 0 entries
+[data] 500 contexts x 2 arms (Counter({'pretrain': 250, 'wildchat': 250}))
+[absolute] 50/2500 (0 unparsed)
+[absolute] 100/2500 (0 unparsed)
+[absolute] 150/2500 (0 unparsed)
+[absolute] 200/2500 (0 unparsed)
+[absolute] 250/2500 (0 unparsed)
+[absolute] 300/2500 (0 unparsed)
+[absolute] 350/2500 (0 unparsed)
+[absolute] 400/2500 (0 unparsed)
+[absolute] 450/2500 (0 unparsed)
+[absolute] 500/2500 (0 unparsed)
+[absolute] 550/2500 (0 unparsed)
+[absolute] 600/2500 (0 unparsed)
+[absolute] 650/2500 (0 unparsed)
+[absolute] 700/2500 (0 unparsed)
+[absolute] 750/2500 (0 unparsed)
+[absolute] 800/2500 (0 unparsed)
+[absolute] 850/2500 (0 unparsed)
+[absolute] 900/2500 (0 unparsed)
+[absolute] 950/2500 (0 unparsed)
+[absolute] 1000/2500 (0 unparsed)
+[absolute] 1050/2500 (0 unparsed)
+[absolute] 1100/2500 (0 unparsed)
+[absolute] 1150/2500 (0 unparsed)
+[absolute] 1200/2500 (0 unparsed)
+[absolute] 1250/2500 (0 unparsed)
+[absolute] 1300/2500 (0 unparsed)
+[absolute] 1350/2500 (0 unparsed)
+[absolute] 1400/2500 (0 unparsed)
+[absolute] 1450/2500 (0 unparsed)
+[absolute] 1500/2500 (0 unparsed)
+[absolute] 1550/2500 (0 unparsed)
+[absolute] 1600/2500 (0 unparsed)
+[absolute] 1650/2500 (0 unparsed)
+[absolute] 1700/2500 (0 unparsed)
+[absolute] 1750/2500 (0 unparsed)
+[absolute] 1800/2500 (0 unparsed)
+[absolute] 1850/2500 (0 unparsed)
+[absolute] 1900/2500 (1 unparsed)
+[absolute] 1950/2500 (1 unparsed)
+[absolute] 2000/2500 (1 unparsed)
+[absolute] 2050/2500 (1 unparsed)
+[absolute] 2100/2500 (1 unparsed)
+[absolute] 2150/2500 (1 unparsed)
+[absolute] 2200/2500 (1 unparsed)
+[absolute] 2250/2500 (1 unparsed)
+[absolute] 2300/2500 (1 unparsed)
+[absolute] 2350/2500 (1 unparsed)
+[absolute] 2400/2500 (1 unparsed)
+[absolute] 2450/2500 (1 unparsed)
+[absolute] 2500/2500 (1 unparsed)
+[absolute] 2500 calls, 1 unparsed
+[paired] 50/1000 (0 unparsed)
+[paired] 100/1000 (0 unparsed)
+[paired] 150/1000 (0 unparsed)
+[paired] 200/1000 (0 unparsed)
+[paired] 250/1000 (0 unparsed)
+[paired] 300/1000 (0 unparsed)
+[paired] 350/1000 (0 unparsed)
+[paired] 400/1000 (0 unparsed)
+[paired] 450/1000 (0 unparsed)
+[paired] 500/1000 (0 unparsed)
+[paired] 550/1000 (0 unparsed)
+[paired] 600/1000 (0 unparsed)
+[paired] 650/1000 (0 unparsed)
+[paired] 700/1000 (0 unparsed)
+[paired] 750/1000 (0 unparsed)
+[paired] 800/1000 (0 unparsed)
+[paired] 850/1000 (0 unparsed)
+[paired] 900/1000 (0 unparsed)
+[paired] 950/1000 (0 unparsed)
+[paired] 1000/1000 (0 unparsed)
+[paired] 1000 calls, 0 unparsed
+[write] /home/debian/nla-doll/.claude/worktrees/halluc-marginal/experiments/qwen3.6-27b-expl-quality/results/quality_google-gemma-4-31b-it.json
+[all] mat: n=500 | halluc 3365/6887 = 48.9% of checkable | P(>=1 halluc) 97% | coh 2.76 use 1.93 info 4.10
+[all] std: n=500 | halluc 2506/5196 = 48.2% of checkable | P(>=1 halluc) 99% | coh 4.12 use 1.81 info 4.60
+[all] skyline: n=500 | halluc 5/400 = 1.2% of checkable | P(>=1 halluc) 0% | coh 3.34 use 1.37 info 5.00
+[all] floor_mat: n=499 | halluc 7581/7596 = 99.8% of checkable | P(>=1 halluc) 100% | coh 3.86 use 1.00 info 4.98
+[all] floor_std: n=500 | halluc 5944/5949 = 99.9% of checkable | P(>=1 halluc) 100% | coh 4.91 use 1.00 info 5.00
+[pretrain] mat: n=250 | halluc 1598/3425 = 46.7% of checkable | P(>=1 halluc) 97% | coh 2.80 use 2.04 info 4.18
+[pretrain] std: n=250 | halluc 1097/2542 = 43.2% of checkable | P(>=1 halluc) 98% | coh 4.17 use 2.01 info 4.53
+[pretrain] skyline: n=250 | halluc 0/210 = 0.0% of checkable | P(>=1 halluc) 0% | coh 3.35 use 1.18 info 5.00
+[pretrain] floor_mat: n=250 | halluc 3849/3855 = 99.8% of checkable | P(>=1 halluc) 100% | coh 3.90 use 1.00 info 5.00
+[pretrain] floor_std: n=250 | halluc 2961/2961 = 100.0% of checkable | P(>=1 halluc) 100% | coh 4.95 use 1.00 info 5.00
+[wildchat] mat: n=250 | halluc 1767/3462 = 51.0% of checkable | P(>=1 halluc) 96% | coh 2.72 use 1.81 info 4.02
+[wildchat] std: n=250 | halluc 1409/2654 = 53.1% of checkable | P(>=1 halluc) 99% | coh 4.07 use 1.61 info 4.66
+[wildchat] skyline: n=250 | halluc 5/190 = 2.6% of checkable | P(>=1 halluc) 0% | coh 3.32 use 1.56 info 5.00
+[wildchat] floor_mat: n=249 | halluc 3732/3741 = 99.8% of checkable | P(>=1 halluc) 100% | coh 3.83 use 1.00 info 4.97
+[wildchat] floor_std: n=250 | halluc 2983/2988 = 99.8% of checkable | P(>=1 halluc) 100% | coh 4.86 use 1.00 info 5.00
+[all] paired more_useful: {'std': 608, 'mat': 340, 'TIE': 52}
+[all] paired more_grounded: {'std': 553, 'mat': 340, 'TIE': 107}
+[all] paired more_coherent: {'std': 770, 'mat': 213, 'TIE': 17}
+[all] paired overall: {'std': 638, 'mat': 343, 'TIE': 19}
+[pretrain] paired more_useful: {'std': 352, 'mat': 132, 'TIE': 16}
+[pretrain] paired more_grounded: {'std': 328, 'mat': 131, 'TIE': 41}
+[pretrain] paired more_coherent: {'std': 410, 'mat': 77, 'TIE': 13}
+[pretrain] paired overall: {'std': 360, 'mat': 134, 'TIE': 6}
+[wildchat] paired more_useful: {'std': 256, 'mat': 208, 'TIE': 36}
+[wildchat] paired more_grounded: {'std': 225, 'mat': 209, 'TIE': 66}
+[wildchat] paired more_coherent: {'std': 360, 'mat': 136, 'TIE': 4}
+[wildchat] paired overall: {'std': 278, 'mat': 209, 'TIE': 13}
+JUDGE_DONE

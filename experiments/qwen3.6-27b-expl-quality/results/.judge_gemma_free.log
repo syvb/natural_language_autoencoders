@@ -1,0 +1,2 @@
+[judge] google/gemma-4-31b-it:free | cache 0 entries
+[data] 500 contexts x 2 arms (Counter({'pretrain': 250, 'wildchat': 250}))

@@ -40,6 +40,7 @@ import os
 import random
 import re
 import time
+import urllib.error
 import urllib.request
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -209,6 +210,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--judge", default=os.environ.get("JUDGE_MODEL",
                                                       "nex-agi/nex-n2-mini"))
+    ap.add_argument("--provider", default=os.environ.get("JUDGE_PROVIDER"),
+                    help="pin one OpenRouter provider (allow_fallbacks=false) — "
+                         "unpinned routing mixes providers/quantizations, an "
+                         "uncontrolled judge confound")
     ap.add_argument("--manifest", default=str(HERE / "data" / "manifest_quality.json"))
     ap.add_argument("--explanations", nargs="+",
                     default=[str(HERE / "results" / "explanations_mat.json"),
@@ -233,6 +238,41 @@ def main():
         json.dump(cache, open(tmp, "w"))
         os.replace(tmp, cache_path)
 
+    def _call(prompt):
+        """One STREAMING completion. Non-streaming requests die at OpenRouter's
+        ~300s gateway cutoff (Cloudflare 524 wrapped as {'error': ...}) and
+        nex-n2-mini takes ~5 min on these prompts; SSE keepalives sidestep the
+        cutoff entirely. The 300s timeout is per-READ (keepalive comments
+        arrive every few seconds), not per-call."""
+        body = {"model": judge, "temperature": 0, "stream": True,
+                "messages": [{"role": "user", "content": prompt}]}
+        if args.provider:
+            body["provider"] = {"order": [args.provider],
+                                "allow_fallbacks": False}
+        req = urllib.request.Request(
+            URL, json.dumps(body).encode(),
+            {"Authorization": f"Bearer {KEY}", "Content-Type": "application/json",
+             "Accept": "text/event-stream"})
+        chunks = []
+        with urllib.request.urlopen(req, timeout=300) as resp:
+            for raw in resp:
+                line = raw.decode("utf-8", "replace").strip()
+                if not line.startswith("data: "):
+                    continue
+                data = line[6:]
+                if data == "[DONE]":
+                    break
+                try:
+                    j = json.loads(data)
+                except json.JSONDecodeError:
+                    continue
+                if "error" in j:
+                    raise RuntimeError(str(j["error"]))
+                d = (j.get("choices") or [{}])[0].get("delta") or {}
+                if d.get("content"):
+                    chunks.append(d["content"])
+        return "".join(chunks)
+
     def ask(job):
         """job = (kind, prompt). Returns (key, raw_text_or_None, parsed_or_None).
         NEVER touches `cache` (the main thread owns it — a json.dump racing
@@ -241,21 +281,23 @@ def main():
         k = hashlib.sha1((PROMPT_VERSION + "|" + kind + "|" + prompt).encode()).hexdigest()
         parse = parse_abs if kind == "abs" else parse_pair
         if cache.get(k) is not None:
-            return k, None, parse(cache[k])
+            p = parse(cache[k])
+            if p is not None:
+                return k, None, p
+            # cached but unparseable (e.g. truncated by the old non-streaming
+            # path) — fall through and re-ask
         txt = None
-        # 300s timeout + backoff: nex-n2-mini often reasons for >120s
-        for attempt in range(3):
-            p = prompt + NUDGE[kind] if attempt else prompt
-            body = {"model": judge, "temperature": 0,
-                    "messages": [{"role": "user", "content": p}]}
+        for attempt in range(5):
+            p = prompt + NUDGE[kind] if attempt > 2 else prompt
             try:
-                req = urllib.request.Request(
-                    URL, json.dumps(body).encode(),
-                    {"Authorization": f"Bearer {KEY}", "Content-Type": "application/json"})
-                r = json.load(urllib.request.urlopen(req, timeout=300))
-                txt = r["choices"][0]["message"]["content"]
+                txt = _call(p)
                 if parse(txt) is not None:
                     break
+            except urllib.error.HTTPError as e:
+                # 429 = provider/BYOK rate limit — back off hard, don't burn
+                # attempts at full speed
+                time.sleep((20 if e.code == 429 else 5) * (attempt + 1)
+                           + random.random() * 5)
             except Exception:
                 time.sleep(5 * (attempt + 1))
         # raw text cached (by the caller) even when unparseable, so improved
@@ -274,7 +316,7 @@ def main():
                 res.append(v)
                 if v is None:
                     fails += 1
-                if n % 200 == 0:
+                if n % 50 == 0:
                     flush_cache()
                     print(f"[{tag}] {n}/{len(jobs)} ({fails} unparsed)", flush=True)
         flush_cache()
@@ -311,7 +353,8 @@ def main():
             passage=man[ci]["prefix_text"],
             continuation=man[ci]["continuation_text"], expl=body))
 
-    report = {"meta": {"judge": judge, "prompt_version": PROMPT_VERSION,
+    report = {"meta": {"judge": judge, "provider": args.provider,
+                       "prompt_version": PROMPT_VERSION,
                        "n_contexts": len(cis), "arms": sorted(arms)}}
 
     # ── absolute legs: real arms + calibration arms ──────────────────────────
