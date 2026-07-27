@@ -77,14 +77,6 @@ def main():
 
     ax.set_title("Explanation usefulness", fontsize=18, fontweight="bold",
                  loc="left", pad=34, x=-0.31)
-    fig.text(0.001, -0.04,
-             "Claude Fable 5 picks the more useful of two explanations of the same "
-             "Qwen3.6-27B activation, shown the source passage\nand its true "
-             "continuation. “Useful” = helps you understand the model’s "
-             "internals, not readability. Forced choice, both presentation\n"
-             "orders, 100 contexts (50 per domain). White whisker: 95% CI on the "
-             "split.",
-             fontsize=9, color=MUTED, ha="left", va="top", linespacing=1.55)
     fig.tight_layout()
     out = HERE / "results" / "fig_usefulness_blog.png"
     fig.savefig(out, dpi=200, bbox_inches="tight", facecolor="white")
