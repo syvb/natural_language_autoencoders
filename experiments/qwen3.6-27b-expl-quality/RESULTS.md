@@ -95,6 +95,52 @@ demanding explicit next-text prediction, compressing everything into 1–2.
 Treat the 1–5 scales as ordinal-within-judge; the claim-level rates (§1) and
 the calibrated bracket are the load-bearing numbers.
 
+## 4. Breaking the style confound: transplant + usefulness-only prompt
+
+![transplant](results/fig_transplant_google-gemma-4-31b-it.png)
+
+Follow-up probe (`judge_transplant.py`, same judge/provider, 5,000 calls, 0
+unparsed): every explanation judged in its native format AND transplanted into
+the other one (mat's lines joined into prose; std's prose split
+one-sentence-per-line — content byte-identical), under a **usefulness-only
+prompt** that deliberately does not over-specify the criterion: *"how much the
+explanation helps you understand the model's internals — what the model was
+processing and where it was headed. It is not about readability or writing
+style."*
+
+| leg | usefulness (all) | pretrain | wildchat |
+|---|---|---|---|
+| mat / list (native) | **3.80** | 4.14 | 3.46 |
+| mat / prose (transplant) | 3.73 | 4.06 | 3.39 |
+| std / prose (native) | **2.88** | 3.35 | 2.42 |
+| std / list (transplant) | 2.88 | 3.36 | 2.41 |
+
+Three findings:
+
+1. **The rendered format is worth almost nothing**: transplanting moves mat by
+   −0.07 and std by 0.00. The list-vs-prose surface is not what drove §2.
+2. **The content gap flips to the matryoshka, and it is large**: +0.91 in list
+   form, +0.84 in prose form (+0.78 pretrain / +1.05 wildchat). The old
+   multi-criteria rubric — which ordered the judge to let wrong specifics
+   "actively mislead" and demanded next-text accuracy for a 5 — had compressed
+   this to +0.12 on a floor-hugging scale (§3). Asked plainly, the judge rates
+   the matryoshka's dense specifics as far more informative about the model's
+   state than the standard's fluent gist, in *either* format.
+3. **The pairwise loss in §2 was the prompt, not the format.** The attribution
+   ladder (mat's share of decisive pairwise judgments): old multi-criteria
+   prompt + native formats **36%** → usefulness-only prompt + native formats
+   **54%** → both-as-list **51%** / both-as-prose **47%**. Switching the
+   question to internals-usefulness erases the standard's entire pairwise
+   advantage; equalizing formats on top changes little. The "standard wins
+   head-to-head" result of §2 was a halo of the holistic framing (fluency and
+   confidence bleeding into "useful"), not a content verdict.
+
+The absolute-vs-paired tension resolves the same way: under the neutral
+criterion, absolutes say mat +0.9 while head-to-head is a coin flip —
+consistent with the matryoshka being more informative per explanation while
+also carrying more raw errors (§1's density result) that a side-by-side
+comparison can punish.
+
 ## Takeaways
 
 1. **Accuracy per claim is indistinguishable** between the two NLAs (~47%
@@ -104,12 +150,14 @@ the calibrated bracket are the load-bearing numbers.
    explanation contains fabricated or contradicted specifics. NLA explanations
    are topic/gist-reliable (far from the derangement floor) but not
    fact-reliable.
-3. **The standard's preference win is mostly fluency.** The coherence gap
-   (4.12 vs 2.76; 77/21 pairwise) dominates the overall verdict; on
-   groundedness the claim-level data says tie, and on usefulness the absolute
-   scores slightly favor the matryoshka.
+3. **The standard's preference win was an artifact of the holistic prompt,
+   not a content verdict** (§4): under a usefulness-only, internals-focused
+   criterion the matryoshka scores +0.9 absolute in BOTH formats and the
+   head-to-head becomes a coin flip. The rendered format itself is worth
+   ~0.07 points; what mattered was what the judge was asked.
 4. **Domain matters:** the matryoshka is at its relative best on WildChat
-   transcripts (near-tie overall) and weakest on pretraining prose.
+   transcripts and weakest (only there behind) on pretraining prose pairwise;
+   its absolute internals-usefulness lead holds in both domains.
 
 ## Caveats
 

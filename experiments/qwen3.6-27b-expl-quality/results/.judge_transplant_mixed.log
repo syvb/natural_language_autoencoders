@@ -1,0 +1,10 @@
+200/1000
+400/1000
+600/1000
+800/1000
+1000/1000
+unparsed: 0
+[all] paired NATIVE-formats (new prompt): mat 54% of 984 decisive | {'mat': 528, 'std': 456, 'TIE': 16}
+[pretrain] paired NATIVE-formats (new prompt): mat 49% of 496 decisive | {'mat': 243, 'std': 253, 'TIE': 4}
+[wildchat] paired NATIVE-formats (new prompt): mat 58% of 488 decisive | {'mat': 285, 'std': 203, 'TIE': 12}
+MIXED_DONE

@@ -1,0 +1,119 @@
+[judge] google/gemma-4-31b-it @ CoreWeave | cache 0
+[data] 500 contexts
+[absolute] 50/2000 (0 unparsed)
+[absolute] 100/2000 (0 unparsed)
+[absolute] 150/2000 (0 unparsed)
+[absolute] 200/2000 (0 unparsed)
+[absolute] 250/2000 (0 unparsed)
+[absolute] 300/2000 (0 unparsed)
+[absolute] 350/2000 (0 unparsed)
+[absolute] 400/2000 (0 unparsed)
+[absolute] 450/2000 (0 unparsed)
+[absolute] 500/2000 (0 unparsed)
+[absolute] 550/2000 (0 unparsed)
+[absolute] 600/2000 (0 unparsed)
+[absolute] 650/2000 (0 unparsed)
+[absolute] 700/2000 (0 unparsed)
+[absolute] 750/2000 (0 unparsed)
+[absolute] 800/2000 (0 unparsed)
+[absolute] 850/2000 (0 unparsed)
+[absolute] 900/2000 (0 unparsed)
+[absolute] 950/2000 (0 unparsed)
+[absolute] 1000/2000 (0 unparsed)
+[absolute] 1050/2000 (0 unparsed)
+[absolute] 1100/2000 (0 unparsed)
+[absolute] 1150/2000 (0 unparsed)
+[absolute] 1200/2000 (0 unparsed)
+[absolute] 1250/2000 (0 unparsed)
+[absolute] 1300/2000 (0 unparsed)
+[absolute] 1350/2000 (0 unparsed)
+[absolute] 1400/2000 (0 unparsed)
+[absolute] 1450/2000 (0 unparsed)
+[absolute] 1500/2000 (0 unparsed)
+[absolute] 1550/2000 (0 unparsed)
+[absolute] 1600/2000 (0 unparsed)
+[absolute] 1650/2000 (0 unparsed)
+[absolute] 1700/2000 (0 unparsed)
+[absolute] 1750/2000 (0 unparsed)
+[absolute] 1800/2000 (0 unparsed)
+[absolute] 1850/2000 (0 unparsed)
+[absolute] 1900/2000 (0 unparsed)
+[absolute] 1950/2000 (0 unparsed)
+[absolute] 2000/2000 (0 unparsed)
+[absolute] 2000 calls, 0 unparsed
+[paired-eq] 50/2000 (0 unparsed)
+[paired-eq] 100/2000 (0 unparsed)
+[paired-eq] 150/2000 (0 unparsed)
+[paired-eq] 200/2000 (0 unparsed)
+[paired-eq] 250/2000 (0 unparsed)
+[paired-eq] 300/2000 (0 unparsed)
+[paired-eq] 350/2000 (0 unparsed)
+[paired-eq] 400/2000 (0 unparsed)
+[paired-eq] 450/2000 (0 unparsed)
+[paired-eq] 500/2000 (0 unparsed)
+[paired-eq] 550/2000 (0 unparsed)
+[paired-eq] 600/2000 (0 unparsed)
+[paired-eq] 650/2000 (0 unparsed)
+[paired-eq] 700/2000 (0 unparsed)
+[paired-eq] 750/2000 (0 unparsed)
+[paired-eq] 800/2000 (0 unparsed)
+[paired-eq] 850/2000 (0 unparsed)
+[paired-eq] 900/2000 (0 unparsed)
+[paired-eq] 950/2000 (0 unparsed)
+[paired-eq] 1000/2000 (0 unparsed)
+[paired-eq] 1050/2000 (0 unparsed)
+[paired-eq] 1100/2000 (0 unparsed)
+[paired-eq] 1150/2000 (0 unparsed)
+[paired-eq] 1200/2000 (0 unparsed)
+[paired-eq] 1250/2000 (0 unparsed)
+[paired-eq] 1300/2000 (0 unparsed)
+[paired-eq] 1350/2000 (0 unparsed)
+[paired-eq] 1400/2000 (0 unparsed)
+[paired-eq] 1450/2000 (0 unparsed)
+[paired-eq] 1500/2000 (0 unparsed)
+[paired-eq] 1550/2000 (0 unparsed)
+[paired-eq] 1600/2000 (0 unparsed)
+[paired-eq] 1650/2000 (0 unparsed)
+[paired-eq] 1700/2000 (0 unparsed)
+[paired-eq] 1750/2000 (0 unparsed)
+[paired-eq] 1800/2000 (0 unparsed)
+[paired-eq] 1850/2000 (0 unparsed)
+[paired-eq] 1900/2000 (0 unparsed)
+[paired-eq] 1950/2000 (0 unparsed)
+[paired-eq] 2000/2000 (0 unparsed)
+[paired-eq] 2000 calls, 0 unparsed
+[write] /home/debian/nla-doll/.claude/worktrees/halluc-marginal/experiments/qwen3.6-27b-expl-quality/results/transplant_google-gemma-4-31b-it.json
+═══ all ═══
+  use(mat/list) = 3.80  (n=500)
+  use(mat/prose) = 3.73  (n=500)
+  use(std/list) = 2.88  (n=500)
+  use(std/prose) = 2.88  (n=500)
+  FORMAT effect mat (prose−list): -0.070
+  FORMAT effect std (prose−list): +0.000
+  ARM effect in list  (mat−std): +0.914
+  ARM effect in prose (mat−std): +0.844
+  paired-eq [list ]: mat 51% of 981 decisive | votes {'mat': 500, 'std': 481, 'TIE': 19}
+  paired-eq [prose]: mat 47% of 981 decisive | votes {'std': 519, 'mat': 462, 'TIE': 19}
+═══ pretrain ═══
+  use(mat/list) = 4.14  (n=250)
+  use(mat/prose) = 4.06  (n=250)
+  use(std/list) = 3.36  (n=250)
+  use(std/prose) = 3.35  (n=250)
+  FORMAT effect mat (prose−list): -0.072
+  FORMAT effect std (prose−list): -0.008
+  ARM effect in list  (mat−std): +0.780
+  ARM effect in prose (mat−std): +0.716
+  paired-eq [list ]: mat 45% of 493 decisive | votes {'mat': 223, 'std': 270, 'TIE': 7}
+  paired-eq [prose]: mat 40% of 494 decisive | votes {'std': 294, 'mat': 200, 'TIE': 6}
+═══ wildchat ═══
+  use(mat/list) = 3.46  (n=250)
+  use(mat/prose) = 3.39  (n=250)
+  use(std/list) = 2.41  (n=250)
+  use(std/prose) = 2.42  (n=250)
+  FORMAT effect mat (prose−list): -0.068
+  FORMAT effect std (prose−list): +0.008
+  ARM effect in list  (mat−std): +1.048
+  ARM effect in prose (mat−std): +0.972
+  paired-eq [list ]: mat 57% of 488 decisive | votes {'mat': 277, 'std': 211, 'TIE': 12}
+  paired-eq [prose]: mat 54% of 487 decisive | votes {'mat': 262, 'std': 225, 'TIE': 13}
+TRANSPLANT_DONE
