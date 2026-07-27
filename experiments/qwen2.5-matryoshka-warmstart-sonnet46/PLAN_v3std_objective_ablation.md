@@ -28,6 +28,28 @@ retraining M too (the existing `kl0` reference in `rltrunc-gradguard` is
 v1-era: tagged prompt, U[16,130] — not comparable), roughly doubling cost for
 no attribution benefit.
 
+### Is the same coefficient actually a fair leash given different lengths?
+
+The arms have the SAME nominal penalty (coef 0.03, same frozen warm-start
+reference) — but S generates 120 tokens every sample while M averages ~60, so
+"same coefficient" would NOT mean "same effective pressure" if miles summed KL
+over tokens. It doesn't: at our pin (`radixark/miles@051cd15`,
+`miles/backends/training_utils/loss.py` → `cp_utils.get_sum_of_sample_mean`),
+`kl_loss = sum_of_sample_mean(kl)` computes each sample's **masked per-token
+MEAN** KL and gives every sample weight 1 regardless of length
+(`(x_i*mask_i).sum() / mask_i.sum()`). So the per-token leash strength is
+identical across arms; response length does not scale the penalty.
+
+The residual asymmetry is inherent to the ablation itself: M's tokens beyond K
+are never generated, so they get neither reward nor KL pressure that step —
+but "which positions receive reward+KL gradient" *is* the objective being
+ablated, not a nuisance variable. Holding the coefficient fixed is the correct
+single-factor control. Empirical guard: compare the two arms' realized
+`kl_loss` (per-token mean KL from ref) at plateau; if S ends up much more/less
+drifted than M (v3 sat taut at ~2.5–2.9), report drift alongside FVE, and the
+contingency control is a KL-matched rerun of S (coefficient tuned to match M's
+realized drift) — not part of the base plan.
+
 ## Why Arm S is "fixed K=120", not truncation-off
 
 The v3 AV never emits EOS (`NLA_NO_TRAIN_EOS=1`), so with truncation disabled
@@ -63,6 +85,32 @@ critic-side; recal alone moved suffix@60 from −0.21 to +0.49). Controls:
    the shared frozen WS critic to count.
 2. **Critic-free order metric**: `eval_paraphrase_order.py` order-optimality
    (model order vs random vs greedy-oracle) for S@200 vs M@200.
+
+## Scope decision (2026-07-27): Phases 0+1 only for now
+
+Approved: Phase 0 (CPU prep — done: `test_fixed_budget_arm_via_env`,
+`run_rl_v3std.sh`) + Phase 1 (50-step pilot + equal-step evals). Phase 2
+(resume to 200) and Phase 3 (full cross-critic matrix) await the pilot
+readout. Before destroying the pilot box, push the resumable iter_50 state
+(actor DCP + optimizer + critic hf) to
+`syvb/nla-qwen2.5-7b-L20-v3std-rl-checkpoints` so Phase 2 can resume on a
+fresh box — prefer a $0/GB-bandwidth host (the state is ~85 GB up).
+
+### Phase 0+1 timeline / cost
+
+| # | step | wall-clock | cost @8×H100 ~$18/hr | @8×H200 ~$32/hr |
+|---|---|---|---|---|
+| 0 | tests + wrapper (dev box, done) | ~0.5 h | $0 | $0 |
+| 1a | provision + egress speed-test | 0.25–0.5 h | ~$5 | ~$10 |
+| 1b | box setup (`setup_rl_box_lmsys.sh`: miles+deps, cached flash-attn wheel, ckpt/data downloads, rl_v3.parquet build) | 0.75–1 h | ~$15 | ~$28 |
+| 1c | Arm S, 50 steps @ ~55–70 s/step | ~1 h | ~$18 | ~$32 |
+| 1d | evals on-box: S@50 ×{own, WS} critic + M@50 ×{own, WS} critic (150 held-out each) | ~0.75 h | ~$14 | ~$24 |
+| 1e | push resumable state + iter_50 inference ckpts to HF; destroy | 0.25–0.5 h | ~$7 | ~$12 |
+| | **total** | **~3.5–4 h** (unattended after 1b) | **~$60** | **~$105** |
+
+WS baseline numbers are already on file (`v3_warmstart_results/v3_fve_baseline.txt`)
+— no re-eval needed. Pilot compute is not throwaway: Phase 2 resumes from the
+pushed iter_50 state.
 
 ## Phases
 

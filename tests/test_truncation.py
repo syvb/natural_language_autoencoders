@@ -254,3 +254,16 @@ def test_default_min_is_16(monkeypatch):
     # and lengths never fall below it
     assert all(t.sample_truncation_length(0, gi, cfg.min_tokens, cfg.max_tokens) >= 16
                for gi in range(500))
+
+
+def test_fixed_budget_arm_via_env(monkeypatch):
+    # The "standard objective" ablation arm (run_rl_v3std.sh) sets
+    # min == max == 120: every group gets the constant full-length budget
+    # through the exact same enabled-truncation code path as U[1,120].
+    monkeypatch.setenv("NLA_TRUNC_MODE", "tokens")
+    monkeypatch.setenv("NLA_TRUNC_MIN_TOKENS", "120")
+    monkeypatch.setenv("NLA_TRUNC_MAX_TOKENS", "120")
+    cfg = t.resolve_truncation_config(_args(rollout_seed=42))
+    assert cfg.enabled and cfg.mode == "tokens"
+    assert cfg.min_tokens == cfg.max_tokens == 120
+    assert all(cfg.length_for_group(gi) == 120 for gi in range(500))
