@@ -1,0 +1,10 @@
+50/200
+100/200
+150/200
+200/200
+unparsed: 16
+[all] Fable5/Vertex, native, forced: mat 40% of 184 | {'mat': 74, 'std': 110}
+[pretrain] Fable5/Vertex, native, forced: mat 40% of 93 | {'mat': 37, 'std': 56}
+[wildchat] Fable5/Vertex, native, forced: mat 41% of 91 | {'std': 54, 'mat': 37}
+order-flip rate: 18/93
+FABLE_DONE
