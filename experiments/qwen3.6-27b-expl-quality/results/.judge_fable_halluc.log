@@ -1,0 +1,10 @@
+50/200
+100/200
+150/200
+200/200
+unparsed: 17
+[all] MORE hallucinations (Fable5): mat named 71% of 183 | {'mat': 130, 'std': 53}
+[pretrain] MORE hallucinations (Fable5): mat named 75% of 92 | {'mat': 69, 'std': 23}
+[wildchat] MORE hallucinations (Fable5): mat named 67% of 91 | {'std': 30, 'mat': 61}
+order-flip rate: 10/93
+HAL_DONE
