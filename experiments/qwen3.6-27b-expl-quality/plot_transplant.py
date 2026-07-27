@@ -82,8 +82,9 @@ def main():
     ax.axvline(50, color=INK, ls=":", lw=1.4, zorder=4)
     ax.set_yticks([])
     ax.set_xlim(0, 100)
-    ax.set_xlabel("matryoshka's share of decisive pairwise judgments (%)",
-                  fontsize=10.5)
+    ax.set_xlabel("matryoshka's share of pairwise judgments (%) — forced choice\n"
+                  "(top bar: old run allowed ties; its ~5% ties excluded)",
+                  fontsize=10)
     ax.set_title("the pairwise loss was the prompt, not the format",
                  fontsize=11)
     for a in axes:

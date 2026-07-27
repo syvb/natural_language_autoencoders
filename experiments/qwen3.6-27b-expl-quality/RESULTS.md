@@ -127,13 +127,17 @@ Three findings:
    the matryoshka's dense specifics as far more informative about the model's
    state than the standard's fluent gist, in *either* format.
 3. **The pairwise loss in §2 was the prompt, not the format.** The attribution
-   ladder (mat's share of decisive pairwise judgments): old multi-criteria
-   prompt + native formats **36%** → usefulness-only prompt + native formats
-   **54%** → both-as-list **51%** / both-as-prose **47%**. Switching the
-   question to internals-usefulness erases the standard's entire pairwise
-   advantage; equalizing formats on top changes little. The "standard wins
-   head-to-head" result of §2 was a halo of the holistic framing (fluency and
-   confidence bleeding into "useful"), not a content verdict.
+   ladder (mat's share of pairwise judgments, FORCED choice — no TIE offered;
+   ties allowed only in the legacy top rung, ~5%, excluded there): old
+   multi-criteria prompt + native formats **36%** → usefulness-only prompt +
+   native formats **53%** → both-as-list **50%** / both-as-prose **47%**.
+   Switching the question to internals-usefulness erases the standard's entire
+   pairwise advantage; equalizing formats on top changes little. The "standard
+   wins head-to-head" result of §2 was a halo of the holistic framing (fluency
+   and confidence bleeding into "useful"), not a content verdict. (A
+   tie-allowed version of the same legs gives 54/51/47 with ~2% ties —
+   conclusion unchanged; forced-choice files are canonical,
+   `*_tiesallowed.json` preserved.)
 
 The absolute-vs-paired tension resolves the same way: under the neutral
 criterion, absolutes say mat +0.9 while head-to-head is a coin flip —

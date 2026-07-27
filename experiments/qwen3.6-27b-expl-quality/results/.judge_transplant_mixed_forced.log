@@ -1,0 +1,10 @@
+200/1000
+400/1000
+600/1000
+800/1000
+1000/1000
+unparsed: 0
+[all] NATIVE formats, forced: mat 53% of 1000 | {'std': 474, 'mat': 526}
+[pretrain] NATIVE formats, forced: mat 46% of 500 | {'std': 269, 'mat': 231}
+[wildchat] NATIVE formats, forced: mat 59% of 500 | {'mat': 295, 'std': 205}
+MIXED_DONE

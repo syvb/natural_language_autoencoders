@@ -39,7 +39,7 @@ URL = "https://openrouter.ai/api/v1/chat/completions"
 PROMPT_VERSION = "expl-transplant-v1"
 
 USE_RE = re.compile(r"<usefulness>\s*([1-5])\s*</usefulness>", re.I)
-PAIR_RE = re.compile(r"<more_useful>\s*(A|B|TIE)\s*</more_useful>", re.I)
+PAIR_RE = re.compile(r"<more_useful>\s*(A|B)\s*</more_useful>", re.I)
 # quote-parity-aware sentence splitter (same family as the rev experiment)
 SENT_RE = re.compile(r'[.!?]["”\')\]]*\s+(?=[A-Z"“(\d])')
 
@@ -85,10 +85,10 @@ Two different tools each explained the SAME activation:
 
 Which explanation is more USEFUL? Usefulness here means how much an explanation helps you understand the model's internals — what the model was processing at that moment and where it was headed. It is not about readability or writing style.
 
-Think briefly, then answer A, B, or TIE in tags, e.g. <more_useful>A</more_useful>."""
+You must choose one, even if it is close. Think briefly, then answer A or B in tags, e.g. <more_useful>A</more_useful>."""
 
 NUDGE_ABS = "\n\nIMPORTANT: end your reply with the literal tag <usefulness>N</usefulness> where N is 1-5."
-NUDGE_PAIR = "\n\nIMPORTANT: end your reply with the literal tag <more_useful>A</more_useful> (or B, or TIE)."
+NUDGE_PAIR = "\n\nIMPORTANT: end your reply with the literal tag <more_useful>A</more_useful> (or B). You must pick one."
 
 
 def sentences(text):
