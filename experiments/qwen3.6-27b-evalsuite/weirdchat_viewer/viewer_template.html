@@ -111,13 +111,41 @@ async function boot(){
   const sel=document.getElementById("pick");
   DATA.forEach((d,i)=>{const o=document.createElement("option");o.value=i;
     o.textContent=`${d.cat} · elo ${d.elo}`;sel.appendChild(o);});
-  sel.onchange=()=>{cur.t=+sel.value;cur.pos=null;renderTokens();renderPanel();};
+  sel.onchange=()=>{cur.t=+sel.value;cur.pos=null;renderTokens();renderPanel();writeHash();};
   document.querySelectorAll("#model button").forEach(b=>b.onclick=()=>{
-    cur.model=b.dataset.v;setOn("model",b);renderPanel();});
+    cur.model=b.dataset.v;setOn("model",b);renderPanel();writeHash();});
   document.querySelectorAll("#mode button").forEach(b=>b.onclick=()=>{
-    cur.mode=b.dataset.v;setOn("mode",b);renderPanel();});
-  renderTokens();
+    cur.mode=b.dataset.v;setOn("mode",b);renderPanel();writeHash();});
+  applyHash(true);
+  addEventListener("hashchange",()=>{if(location.hash!==hashOf(cur))applyHash(true);});
   syncHeadH(); addEventListener("resize",syncHeadH);
+}
+// ── linkable state: #t=<transcript>&p=<pos>&v=<m|s>&fve=<marginal|cumulative> ─
+function hashOf(c){
+  let h=`#t=${c.t}`;
+  if(c.pos!=null)h+=`&p=${c.pos}`;
+  h+=`&v=${c.model}&fve=${c.mode}`;
+  return h;
+}
+function writeHash(){
+  const h=hashOf(cur);
+  try{history.replaceState(null,"",h);}     // no history spam per click
+  catch(e){if(location.hash!==h)location.hash=h;}  // file:// fallback in strict browsers
+}
+function applyHash(scroll){
+  const q=new URLSearchParams(location.hash.replace(/^#/,""));
+  const t=Math.min(Math.max(parseInt(q.get("t"))||0,0),DATA.length-1);
+  const pRaw=q.get("p"), p=pRaw==null?null:parseInt(pRaw);
+  cur.t=t;
+  cur.pos=(p!=null&&p>=0&&p<DATA[t].pos.length)?p:null;
+  cur.model=q.get("v")==="s"?"s":"m";
+  cur.mode=q.get("fve")==="cumulative"?"cumulative":"marginal";
+  document.getElementById("pick").value=String(cur.t);
+  setOn("model",document.querySelector(`#model button[data-v="${cur.model}"]`));
+  setOn("mode",document.querySelector(`#mode button[data-v="${cur.mode}"]`));
+  renderTokens();renderPanel();writeHash();
+  if(scroll&&cur.pos!=null)
+    document.querySelector(".tok.sel")?.scrollIntoView({block:"center"});
 }
 function syncHeadH(){
   const h=document.querySelector("header").offsetHeight;
@@ -135,7 +163,7 @@ function renderTokens(){
     `<span class="tok${i===cur.pos?" sel":""}" data-i="${i}">${tokHtml(p.t)}</span>`).join("");
   el.querySelectorAll(".tok").forEach(s=>s.onclick=()=>{cur.pos=+s.dataset.i;
     el.querySelectorAll(".tok.sel").forEach(x=>x.classList.remove("sel"));
-    s.classList.add("sel");renderPanel();});
+    s.classList.add("sel");renderPanel();writeHash();});
 }
 function renderPanel(){
   const panel=document.getElementById("panel");
