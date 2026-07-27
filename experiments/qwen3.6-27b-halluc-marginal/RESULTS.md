@@ -419,6 +419,24 @@ definition** — same sign under loose (+0.60/−0.58) and 2-model strict consen
 couples position with verifiability to some degree, but the strict-consensus
 robustness bounds that concern. Charts + stats: `plot_halluc_index.py`.
 
+### 3i. Token-decile chunking — the granularity confound removed
+
+![chunk halluc rate](results/fig_chunk_halluc_rate.png)
+
+To kill the lines-vs-sentences unit mismatch, each explanation is split into TEN
+equal token chunks (deciles) with the **real Qwen tokenizer** (~17 tokens/chunk),
+and each chunk is judged for faithfulness (nex-n2-mini, vs corpus continuation;
+20,000 chunks, 74 unparsed). On this uniform axis the opposite position structure
+holds cleanly: **matryoshka's chunk hallucination rate rises monotonically**
+0.43 → 0.59 across deciles (first tokens most trustworthy, tail least), while the
+**standard model's falls** from a 0.59 peak at decile 2 to ~0.30 by decile 9. The
+crossover is unambiguous and the cluster-bootstrap (over the 250 contexts) 95% CIs
+are tight and non-overlapping across most of the range. So the §3h finding is not
+a unit artifact — on identical token granularity the matryoshka front-loads its
+faithful content and the standard model front-loads its confident wrong claims.
+(Caveat: token chunks can start/end mid-sentence, adding fragment-judging noise;
+the monotone trends are well clear of it.) Script: `chunk_judge.py`.
+
 ## Case studies
 
 `results/cases.md` — the 20 strongest negative-marginal matryoshka items (CJK-
