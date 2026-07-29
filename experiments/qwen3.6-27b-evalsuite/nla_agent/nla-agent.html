@@ -359,6 +359,7 @@ You also have show_annotations({title, annotations: [{position, excerpt, note?}]
   const tail = `
 
 Practical notes:
+- Explanations are pretty noisy: individual lines can be vague, off-target, or idiosyncratic, and a single position rarely settles anything. Probing MANY tokens helps a lot — themes that recur across nearby or related positions are real signal, while a claim that appears at only one position and nowhere adjacent deserves skepticism. Prefer breadth over rereading one explanation deeply.
 - Positions below ~10 decode to generic noise (too little left context); prefer later positions.
 - Explanations are sampled at temperature 1, but each position is cached after the first call — re-probing the same position returns the identical result, so don't repeat calls.
 ${latency}
