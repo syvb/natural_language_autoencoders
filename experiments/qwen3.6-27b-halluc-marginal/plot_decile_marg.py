@@ -1,12 +1,11 @@
-"""Marginal FVE by token decile, split by whether the decile chunk was judged a
-hallucination. The critic scored marginal FVE at the LINE level (subset_scores);
-here each line's real marginal is redistributed onto the 10 token deciles in
-proportion to token overlap (real Qwen tokenizer, boundaries aligned to the same
-full-text token sequence chunk_judge.py used). Approximate (assumes within-line
-uniformity); the exact version would re-score the critic on decile prefixes (GPU).
+"""EXACT marginal FVE by token decile, split by whether the decile chunk was
+judged a hallucination. Uses decile_scores_{arm}.json — the critic scored
+directly on cumulative token-decile prefixes on a GPU (score_deciles.py):
+  pfx_decile[d] = FVE(first d+1 deciles);  marginal[d] = pfx[d] - pfx[d-1].
+Aligned to the chunk_judge.py deciles, so decile d's marginal pairs with decile
+d's hallucination verdict. Cluster-bootstrap 95% CI over the 250 contexts.
 """
 import json
-import os
 import random
 from pathlib import Path
 
@@ -14,11 +13,8 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from huggingface_hub import snapshot_download
-from transformers import AutoTokenizer
 
 HERE = Path(__file__).resolve().parent
-SE = HERE.parent / "qwen3.6-27b-suffix-eval"
 H = {"CONTRADICTED", "FABRICATED"}
 NCHUNK = 10
 GREEN, RED = "#2f9c69", "#8a1c13"
@@ -26,72 +22,40 @@ cv = {tuple(k.split("|")[:1] + [int(x) for x in k.split("|")[1:]]): v
       for k, v in json.load(open(HERE / "results" / "chunk_verdicts.json")).items()}
 
 
-def get_tok(repo, sub):
-    root = snapshot_download(repo, allow_patterns=[f"{sub}/*"],
-                             token=open(os.path.expanduser("~/.hf_token")).read().strip())
-    return AutoTokenizer.from_pretrained(f"{root}/{sub}")
+def marg(pfx):
+    return [pfx[0]] + [pfx[d] - pfx[d - 1] for d in range(1, NCHUNK)]
 
 
-def marg(rec):
-    p = rec["pfx"]
-    return [p[0]] + [p[k] - p[k - 1] for k in range(1, len(p))]
-
-
-def decile_marginals(lines, mvals, tok):
-    """Redistribute each line's marginal onto 10 token deciles by token overlap."""
-    cum = [len(tok.encode("\n".join(lines[:k]), add_special_tokens=False)) for k in range(len(lines) + 1)]
-    T = cum[-1]
-    if T < NCHUNK:
-        return None
-    db = [round(d * T / NCHUNK) for d in range(NCHUNK + 1)]
-    dm = np.zeros(NCHUNK)
-    for k in range(len(lines)):
-        a, b = cum[k], cum[k + 1]
-        if b <= a:
-            continue
-        for d in range(NCHUNK):
-            ov = max(0, min(b, db[d + 1]) - max(a, db[d]))
-            if ov:
-                dm[d] += mvals[k] * ov / (b - a)
-    return dm
-
-
-ARMS = [("mat", "ceselder/nla-qwen36-27b-matryoshka", "warmstart_av_lora", "subset_scores_mat.json", "matryoshka (lines)"),
-        ("std", "ceselder/qwen3.6-27b-nla-L42", "av_sft_lora", "subset_scores_std.json", "standard (sentences)")]
-
-for arm, repo, sub, fn, title in ARMS:
-    tok = get_tok(repo, sub)
-    # per context: list of (decile, marginal, is_halluc)
+for arm, title in [("mat", "matryoshka (lines)"), ("std", "standard (sentences)")]:
+    ds = json.load(open(HERE / "results" / f"decile_scores_{arm}.json"))["entries"]
     by_ci = {}
-    for e in json.load(open(HERE / "results" / fn))["entries"]:
-        for ri, rec in enumerate(e["rollouts"]):
-            if not rec:
+    for e in ds:
+        ci = e["ci"]
+        for ri, pfx in enumerate(e["pfx_decile"]):
+            if pfx is None:
                 continue
-            dm = decile_marginals(rec["units"], marg(rec), tok)
-            if dm is None:
-                continue
+            m = marg(pfx)
             for d in range(NCHUNK):
-                v = cv.get((arm, e["ci"], ri, d))
+                v = cv.get((arm, ci, ri, d))
                 if v is None:
                     continue
-                by_ci.setdefault(e["ci"], []).append((d, dm[d], v in H))
+                by_ci.setdefault(ci, []).append((d, m[d], v in H))
     cis = list(by_ci)
 
-    def means(sample_cis):
+    def means(sample):
         sh = [[] for _ in range(NCHUNK)]; sn = [[] for _ in range(NCHUNK)]
-        for c in sample_cis:
+        for c in sample:
             for d, m, h in by_ci[c]:
                 (sh if h else sn)[d].append(m)
-        mh = np.array([np.mean(sh[d]) if sh[d] else np.nan for d in range(NCHUNK)])
-        mn = np.array([np.mean(sn[d]) if sn[d] else np.nan for d in range(NCHUNK)])
-        return mh, mn
+        return (np.array([np.mean(sh[d]) if sh[d] else np.nan for d in range(NCHUNK)]),
+                np.array([np.mean(sn[d]) if sn[d] else np.nan for d in range(NCHUNK)]))
 
     rng = random.Random(0)
     ph, pn = means(cis)
     boots = [means(rng.choices(cis, k=len(cis))) for _ in range(1500)]
     bh = np.array([b[0] for b in boots]); bn = np.array([b[1] for b in boots])
-    hlo, hhi = np.nanpercentile(bh, 2.5, axis=0), np.nanpercentile(bh, 97.5, axis=0)
-    nlo, nhi = np.nanpercentile(bn, 2.5, axis=0), np.nanpercentile(bn, 97.5, axis=0)
+    hlo, hhi = np.nanpercentile(bh, 2.5, 0), np.nanpercentile(bh, 97.5, 0)
+    nlo, nhi = np.nanpercentile(bn, 2.5, 0), np.nanpercentile(bn, 97.5, 0)
     x = np.arange(1, NCHUNK + 1)
 
     fig, ax = plt.subplots(figsize=(8.4, 5.2))
@@ -102,20 +66,20 @@ for arm, repo, sub, fn, title in ARMS:
     ax.axhline(0, color="#444", lw=0.8)
     ax.set_xticks(x)
     ax.set_xlabel("explanation token decile (1 = first 10% → 10 = last 10%)", fontsize=11)
-    ax.set_ylabel("marginal FVE of the decile (token-weighted)", fontsize=11)
-    ax.set_title(f"{title} — decile marginal FVE: hallucinated vs not\n"
-                 "(line-level critic marginals redistributed onto token deciles)", fontsize=11.5)
+    ax.set_ylabel("marginal FVE of the decile", fontsize=11)
+    ax.set_title(f"{title} — decile marginal FVE: hallucinated vs not (EXACT)\n"
+                 "critic scored directly on cumulative token-decile prefixes (GPU)", fontsize=11.5)
     ax.legend(fontsize=9.5)
     ax.grid(color="#ccc", alpha=0.3)
     ax.spines[["top", "right"]].set_visible(False)
     fig.text(0.02, -0.02,
-             "Approximate: each line's real critic marginal FVE is split across token deciles by overlap (real Qwen tokenizer). "
-             "Hallucination = decile chunk judged CON/FAB (§3i).\nError bars: cluster bootstrap over the 250 contexts (95%). "
-             "Curves track closely; any gap is small and confined to the high-marginal early deciles (consistent with §3e–§3h).",
+             "Exact: marginal[d] = FVE(first d+1 token deciles) − FVE(first d deciles), own critic, real Qwen "
+             "tokenizer (deciles aligned to §3i judging).\nHallucination = decile chunk judged CON/FAB. Error bars: "
+             "cluster bootstrap over the 250 contexts (95%).",
              fontsize=7.6, color="#777", ha="left", va="top")
     fig.tight_layout()
     fig.savefig(HERE / "results" / f"fig_decile_marg_{arm}.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"[saved] fig_decile_marg_{arm}.png")
-    print(f"  {arm} decile marg (not): " + " ".join(f"{v:.3f}" for v in pn))
-    print(f"  {arm} decile marg (hal): " + " ".join(f"{v:.3f}" for v in ph))
+    print(f"  {arm} marg not: " + " ".join(f"{v:.3f}" for v in pn))
+    print(f"  {arm} marg hal: " + " ".join(f"{v:.3f}" for v in ph))

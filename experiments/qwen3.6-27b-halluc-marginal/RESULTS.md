@@ -438,13 +438,20 @@ faithful content and the standard model front-loads its confident wrong claims.
 the monotone trends are well clear of it.) Script: `chunk_judge.py`.
 
 Splitting each decile's marginal FVE by whether the chunk was hallucinated
-(`fig_decile_marg_{mat,std}.png`, real line marginals token-weighted onto the
-deciles) shows the two curves tracking closely at every decile — matryoshka
-essentially overlapping, standard with a small gap (hallucinated slightly lower)
-only at its high-marginal peak (deciles 4–5). Same conclusion as §3f–§3h: FVE
-tracks reconstructability and position, with at most a weak faithfulness gap in
-the high-marginal region. (Approximate; the exact version re-scores the critic on
-token-decile prefixes on a GPU. Script: `plot_decile_marg.py`.)
+(`fig_decile_marg_{mat,std}.png`) — **exact**: the critic was scored directly on
+cumulative token-decile prefixes on a GPU (`score_deciles.py`, 20k scorings,
+own critic, deciles aligned to the §3i judging), so marginal[d] = FVE(first d+1
+deciles) − FVE(first d deciles). Result: **matryoshka's curves overlap at every
+decile** (no faithfulness gap), while the **standard model shows a genuine gap in
+its high-marginal mid-region** — at deciles 3–5 hallucinated chunks reconstruct
+markedly worse (e.g. decile 5: 0.33 vs 0.42; decile 4: 0.26 vs 0.37) with
+**non-overlapping cluster-bootstrap 95% CIs**, closing to zero by decile 7. So on
+the exact, uniform token axis the standard critic *does* carry a real
+faithfulness signal, but only where its marginal is large (early-to-mid
+explanation); elsewhere, and for the matryoshka throughout, marginal FVE tracks
+reconstructability/position, not faithfulness. The exact scoring gives a cleaner,
+larger std gap than the line-redistribution approximation had suggested. Script:
+`plot_decile_marg.py`; scores `results/decile_scores_{mat,std}.json`.
 
 ## Case studies
 
