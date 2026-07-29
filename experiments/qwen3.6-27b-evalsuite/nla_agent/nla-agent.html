@@ -67,7 +67,13 @@ details>pre{margin:0; padding:9px 11px; font-size:11px; line-height:1.5; max-hei
 .msg{border:1px solid var(--grid); border-radius:10px; padding:10px 13px; max-width:56em;}
 .msg .who{font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin-bottom:4px;}
 .msg .body{white-space:pre-wrap; overflow-wrap:anywhere; font-size:13.5px;}
-.msg.user{background:var(--user-bg); align-self:flex-end;}
+.msg.user{background:var(--user-bg); align-self:flex-end; position:relative; padding-right:16px;}
+.editbtn{position:absolute; top:5px; right:6px; font-size:10px; padding:1px 7px; opacity:0;
+  transition:opacity .15s;}
+.msg.user:hover .editbtn, .editbtn:focus-visible{opacity:.8;}
+.editArea textarea{width:100%; min-height:64px; margin-top:2px;}
+.editArea .editrow{display:flex; gap:6px; margin-top:6px;}
+.editArea .hint{margin-top:5px;}
 .msg.assistant{background:var(--panel); align-self:flex-start;}
 .msg.system{background:var(--panel); align-self:stretch; max-width:none;}
 .msg.error{border-color:var(--neg); color:var(--neg); align-self:stretch; max-width:none;
@@ -131,6 +137,24 @@ footer{padding:10px 20px 26px; font-size:11px; color:var(--muted); border-top:1p
   </fieldset>
 
   <fieldset>
+    <legend>Input text</legend>
+    <label for="exSel">Examples — every position precached; tool calls are instant and never touch Hugging Face</label>
+    <select id="exSel" disabled><option>loading examples…</option></select>
+    <label for="textIn" style="margin-top:10px">Or a custom text (tokenized live by the Space)</label>
+    <textarea id="textIn" placeholder="Paste the text the model will 'read'. The agent gets it verbatim plus its exact tokenization."></textarea>
+    <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+      <button class="primary" id="loadBtn">Load &amp; tokenize</button>
+      <span class="hint" id="loadStatus"></span>
+    </div>
+    <div class="hint">Tokenized by the Space with the real Qwen3.6-27B tokenizer. Loading a new
+    text clears the chat (the context changes).</div>
+    <details id="ctxDetails" style="display:none">
+      <summary>context block sent as the first user message</summary>
+      <pre id="ctxPre"></pre>
+    </details>
+  </fieldset>
+
+  <fieldset>
     <legend>Keys &amp; model</legend>
     <label for="orKey">OpenRouter API key</label>
     <input type="password" id="orKey" placeholder="sk-or-…" autocomplete="off">
@@ -149,24 +173,6 @@ footer{padding:10px 20px 26px; font-size:11px; color:var(--muted); border-top:1p
     <input type="password" id="hfToken" placeholder="hf_…" autocomplete="off">
     <div class="hint">Saved in this browser's localStorage only. Never sent anywhere except
     openrouter.ai / hf.space respectively.</div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Input text</legend>
-    <label for="exSel">Examples — every position precached; tool calls are instant and never touch Hugging Face</label>
-    <select id="exSel" disabled><option>loading examples…</option></select>
-    <label for="textIn" style="margin-top:10px">Or a custom text (tokenized live by the Space)</label>
-    <textarea id="textIn" placeholder="Paste the text the model will 'read'. The agent gets it verbatim plus its exact tokenization."></textarea>
-    <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
-      <button class="primary" id="loadBtn">Load &amp; tokenize</button>
-      <span class="hint" id="loadStatus"></span>
-    </div>
-    <div class="hint">Tokenized by the Space with the real Qwen3.6-27B tokenizer. Loading a new
-    text clears the chat (the context changes).</div>
-    <details id="ctxDetails" style="display:none">
-      <summary>context block sent as the first user message</summary>
-      <pre id="ctxPre"></pre>
-    </details>
   </fieldset>
 
   <details id="sysDetails">
@@ -456,6 +462,8 @@ function renderSystemCard() {
 }
 function addUserCard(visibleText, fullContent) {
   const w = el("div", "msg user");
+  w._visibleText = visibleText;
+  w._chatIndex = chat.length - 1;   // index of this message in `chat` (append-only)
   w.appendChild(el("div", "who", "you"));
   w.appendChild(el("div", "body", md(visibleText)));
   if (fullContent !== visibleText) {
@@ -464,7 +472,46 @@ function addUserCard(visibleText, fullContent) {
       `<pre>${esc(fullContent)}</pre>`);
     w.appendChild(d);
   }
+  const eb = el("button", "editbtn", "✏️ edit");
+  eb.title = "Edit this message — everything after it is discarded and the agent reruns";
+  eb.addEventListener("click", () => beginEdit(w));
+  w.appendChild(eb);
   addCard(w);
+}
+function beginEdit(card) {
+  if (busy || card.querySelector(".editArea")) return;
+  const body = card.querySelector(".body");
+  body.style.display = "none";
+  const wrap = el("div", "editArea");
+  const ta = document.createElement("textarea");
+  ta.value = card._visibleText;
+  wrap.appendChild(ta);
+  const row = el("div", "editrow");
+  const save = el("button", "primary", "Save &amp; rerun");
+  const cancel = el("button", null, "Cancel");
+  row.appendChild(save);
+  row.appendChild(cancel);
+  wrap.appendChild(row);
+  wrap.appendChild(el("div", "hint", "Saving discards this message and everything after it, then reruns the agent."));
+  card.appendChild(wrap);
+  ta.focus();
+  cancel.addEventListener("click", () => { wrap.remove(); body.style.display = ""; });
+  save.addEventListener("click", () => {
+    const t = ta.value.trim();
+    if (!t || busy || !$("#orKey").value.trim()) return;
+    const idx = card._chatIndex;
+    // was this the first user message? then the rerun must re-attach the context block
+    const wasFirstUser = !chat.slice(1, idx).some((m) => m.role === "user");
+    chat.length = idx;                       // drop it and everything after
+    let n = card;                            // remove its card and all later ones
+    while (n) { const nx = n.nextElementSibling; n.remove(); n = nx; }
+    firstSend = wasFirstUser;
+    submitText(t);
+  });
+  ta.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); save.click(); }
+    if (e.key === "Escape") cancel.click();
+  });
 }
 function addAssistantCard() {
   const w = el("div", "msg assistant");
@@ -626,6 +673,18 @@ async function execTool(tc, card, signal) {
 }
 
 /* ── the agent loop ────────────────────────────────────────────────────── */
+function costLine(u) {
+  if (!u) return "";
+  // BYOK requests: `cost` is only OpenRouter's fee; the real provider spend is
+  // usage.cost_details.upstream_inference_cost — show both when present.
+  const up = u.cost_details?.upstream_inference_cost;
+  if (up != null) {
+    let s = ` · $${(+up).toFixed(4)} upstream (BYOK)`;
+    if (u.cost) s += ` + $${(+u.cost).toFixed(4)} OpenRouter fee`;
+    return s;
+  }
+  return u.cost != null ? ` · $${(+u.cost).toFixed(4)}` : "";
+}
 async function runTurn() {
   const signal = aborter.signal;
   for (let round = 0; round < MAX_ROUNDS; round++) {
@@ -643,7 +702,7 @@ async function runTurn() {
     if (!res.content && !res.reasoning && !res.toolCalls.length) ui.remove();
     if (res.usage || res.servedBy) ui.setMeta(
       (res.usage ? `tokens: ${res.usage.prompt_tokens} in · ${res.usage.completion_tokens} out` : "") +
-      (res.usage?.cost != null ? ` · $${(+res.usage.cost).toFixed(4)}` : "") +
+      costLine(res.usage) +
       (res.servedBy ? ` · via ${res.servedBy}` : ""));
     const amsg = { role: "assistant", content: res.content || "" };
     if (res.toolCalls.length) amsg.tool_calls = res.toolCalls;
@@ -784,10 +843,13 @@ async function loadText() {
   }
 }
 
-async function send() {
+function send() {
   const text = $("#userIn").value.trim();
   if (!text || busy || !toks || !$("#orKey").value.trim()) return;
   $("#userIn").value = "";
+  submitText(text);
+}
+async function submitText(text) {
   const full = firstSend ? contextBlock() + "\n\n" + text : text;
   firstSend = false;
   chat.push({ role: "user", content: full });
