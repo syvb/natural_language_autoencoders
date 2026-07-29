@@ -93,8 +93,8 @@ details>pre{margin:0; padding:9px 11px; font-size:11px; line-height:1.5; max-hei
 .tool .hd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px;}
 .tool .st{font-size:11.5px; color:var(--ink2); margin-top:4px;}
 .tool .st.err{color:var(--neg);}
-.tool pre.res{margin:8px 0 0; padding:9px 11px; background:var(--panel);
-  border:1px solid var(--grid); border-radius:7px; font-size:12px; line-height:1.55;
+.tool details{margin-top:8px; background:var(--panel);}
+.tool pre.res{margin:0; padding:9px 11px; border:0; font-size:12px; line-height:1.55;
   white-space:pre-wrap; overflow-wrap:anywhere; max-height:340px; overflow-y:auto;
   scrollbar-width:thin; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
 .spin{display:inline-block; animation:blink 1.2s ease-in-out infinite;}
@@ -548,16 +548,26 @@ function addToolCard(name, argsStr) {
   w.appendChild(el("div", "hd", `🔧 ${esc(name)}(${esc(argsStr)})`));
   const st = el("div", "st", '<span class="spin">●</span> starting…');
   w.appendChild(st);
+  // collapsed by default — the status line carries the gist; expand for the
+  // exact text the model sees
+  const det = el("details", null, "<summary>tool result</summary>");
+  det.style.display = "none";
   const pre = el("pre", "res");
-  pre.style.display = "none";
-  w.appendChild(pre);
+  det.appendChild(pre);
+  w.appendChild(det);
   addCard(w);
   const t0 = Date.now();
   return {
     status(s) { st.innerHTML = `<span class="spin">●</span> ${esc(s)}`; scrollMsgs(); },
     done(extra) { st.textContent = `✓ done in ${((Date.now() - t0) / 1000).toFixed(0)} s${extra ? " · " + extra : ""}`; },
     fail(s) { st.classList.add("err"); st.textContent = "✗ " + s; },
-    result(text) { pre.style.display = ""; pre.textContent = text; scrollMsgs(); },
+    result(text) {
+      det.style.display = "";
+      det.querySelector("summary").textContent =
+        `tool result — ${text.length} chars (exactly what the model sees)`;
+      pre.textContent = text;
+      scrollMsgs();
+    },
   };
 }
 
@@ -694,7 +704,7 @@ async function execTool(tc, card, signal) {
   if (hit) {
     wire(`cache hit — example=${toks.example} pos=${pos} mode=${mode} (no HF call)`);
     const text = formatToolResult(pos, parsedFromCache(pos, hit));
-    card.done(`${hit.lines.length} lines · precached, no Hugging Face call`);
+    card.done(`${hit.lines.length} lines · FVE ${hit.fve[hit.fve.length - 1].toFixed(3)} · precached, no Hugging Face call`);
     card.result(text);
     return text;
   }
@@ -716,7 +726,9 @@ async function execTool(tc, card, signal) {
   if (!viz) throw new Error("Space returned no visualization HTML.");
   const parsed = parseVizHtml(viz);
   const text = formatToolResult(pos, parsed);
-  card.done(parsed.rows ? `${parsed.rows.length} lines` : "");
+  const fveChip = parsed.chips?.find((c) => /FVE/i.test(c.l || ""));
+  card.done(parsed.rows
+    ? `${parsed.rows.length} lines${fveChip ? ` · FVE ${fveChip.v}` : ""}` : "");
   card.result(text);
   return text;
 }
