@@ -100,6 +100,28 @@ details>pre{margin:0; padding:9px 11px; font-size:11px; line-height:1.5; max-hei
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
 .toolgroup .tool{border:0; border-top:1px solid var(--grid); border-left:0;
   border-radius:0; background:transparent;}
+
+/* agent-made annotation widget */
+.annwidget{border:1px solid var(--grid); border-left:3px solid var(--pos); border-radius:10px;
+  background:var(--panel); padding:12px 14px; align-self:stretch; max-width:56em;}
+.annwidget .ti{font-size:13px; font-weight:600; margin-bottom:2px;}
+.annwidget .sub{font-size:10.5px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.05em; margin-bottom:9px;}
+.anntext{white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px; line-height:1.95;
+  max-height:34vh; overflow-y:auto; scrollbar-width:thin; border:1px solid var(--grid);
+  border-radius:8px; padding:10px 12px; margin-bottom:10px; color:var(--ink);}
+.anntext .hl{border-radius:3px; padding:1.5px 1px; cursor:pointer; scroll-margin:80px;}
+.anntext .hl sup{font-size:9px; font-weight:700; margin-left:1px;}
+.annlegend{display:flex; flex-direction:column; gap:2px;}
+.annitem{display:grid; grid-template-columns:14px minmax(0,1fr); gap:9px; font-size:12.5px;
+  cursor:pointer; padding:6px 8px; border-radius:7px; scroll-margin:80px;}
+.annitem:hover{background:var(--wash);}
+.annitem .sw{width:12px; height:12px; border-radius:3px; margin-top:3.5px;}
+.annitem .tokref{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:11px; color:var(--ink2);}
+.annitem .q{font-style:italic;}
+.annitem .nt{color:var(--ink2); font-size:12px;}
+.annitem .warnx{color:var(--warn); font-size:11px;}
 .tool pre.res{margin:0; padding:9px 11px; border:0; font-size:12px; line-height:1.55;
   white-space:pre-wrap; overflow-wrap:anywhere; max-height:340px; overflow-y:auto;
   scrollbar-width:thin; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
@@ -119,10 +141,11 @@ footer{padding:10px 20px 26px; font-size:11px; color:var(--muted); border-top:1p
 <body>
 <header>
   <h1>🔬 NLA agent</h1>
-  <p>Give an LLM agent a text and one tool: <code>get_nla_explanation(position)</code> — a
+  <p>Give an LLM agent a text and a tool: <code>get_nla_explanation(position)</code> — a
   <a href="https://huggingface.co/ceselder/nla-qwen36-27b-matryoshka">natural-language autoencoder</a>
   that verbalizes Qwen3.6-27B's layer-42 activation at any token of the text, scored by round-trip
-  reconstruction (FVE). The agent probes positions and reports what the model was representing.
+  reconstruction (FVE). The agent probes positions, reports what the model was representing, and can
+  present findings as a widget highlighting tokens with excerpts from their explanations.
   Everything — system prompt, context block, tool calls, raw results — is shown below.
   The example texts are fully precached and served from this site, so probing them never
   touches Hugging Face; custom texts and uncached positions call the two Spaces
@@ -261,13 +284,48 @@ const TOOL_SCHEMA = {
   },
 };
 
+const ANNOTATE_SCHEMA = {
+  type: "function",
+  function: {
+    name: "show_annotations",
+    description:
+      "Render a widget directly to the user: the full input text with chosen token positions " +
+      "highlighted, each tagged with a short excerpt quoted VERBATIM from that position's NLA " +
+      "explanation and an optional note of yours. Use it to present findings visually after " +
+      "probing positions with get_nla_explanation. The widget is shown immediately; the tool " +
+      "returns a confirmation plus validation warnings.",
+    parameters: {
+      type: "object",
+      properties: {
+        title: { type: "string", description: "Short title shown above the widget." },
+        annotations: {
+          type: "array",
+          description: "One entry per highlighted token position.",
+          items: {
+            type: "object",
+            properties: {
+              position: { type: "integer", description: "Token index to highlight." },
+              excerpt: { type: "string", description: "Excerpt quoted verbatim from the NLA explanation you received for this position (a line or part of one)." },
+              note: { type: "string", description: "Optional brief comment on what this annotation shows." },
+            },
+            required: ["position", "excerpt"],
+          },
+        },
+      },
+      required: ["annotations"],
+    },
+  },
+};
+
 function systemPrompt(mode, nTokens, precached) {
   const common =
 `You are an interpretability agent investigating what Qwen3.6-27B internally represents while reading a piece of text.
 
 The first user message contains a <context> block: the text in <message>, and its exact tokenization in <message_tokenized> (each token written as [index:token piece]; the text has ${nTokens} tokens, positions 0..${nTokens - 1}).
 
-You have one tool, get_nla_explanation(position). It reads the model's layer-42 residual activation at that token — a vector summarizing the left context up to and including that token — and verbalizes it in natural language. A co-trained critic then reconstructs the vector from the words; FVE (fraction of variance explained) measures how faithful the verbalization is. Full-explanation FVE around 0.5–0.7 is typical; low FVE means the words missed much of what the activation encodes.
+You have a tool, get_nla_explanation(position). It reads the model's layer-42 residual activation at that token — a vector summarizing the left context up to and including that token — and verbalizes it in natural language. A co-trained critic then reconstructs the vector from the words; FVE (fraction of variance explained) measures how faithful the verbalization is. Full-explanation FVE around 0.5–0.7 is typical; low FVE means the words missed much of what the activation encodes.
+
+You also have show_annotations({title, annotations: [{position, excerpt, note?}]}). It renders a widget to the user: the text with those token positions highlighted, each tagged with an excerpt from that position's NLA explanation and an optional note. Quote excerpts VERBATIM from explanations you actually received. Use it to summarize findings visually once you've probed enough positions — it's the best way to end an investigation.
 `;
   const mat =
 `This deployment uses the MATRYOSHKA verbalizer: up to 10 short, independent lines ordered by salience — it was trained so the FIRST lines carry the most reconstruction-relevant information. Each line comes with ΔFVE (how much reconstruction that single line adds) and cumulative FVE. Trust high-ΔFVE lines most; lines with ΔFVE near 0 add little signal.`;
@@ -551,7 +609,8 @@ function addAssistantCard() {
 }
 function addToolCard(name, argsStr, parent) {
   const w = el("div", "tool");
-  w.appendChild(el("div", "hd", `🔧 ${esc(name)}(${esc(argsStr)})`));
+  const shortArgs = argsStr.length > 140 ? argsStr.slice(0, 140) + "…" : argsStr;
+  w.appendChild(el("div", "hd", `🔧 ${esc(name)}(${esc(shortArgs)})`));
   const st = el("div", "st", '<span class="spin">●</span> starting…');
   w.appendChild(st);
   // collapsed by default — the status line carries the gist; expand for the
@@ -598,7 +657,7 @@ function withCaching(msgs) {
 async function chatRequest(onDelta, signal) {
   const model = $("#orModel").value.trim();
   const body = {
-    model, messages: withCaching(chat), tools: [TOOL_SCHEMA],
+    model, messages: withCaching(chat), tools: [TOOL_SCHEMA, ANNOTATE_SCHEMA],
     stream: true, usage: { include: true },
   };
   const providers = $("#orProvider").value.split(",").map((s) => s.trim()).filter(Boolean);
@@ -679,6 +738,87 @@ async function chatRequest(onDelta, signal) {
   return { content, reasoning, reasoningDetails, toolCalls: tcs.filter(Boolean), finish, usage, servedBy };
 }
 
+/* ── annotation widget (rendered client-side by the show_annotations tool) ─ */
+const ANN_HUES = [211, 3, 130, 32, 275, 170, 340, 20];
+function excerptCheck(a) {
+  // verifiable only when the current text is a precached example: does the
+  // excerpt literally appear in that position's explanation?
+  if (toks.example == null || !cache) return null;
+  const res = cache.examples[toks.example]?.[mode]?.[a.position];
+  if (!res) return null;
+  const ex = a.excerpt.trim().toLowerCase();
+  if (!ex) return false;
+  return res.lines.some((l) => l.toLowerCase().includes(ex) || ex.includes(l.trim().toLowerCase()));
+}
+function renderAnnotationWidget(title, anns) {
+  const w = el("div", "annwidget");
+  if (title) w.appendChild(el("div", "ti", esc(title)));
+  w.appendChild(el("div", "sub", "annotation widget — made by the agent"));
+  const txt = el("div", "anntext");
+  const hlByPos = new Map();
+  anns.forEach((a, k) => { if (!hlByPos.has(a.position)) hlByPos.set(a.position, []); hlByPos.get(a.position).push(k); });
+  const spans = new Map();
+  toks.pieces.forEach((p, i) => {
+    const ks = hlByPos.get(i);
+    const s = document.createElement("span");
+    s.textContent = p;
+    if (ks) {
+      const hue = ANN_HUES[ks[0] % ANN_HUES.length];
+      s.className = "hl";
+      s.style.background = `hsla(${hue},85%,55%,.28)`;
+      s.style.boxShadow = `inset 0 -2px 0 hsl(${hue},70%,45%)`;
+      for (const k of ks) { const sup = document.createElement("sup"); sup.textContent = k + 1; s.appendChild(sup); }
+      spans.set(ks[0], s);
+    }
+    txt.appendChild(s);
+  });
+  w.appendChild(txt);
+  const legend = el("div", "annlegend");
+  const items = [];
+  anns.forEach((a, k) => {
+    const hue = ANN_HUES[k % ANN_HUES.length];
+    const verified = excerptCheck(a);
+    const it = el("div", "annitem");
+    it.appendChild(el("div", "sw")).style.background = `hsl(${hue},70%,45%)`;
+    const body = el("div", null,
+      `<span class="tokref">${k + 1} · #${a.position} ${esc(JSON.stringify(toks.pieces[a.position]))}</span> ` +
+      `<span class="q">“${esc(a.excerpt)}”</span>` +
+      (verified === false ? ' <span class="warnx">⚠ not found verbatim in this position’s explanation</span>' : "") +
+      (a.note ? `<div class="nt">${esc(a.note)}</div>` : ""));
+    it.appendChild(body);
+    it.addEventListener("click", () => spans.get(hlByPos.get(a.position)[0])?.scrollIntoView({ block: "center", behavior: "smooth" }));
+    legend.appendChild(it);
+    items.push(it);
+  });
+  anns.forEach((a, k) => {
+    const s = spans.get(hlByPos.get(a.position)[0]);
+    if (s) s.addEventListener("click", () => items[k].scrollIntoView({ block: "nearest", behavior: "smooth" }));
+  });
+  w.appendChild(legend);
+  addCard(w);
+}
+function execAnnotate(args, card) {
+  const raw = Array.isArray(args.annotations) ? args.annotations : [];
+  const valid = [], dropped = [];
+  for (const a of raw) {
+    const p = Number(a?.position);
+    if (Number.isInteger(p) && p >= 0 && p < toks.pieces.length && a.excerpt)
+      valid.push({ position: p, excerpt: String(a.excerpt), note: a.note ? String(a.note) : "" });
+    else dropped.push(a?.position);
+  }
+  if (!valid.length)
+    return `Tool error: no valid annotations — each needs an integer position in [0, ${toks.pieces.length - 1}] and a non-empty excerpt.`;
+  renderAnnotationWidget(args.title ? String(args.title) : "", valid);
+  card.done(`${valid.length} highlight${valid.length > 1 ? "s" : ""} rendered`);
+  let out = `Annotation widget rendered to the user: ${valid.length} highlighted position(s) (${valid.map((a) => a.position).join(", ")}).`;
+  if (dropped.length)
+    out += ` Dropped ${dropped.length} invalid annotation(s) (position(s): ${dropped.join(", ")}).`;
+  const bad = valid.filter((a) => excerptCheck(a) === false);
+  if (bad.length)
+    out += ` WARNING: the excerpt(s) at position(s) ${bad.map((a) => a.position).join(", ")} do not appear verbatim in that position's NLA explanation — they are flagged ⚠ in the widget; quote explanation lines exactly.`;
+  return out;
+}
+
 /* ── tool execution ────────────────────────────────────────────────────── */
 const CJK_RE = /[　-ヿ㐀-䶿一-鿿＀-￯]/;
 function parsedFromCache(pos, res) {
@@ -699,11 +839,12 @@ function parsedFromCache(pos, res) {
   return { rows, chips, notes };
 }
 async function execTool(tc, card, signal) {
-  if (tc.function.name !== "get_nla_explanation")
-    return `Tool error: unknown tool "${tc.function.name}".`;
   let args;
   try { args = JSON.parse(tc.function.arguments || "{}"); }
   catch (e) { return "Tool error: arguments were not valid JSON: " + tc.function.arguments; }
+  if (tc.function.name === "show_annotations") return execAnnotate(args, card);
+  if (tc.function.name !== "get_nla_explanation")
+    return `Tool error: unknown tool "${tc.function.name}".`;
   const pos = Number(args.position);
   if (!Number.isInteger(pos) || pos < 0 || pos >= toks.pieces.length)
     return `Tool error: position must be an integer in [0, ${toks.pieces.length - 1}] (got ${args.position}).`;
@@ -796,6 +937,7 @@ async function runTurn() {
     let group = null, groupSum = null, groupBase = "";
     if (res.toolCalls.length > 1) {
       const posOf = (tc) => {
+        if (tc.function.name === "show_annotations") return "widget";
         try { return JSON.parse(tc.function.arguments || "{}").position ?? "?"; }
         catch (e) { return "?"; }
       };
