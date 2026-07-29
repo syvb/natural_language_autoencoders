@@ -39,9 +39,10 @@ fieldset{border:1px solid var(--grid); border-radius:10px; margin:0 0 12px; padd
 legend{font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding:0 5px;}
 label{display:block; font-size:11px; color:var(--ink2); margin:8px 0 3px;}
 label:first-of-type{margin-top:0}
-input[type=text],input[type=password],textarea{
+input[type=text],input[type=password],textarea,select{
   width:100%; background:var(--panel); color:var(--ink); border:1px solid var(--ring);
   border-radius:7px; padding:7px 9px; font:inherit; font-size:13px;}
+select:disabled{opacity:.55;}
 textarea{resize:vertical; min-height:90px; scrollbar-width:thin;}
 input:focus,textarea:focus{outline:2px solid var(--sel); outline-offset:-1px;}
 .hint{font-size:11px; color:var(--muted); margin-top:4px;}
@@ -111,9 +112,12 @@ footer{padding:10px 20px 26px; font-size:11px; color:var(--muted); border-top:1p
   that verbalizes Qwen3.6-27B's layer-42 activation at any token of the text, scored by round-trip
   reconstruction (FVE). The agent probes positions and reports what the model was representing.
   Everything — system prompt, context block, tool calls, raw results — is shown below.
-  Your API keys stay in this browser; nothing is sent anywhere except OpenRouter and the two
-  Hugging Face Spaces (<a href="https://huggingface.co/spaces/syvb/nla-qwen36-27b-explorer">matryoshka</a>,
-  <a href="https://huggingface.co/spaces/syvb/nla-qwen36-27b-explorer-std">standard</a>).</p>
+  The example texts are fully precached and served from this site, so probing them never
+  touches Hugging Face; custom texts and uncached positions call the two Spaces
+  (<a href="https://huggingface.co/spaces/syvb/nla-qwen36-27b-explorer">matryoshka</a>,
+  <a href="https://huggingface.co/spaces/syvb/nla-qwen36-27b-explorer-std">standard</a>).
+  Your API keys stay in this browser; nothing is sent anywhere except OpenRouter and, when
+  needed, the Spaces.</p>
 </header>
 <main>
 <aside id="side">
@@ -147,6 +151,9 @@ footer{padding:10px 20px 26px; font-size:11px; color:var(--muted); border-top:1p
 
   <fieldset>
     <legend>Input text</legend>
+    <label for="exSel">Examples — every position precached; tool calls are instant and never touch Hugging Face</label>
+    <select id="exSel" disabled><option>loading examples…</option></select>
+    <label for="textIn" style="margin-top:10px">Or a custom text (tokenized live by the Space)</label>
     <textarea id="textIn" placeholder="Paste the text the model will 'read'. The agent gets it verbatim plus its exact tokenization."></textarea>
     <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
       <button class="primary" id="loadBtn">Load &amp; tokenize</button>
@@ -188,9 +195,11 @@ footer{padding:10px 20px 26px; font-size:11px; color:var(--muted); border-top:1p
 </section>
 </main>
 <footer>
-  Static page, no backend. Explanations are sampled at temperature&nbsp;1; the Space caches the first
-  sample per position, so repeat probes return the identical explanation. Cold-starting a sleeping
-  Space loads a 92&nbsp;GB model and can take 15–25&nbsp;minutes — the page waits and shows progress.
+  Static page, no backend. Example texts are fully precached (both verbalizers, every position) and
+  served from this site — probing them makes no Hugging Face request at all. Explanations are sampled
+  at temperature&nbsp;1; each position is cached after its first sample, so repeat probes return the
+  identical explanation. For custom texts, cold-starting a sleeping Space loads a 92&nbsp;GB model and
+  can take 15–25&nbsp;minutes — the page waits and shows progress.
 </footer>
 
 <script>
@@ -230,7 +239,7 @@ const TOOL_SCHEMA = {
   },
 };
 
-function systemPrompt(mode, nTokens) {
+function systemPrompt(mode, nTokens, precached) {
   const common =
 `You are an interpretability agent investigating what Qwen3.6-27B internally represents while reading a piece of text.
 
@@ -242,12 +251,15 @@ You have one tool, get_nla_explanation(position). It reads the model's layer-42 
 `This deployment uses the MATRYOSHKA verbalizer: up to 10 short, independent lines ordered by salience — it was trained so the FIRST lines carry the most reconstruction-relevant information. Each line comes with ΔFVE (how much reconstruction that single line adds) and cumulative FVE. Trust high-ΔFVE lines most; lines with ΔFVE near 0 add little signal.`;
   const std =
 `This deployment uses the STANDARD (non-matryoshka) verbalizer: a short free-form explanation, typically 1–3 longer lines. Lines are NOT salience-ordered — information often arrives late in the explanation — and they are not independently meaningful, so judge faithfulness by the cumulative FVE of the whole explanation rather than by any single line.`;
+  const latency = precached
+    ? "- Every position of THIS text is precached — tool calls return instantly and cost no GPU time, so probe as many positions as the question warrants."
+    : "- Each uncached probe takes ~30–120 s on a shared GPU (much longer if the Space is cold). Probe a handful of informative positions rather than scanning densely; you may request several positions in parallel tool calls.";
   const tail = `
 
 Practical notes:
 - Positions below ~10 decode to generic noise (too little left context); prefer later positions.
 - Explanations are sampled at temperature 1, but each position is cached after the first call — re-probing the same position returns the identical result, so don't repeat calls.
-- Each uncached probe takes ~30–120 s on a shared GPU (much longer if the Space is cold). Probe a handful of informative positions rather than scanning densely; you may request several positions in parallel tool calls.
+${latency}
 - An occasional stray CJK character inside a line is a known sampling artifact — ignore it.
 - The activation is about what the MODEL represents at that point in its reading, not about the ground truth of the text.
 
@@ -257,7 +269,8 @@ Answer the user's questions by probing well-chosen positions. Always say which p
 
 /* ── state ─────────────────────────────────────────────────────────────── */
 let mode = "m";
-let toks = null;          // { pieces:[...], truncated:bool, text:"..." }
+let cache = null;         // {labels:[...], examples:[{text,pieces,m:[res],s:[res]}]}
+let toks = null;          // { pieces:[...], truncated:bool, text:"...", example?:idx }
 let chat = [];            // OpenAI-style message list, [0] = system
 let busy = false;
 let aborter = null;
@@ -545,6 +558,24 @@ async function chatRequest(onDelta, signal) {
 }
 
 /* ── tool execution ────────────────────────────────────────────────────── */
+const CJK_RE = /[　-ヿ㐀-䶿一-鿿＀-￯]/;
+function parsedFromCache(pos, res) {
+  const rows = res.lines.map((ln, k) => ({
+    text: ln,
+    dfve: +(k ? res.fve[k] - res.fve[k - 1] : res.fve[0]).toFixed(4),
+    cum: res.fve[k], cos: res.cos[k],
+  }));
+  const n = res.lines.length;
+  const chips = [
+    { v: res.fve[n - 1].toFixed(3), l: `FVE · all ${n} lines` },
+    { v: res.cos[n - 1].toFixed(3), l: "cosine" },
+  ];
+  const notes = [];
+  if (pos < 10) notes.push("⚠ very early position — little left-context; explanations may be generic.");
+  if (res.lines.some((l) => CJK_RE.test(l)))
+    notes.push("⚠ stray CJK character in output (minor known drift of the RL policy).");
+  return { rows, chips, notes };
+}
 async function execTool(tc, card, signal) {
   if (tc.function.name !== "get_nla_explanation")
     return `Tool error: unknown tool "${tc.function.name}".`;
@@ -554,6 +585,14 @@ async function execTool(tc, card, signal) {
   const pos = Number(args.position);
   if (!Number.isInteger(pos) || pos < 0 || pos >= toks.pieces.length)
     return `Tool error: position must be an integer in [0, ${toks.pieces.length - 1}] (got ${args.position}).`;
+  const hit = (toks.example != null && cache) ? cache.examples[toks.example]?.[mode]?.[pos] : null;
+  if (hit) {
+    wire(`cache hit — example=${toks.example} pos=${pos} mode=${mode} (no HF call)`);
+    const text = formatToolResult(pos, parsedFromCache(pos, hit));
+    card.done(`${hit.lines.length} lines · precached, no Hugging Face call`);
+    card.result(text);
+    return text;
+  }
   const space = SPACES[mode];
   card.status("checking Space status…");
   await ensureAwake(space, (s) => card.status(s), signal);
@@ -622,7 +661,7 @@ async function runTurn() {
 
 /* ── top-level actions ─────────────────────────────────────────────────── */
 function resetChat() {
-  chat = toks ? [{ role: "system", content: systemPrompt(mode, toks.pieces.length) }] : [];
+  chat = toks ? [{ role: "system", content: systemPrompt(mode, toks.pieces.length, toks.example != null) }] : [];
   firstSend = true;
   $("#msgs").innerHTML = "";
   if (toks) renderSystemCard();
@@ -639,10 +678,72 @@ function updateGates() {
   $("#sendBtn").disabled = !ready;
   $("#stopBtn").disabled = !busy;
   $("#loadBtn").disabled = busy;
+  $("#exSel").disabled = busy || !cache;
   if (busy) return;
   if (!keyOk) setStatus("Enter your OpenRouter API key to start.");
   else if (!toks) setStatus("Load a text — the agent needs its context block first.");
-  else setStatus(`Ready — ${toks.pieces.length} tokens loaded · ${SPACES[mode].label} verbalizer.`);
+  else {
+    const ex = toks.example != null && cache
+      ? ` · “${esc(cache.labels[toks.example])}” — precached, no Hugging Face` : "";
+    setStatus(`Ready — ${toks.pieces.length} tokens loaded${ex} · ${SPACES[mode].label} verbalizer.`);
+  }
+}
+
+/* ── precached examples (fetched from this site — no Hugging Face) ─────── */
+function applyExample(i) {
+  const ex = cache.examples[i];
+  $("#exSel").value = String(i);
+  $("#textIn").value = ex.text;
+  toks = { pieces: ex.pieces, truncated: false, text: ex.text, example: i };
+  $("#ctxPre").textContent = contextBlock();
+  $("#ctxDetails").style.display = "";
+  $("#loadStatus").textContent = `${ex.pieces.length} tokens · precached`;
+  resetChat();
+}
+async function loadCache() {
+  const sel = $("#exSel");
+  let buf = null;
+  for (const url of ["nla-agent-cache.json.gz", "https://syvb.ca/nla-agent-cache.json.gz"]) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) continue;
+      buf = await r.arrayBuffer();
+      wire(`GET ${url} → ${(buf.byteLength / 1e6).toFixed(1)} MB`);
+      break;
+    } catch (e) {}
+  }
+  if (!buf) {
+    sel.innerHTML = "<option>examples unavailable — paste a custom text</option>";
+    wire("examples cache unreachable");
+    return;
+  }
+  try {
+    const u8 = new Uint8Array(buf);
+    let text;
+    if (u8[0] === 0x1f && u8[1] === 0x8b)  // gzip magic; else the CDN already decoded it
+      text = await new Response(new Response(buf).body.pipeThrough(new DecompressionStream("gzip"))).text();
+    else text = new TextDecoder().decode(u8);
+    cache = JSON.parse(text);
+  } catch (e) {
+    sel.innerHTML = "<option>examples cache failed to decode</option>";
+    wire("cache decode failed: " + e.message);
+    return;
+  }
+  sel.innerHTML = "";
+  const custom = el("option", null, null);
+  custom.value = "-1";
+  custom.textContent = "Custom text (tokenized live by the Space)…";
+  sel.appendChild(custom);
+  cache.labels.forEach((lb, i) => {
+    const o = el("option", null, null);
+    o.value = String(i);
+    o.textContent = `${lb} · ${cache.examples[i].pieces.length} tok`;
+    sel.appendChild(o);
+  });
+  // one example selected by default — unless the user already loaded something
+  if (!toks && !busy) applyExample(0);
+  else sel.value = toks && toks.example != null ? String(toks.example) : "-1";
+  updateGates();
 }
 
 async function loadText() {
@@ -660,6 +761,7 @@ async function loadText() {
     const { pieces, truncated } = parseTokensHtml(html);
     if (!pieces.length) throw new Error("tokenizer returned zero tokens");
     toks = { pieces, truncated, text };
+    if (cache) $("#exSel").value = "-1";
     $("#ctxPre").textContent = contextBlock();
     $("#ctxDetails").style.display = "";
     st.textContent = `${pieces.length} tokens` + (truncated ? " — ⚠ truncated to the Space's 5120-token cap" : "");
@@ -708,6 +810,16 @@ $("#modeSeg").addEventListener("click", (e) => {
   const b = e.target.closest("button");
   if (b) setMode(b.dataset.m);
 });
+$("#exSel").addEventListener("change", () => {
+  const v = +$("#exSel").value;
+  if (v >= 0 && cache) applyExample(v);
+  else $("#textIn").focus();
+});
+$("#textIn").addEventListener("input", () => {
+  // editing away from a loaded example ⇒ the selector no longer describes the box
+  if (cache && toks && toks.example != null && $("#textIn").value !== toks.text)
+    $("#exSel").value = "-1";
+});
 $("#loadBtn").addEventListener("click", loadText);
 $("#sendBtn").addEventListener("click", send);
 $("#stopBtn").addEventListener("click", () => aborter?.abort());
@@ -725,6 +837,7 @@ $("#copyJson").addEventListener("click", async () => {
 $("#modeHint").textContent = "10 salience-ordered independent lines; the first lines carry the most information.";
 $("#sysPre").textContent = "(load a text first)";
 updateGates();
+loadCache();
 </script>
 </body>
 </html>
