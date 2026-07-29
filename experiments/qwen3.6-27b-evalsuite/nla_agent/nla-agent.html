@@ -39,7 +39,7 @@ fieldset{border:1px solid var(--grid); border-radius:10px; margin:0 0 12px; padd
 legend{font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding:0 5px;}
 label{display:block; font-size:11px; color:var(--ink2); margin:8px 0 3px;}
 label:first-of-type{margin-top:0}
-input[type=text],input[type=password],textarea,select{
+input[type=text],input[type=password],input[type=number],textarea,select{
   width:100%; background:var(--panel); color:var(--ink); border:1px solid var(--ring);
   border-radius:7px; padding:7px 9px; font:inherit; font-size:13px;}
 select:disabled{opacity:.55;}
@@ -168,6 +168,10 @@ footer{padding:10px 20px 26px; font-size:11px; color:var(--muted); border-top:1p
     </label>
     <div class="hint">Off: the agent gets only the explanation text — no faithfulness scores and
     no mention of FVE anywhere in its prompts. Toggling clears the chat.</div>
+    <label for="truncN">Truncate explanations to the first N lines</label>
+    <input type="number" id="truncN" min="1" step="1" placeholder="(all lines)">
+    <div class="hint">Applies to what the agent sees (you still get everything in the tool cards).
+    Changing it clears the chat.</div>
   </fieldset>
 
   <fieldset>
@@ -265,6 +269,10 @@ const MAX_ROUNDS = 24;
 const OR_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 const fveOn = () => $("#fveChk").checked;
+const truncLimit = () => {
+  const v = parseInt($("#truncN").value, 10);
+  return Number.isInteger(v) && v >= 1 ? v : Infinity;
+};
 function toolSchema() {
   return {
     type: "function",
@@ -359,7 +367,10 @@ ${latency}
 - The activation is about what the MODEL represents at that point in its reading, not about the ground truth of the text.
 
 Answer the user's questions by probing well-chosen positions. Always say which positions you probed${fve ? ", quote the relevant explanation lines, and cite FVE when it bears on how much to trust a line." : " and quote the relevant explanation lines."}`;
-  return common + "\n" + (mode === "m" ? mat : std) + tail;
+  const lim = truncLimit();
+  const truncNote = lim === Infinity ? "" :
+    ` Explanations are truncated for you: you receive only the first ${lim === 1 ? "line" : lim + " lines"} of each.`;
+  return common + "\n" + (mode === "m" ? mat : std) + truncNote + tail;
 }
 
 /* ── state ─────────────────────────────────────────────────────────────── */
@@ -410,6 +421,7 @@ for (const [id, key, dflt] of [
   ["orModel", "nlaAgent.model", "anthropic/claude-sonnet-5"],
   ["orProvider", "nlaAgent.provider", ""],
   ["reasonSel", "nlaAgent.reasoning", "off"],
+  ["truncN", "nlaAgent.truncN", ""],
 ]) {
   const inp = document.getElementById(id);
   inp.value = localStorage.getItem(key) || dflt;
@@ -521,15 +533,25 @@ function formatToolResult(pos, parsed) {
   const piece = JSON.stringify(toks.pieces[pos]);
   let out = `Explanation of the layer-42 activation at token ${pos} (${piece}):\n`;
   const showFve = fveOn();
-  parsed.rows.forEach((r, i) => {
+  const rows = parsed.rows.slice(0, truncLimit());
+  rows.forEach((r, i) => {
     out += `${String(i + 1).padStart(2)}. ${r.text}`;
     if (showFve && r.dfve != null)
       out += `   [ΔFVE ${r.dfve >= 0 ? "+" : ""}${r.dfve.toFixed(3)}, cumulative FVE ${r.cum.toFixed(3)}]`;
     out += "\n";
   });
-  const fve = parsed.chips.find((c) => /FVE/i.test(c.l || ""));
-  const cos = parsed.chips.find((c) => /cosine/i.test(c.l || ""));
-  if (showFve && fve) out += `Full-explanation FVE ${fve.v}${cos ? `, cosine ${cos.v}` : ""}.\n`;
+  if (showFve) {
+    if (rows.length < parsed.rows.length) {
+      // truncated: the full-list score would leak lines the agent never saw
+      const last = rows[rows.length - 1];
+      if (last?.cum != null)
+        out += `Cumulative FVE of ${rows.length === 1 ? "this line" : `these ${rows.length} lines`}: ${last.cum.toFixed(3)}${last.cos != null ? `, cosine ${last.cos.toFixed(3)}` : ""}.\n`;
+    } else {
+      const fve = parsed.chips.find((c) => /FVE/i.test(c.l || ""));
+      const cos = parsed.chips.find((c) => /cosine/i.test(c.l || ""));
+      if (fve) out += `Full-explanation FVE ${fve.v}${cos ? `, cosine ${cos.v}` : ""}.\n`;
+    }
+  }
   const notes = parsed.notes.filter((n) => n && !/reconstruction scores arrive/.test(n));
   if (notes.length) out += "Note: " + notes.join(" ") + "\n";
   return out.trim();
@@ -764,7 +786,9 @@ function excerptCheck(a) {
   if (!res) return null;
   const ex = a.excerpt.trim().toLowerCase();
   if (!ex) return false;
-  return res.lines.some((l) => l.toLowerCase().includes(ex) || ex.includes(l.trim().toLowerCase()));
+  // only the lines the agent actually received count as quotable
+  return res.lines.slice(0, truncLimit())
+    .some((l) => l.toLowerCase().includes(ex) || ex.includes(l.trim().toLowerCase()));
 }
 function renderAnnotationWidget(title, anns) {
   const w = el("div", "annwidget");
@@ -868,7 +892,9 @@ async function execTool(tc, card, signal) {
   if (hit) {
     wire(`cache hit — example=${toks.example} pos=${pos} mode=${mode} (no HF call)`);
     const text = formatToolResult(pos, parsedFromCache(pos, hit));
-    card.done(`${hit.lines.length} lines · FVE ${hit.fve[hit.fve.length - 1].toFixed(3)} · precached, no Hugging Face call`);
+    const sent = Math.min(truncLimit(), hit.lines.length);
+    card.done(`${sent < hit.lines.length ? `${sent} of ${hit.lines.length} lines sent` : `${hit.lines.length} lines`}` +
+              ` · FVE ${hit.fve[hit.fve.length - 1].toFixed(3)} · precached, no Hugging Face call`);
     card.result(text);
     return text;
   }
@@ -891,8 +917,10 @@ async function execTool(tc, card, signal) {
   const parsed = parseVizHtml(viz);
   const text = formatToolResult(pos, parsed);
   const fveChip = parsed.chips?.find((c) => /FVE/i.test(c.l || ""));
+  const nSent = parsed.rows ? Math.min(truncLimit(), parsed.rows.length) : 0;
   card.done(parsed.rows
-    ? `${parsed.rows.length} lines${fveChip ? ` · FVE ${fveChip.v}` : ""}` : "");
+    ? `${nSent < parsed.rows.length ? `${nSent} of ${parsed.rows.length} lines sent` : `${parsed.rows.length} lines`}` +
+      `${fveChip ? ` · FVE ${fveChip.v}` : ""}` : "");
   card.result(text);
   return text;
 }
@@ -1145,6 +1173,10 @@ $("#fveChk").addEventListener("change", () => {
   localStorage.setItem("nlaAgent.fve", $("#fveChk").checked ? "on" : "off");
   if (busy) aborter?.abort();
   resetChat();   // prompts and tool results change shape — start clean
+});
+$("#truncN").addEventListener("change", () => {
+  if (busy) aborter?.abort();
+  resetChat();   // same: the system prompt and result shape change
 });
 $("#exSel").addEventListener("change", () => {
   const v = +$("#exSel").value;
