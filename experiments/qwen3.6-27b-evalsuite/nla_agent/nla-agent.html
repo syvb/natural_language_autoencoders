@@ -161,12 +161,20 @@ footer{padding:10px 20px 26px; font-size:11px; color:var(--muted); border-top:1p
     <label for="orModel">Agent model (any OpenRouter id with tool use)</label>
     <input type="text" id="orModel" list="modelList" autocomplete="off">
     <datalist id="modelList">
+      <option value="anthropic/claude-sonnet-5"></option>
       <option value="anthropic/claude-sonnet-4.5"></option>
       <option value="anthropic/claude-haiku-4.5"></option>
       <option value="nex-agi/nex-n2-mini"></option>
       <option value="google/gemini-2.5-flash"></option>
       <option value="openai/gpt-5-mini"></option>
     </datalist>
+    <label for="reasonSel">Thinking effort <span style="text-transform:none">(reasoning models only; adds thinking tokens)</span></label>
+    <select id="reasonSel">
+      <option value="off">off</option>
+      <option value="low">low</option>
+      <option value="medium">medium</option>
+      <option value="high">high</option>
+    </select>
     <label for="orProvider">Force OpenRouter provider <span style="text-transform:none">(optional — e.g. <code>DeepInfra</code>; comma-separate for a preference order; fallbacks are disabled when set)</span></label>
     <input type="text" id="orProvider" placeholder="(any provider)" autocomplete="off">
     <label for="hfToken">Hugging Face token <span style="text-transform:none">(optional — raises your ZeroGPU quota for live positions)</span></label>
@@ -317,12 +325,15 @@ function scrollMsgs() {
 }
 
 /* ── settings persistence (browser-local only) ─────────────────────────── */
-const LS = { orKey: "nlaAgent.orKey", hfToken: "nlaAgent.hfToken", model: "nlaAgent.model",
-             provider: "nlaAgent.provider" };
-for (const [id, key] of [["orKey", LS.orKey], ["hfToken", LS.hfToken], ["orModel", LS.model],
-                         ["orProvider", LS.provider]]) {
+for (const [id, key, dflt] of [
+  ["orKey", "nlaAgent.orKey", ""],
+  ["hfToken", "nlaAgent.hfToken", ""],
+  ["orModel", "nlaAgent.model", "anthropic/claude-sonnet-5"],
+  ["orProvider", "nlaAgent.provider", ""],
+  ["reasonSel", "nlaAgent.reasoning", "off"],
+]) {
   const inp = document.getElementById(id);
-  inp.value = localStorage.getItem(key) || (id === "orModel" ? "anthropic/claude-sonnet-4.5" : "");
+  inp.value = localStorage.getItem(key) || dflt;
   inp.addEventListener("input", () => localStorage.setItem(key, inp.value.trim()));
 }
 
@@ -575,7 +586,10 @@ async function chatRequest(onDelta, signal) {
   };
   const providers = $("#orProvider").value.split(",").map((s) => s.trim()).filter(Boolean);
   if (providers.length) body.provider = { order: providers, allow_fallbacks: false };
+  const effort = $("#reasonSel").value;
+  if (effort && effort !== "off") body.reasoning = { effort };
   wire(`POST openrouter chat/completions model=${model} messages=${chat.length}` +
+       (effort !== "off" ? ` reasoning=${effort}` : "") +
        (providers.length ? ` provider=${providers.join(">")} (no fallbacks)` : ""));
   const r = await fetch(OR_URL, {
     method: "POST",
@@ -592,7 +606,11 @@ async function chatRequest(onDelta, signal) {
   const dec = new TextDecoder();
   let buf = "", content = "", reasoning = "", finish = null, usage = null, servedBy = null;
   const tcs = [];            // accumulated tool calls by index
-  let reasoningDetails = [];
+  // reasoning_details stream as many partial fragments; passing those back raw
+  // makes Anthropic reject the thinking block ("Invalid `signature`"). Merge
+  // them by index into whole blocks: concatenate text/data, keep the final
+  // signature, preserve type/format/id.
+  const rdByIndex = new Map();
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
@@ -613,7 +631,19 @@ async function chatRequest(onDelta, signal) {
       const d = ch.delta || {};
       if (d.content) { content += d.content; onDelta(content, reasoning); }
       if (d.reasoning) { reasoning += d.reasoning; onDelta(content, reasoning); }
-      if (Array.isArray(d.reasoning_details)) reasoningDetails.push(...d.reasoning_details);
+      if (Array.isArray(d.reasoning_details))
+        for (const rd of d.reasoning_details) {
+          const i = rd.index ?? 0;
+          const cur = rdByIndex.get(i);
+          if (!cur) { rdByIndex.set(i, { ...rd }); continue; }
+          if (rd.text) cur.text = (cur.text || "") + rd.text;
+          if (rd.data) cur.data = (cur.data || "") + rd.data;
+          if (rd.summary) cur.summary = (cur.summary || "") + rd.summary;
+          if (rd.signature) cur.signature = rd.signature;
+          if (rd.type) cur.type = rd.type;
+          if (rd.format) cur.format = rd.format;
+          if (rd.id != null) cur.id = rd.id;
+        }
       for (const t of d.tool_calls || []) {
         const i = t.index ?? 0;
         tcs[i] = tcs[i] || { id: "", type: "function", function: { name: "", arguments: "" } };
@@ -628,6 +658,7 @@ async function chatRequest(onDelta, signal) {
        (usage ? ` in=${usage.prompt_tokens} out=${usage.completion_tokens}` +
                 (usage.prompt_tokens_details?.cached_tokens
                   ? ` cached=${usage.prompt_tokens_details.cached_tokens}` : "") : ""));
+  const reasoningDetails = [...rdByIndex.keys()].sort((a, b) => a - b).map((k) => rdByIndex.get(k));
   return { content, reasoning, reasoningDetails, toolCalls: tcs.filter(Boolean), finish, usage, servedBy };
 }
 
@@ -709,11 +740,23 @@ async function runTurn() {
     setStatus(`<span class="busy">● agent thinking…</span>`);
     const ui = addAssistantCard();
     let res;
-    try {
-      res = await chatRequest((c, rr) => { ui.setText(c); if (rr) ui.setReasoning(rr); }, signal);
-    } catch (e) {
-      ui.remove();
-      throw e;
+    for (let attempt = 0; ; attempt++) {
+      try {
+        res = await chatRequest((c, rr) => { ui.setText(c); if (rr) ui.setReasoning(rr); }, signal);
+        break;
+      } catch (e) {
+        // thinking blocks persist across turns; this strip is a LAST RESORT,
+        // only after a provider has already 400-rejected a signature (e.g.
+        // rerouting to a provider that can't verify another's signature)
+        if (attempt === 0 && e.name !== "AbortError" &&
+            /signature/i.test(e.message) && /thinking/i.test(e.message)) {
+          wire("thinking-signature rejected — stripping reasoning_details and retrying once");
+          chat.forEach((m) => { if (m.reasoning_details) delete m.reasoning_details; });
+          continue;
+        }
+        ui.remove();
+        throw e;
+      }
     }
     ui.setText(res.content || "", true);
     if (res.reasoning) ui.setReasoning(res.reasoning);
