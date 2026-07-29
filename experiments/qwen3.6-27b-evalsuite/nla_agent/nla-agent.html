@@ -94,6 +94,12 @@ details>pre{margin:0; padding:9px 11px; font-size:11px; line-height:1.5; max-hei
 .tool .st{font-size:11.5px; color:var(--ink2); margin-top:4px;}
 .tool .st.err{color:var(--neg);}
 .tool details{margin-top:8px; background:var(--panel);}
+.toolgroup{margin:0; border:1px solid var(--grid); border-left:3px solid var(--warn);
+  border-radius:10px; background:var(--tool-bg); align-self:stretch; max-width:56em;}
+.toolgroup>summary{padding:9px 13px; font-size:12px; color:var(--ink);
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+.toolgroup .tool{border:0; border-top:1px solid var(--grid); border-left:0;
+  border-radius:0; background:transparent;}
 .tool pre.res{margin:0; padding:9px 11px; border:0; font-size:12px; line-height:1.55;
   white-space:pre-wrap; overflow-wrap:anywhere; max-height:340px; overflow-y:auto;
   scrollbar-width:thin; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
@@ -543,7 +549,7 @@ function addAssistantCard() {
     hasContent: () => body.textContent.trim().length > 0,
   };
 }
-function addToolCard(name, argsStr) {
+function addToolCard(name, argsStr, parent) {
   const w = el("div", "tool");
   w.appendChild(el("div", "hd", `🔧 ${esc(name)}(${esc(argsStr)})`));
   const st = el("div", "st", '<span class="spin">●</span> starting…');
@@ -555,7 +561,8 @@ function addToolCard(name, argsStr) {
   const pre = el("pre", "res");
   det.appendChild(pre);
   w.appendChild(det);
-  addCard(w);
+  if (parent) parent.appendChild(w);  // grouped under a collapsed multi-call element
+  else addCard(w);
   const t0 = Date.now();
   return {
     status(s) { st.innerHTML = `<span class="spin">●</span> ${esc(s)}`; scrollMsgs(); },
@@ -785,9 +792,23 @@ async function runTurn() {
     if (res.reasoningDetails.length) amsg.reasoning_details = res.reasoningDetails;
     chat.push(amsg);
     if (!res.toolCalls.length) return;    // agent is done with this turn
+    // several calls in one round → one collapsed line, expandable to the cards
+    let group = null, groupSum = null, groupBase = "";
+    if (res.toolCalls.length > 1) {
+      const posOf = (tc) => {
+        try { return JSON.parse(tc.function.arguments || "{}").position ?? "?"; }
+        catch (e) { return "?"; }
+      };
+      groupBase = `🔧 ${res.toolCalls.length} tool calls — positions ${res.toolCalls.map(posOf).join(", ")}`;
+      group = el("details", "toolgroup");
+      groupSum = el("summary", null, esc(groupBase));
+      group.appendChild(groupSum);
+      addCard(group);
+    }
+    let nDone = 0;
     for (const tc of res.toolCalls) {
       setStatus(`<span class="busy">● running ${esc(tc.function.name)}…</span>`);
-      const card = addToolCard(tc.function.name, tc.function.arguments || "{}");
+      const card = addToolCard(tc.function.name, tc.function.arguments || "{}", group);
       let out;
       try {
         out = await execTool(tc, card, signal);
@@ -799,6 +820,9 @@ async function runTurn() {
         card.result(out);
       }
       chat.push({ role: "tool", tool_call_id: tc.id, content: out });
+      nDone++;
+      if (groupSum) groupSum.textContent =
+        `${nDone === res.toolCalls.length ? "✓ " : ""}${groupBase} · ${nDone}/${res.toolCalls.length} done`;
     }
   }
   addError(`Stopped after ${MAX_ROUNDS} agent rounds — send another message to continue.`);
