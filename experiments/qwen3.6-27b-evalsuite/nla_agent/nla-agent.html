@@ -551,10 +551,26 @@ function addToolCard(name, argsStr) {
 }
 
 /* ── OpenRouter streaming chat call ────────────────────────────────────── */
+function withCaching(msgs) {
+  // Anthropic/Gemini need explicit cache_control breakpoints (other providers
+  // cache implicitly; OpenRouter strips the field where unsupported). Three
+  // breakpoints (Anthropic max 4): the system prompt, the first user message
+  // (the big context block — the dominant repeated cost in the tool loop),
+  // and a moving one on the latest user message so the whole prior
+  // conversation prefix stays cached across turns.
+  const wrap = (m) => ({ ...m, content: [{ type: "text", text: m.content, cache_control: { type: "ephemeral" } }] });
+  const out = msgs.map((m) => m);
+  const first = out.findIndex((m) => m.role === "user");
+  const last = out.map((m) => m.role).lastIndexOf("user");
+  if (out[0]?.role === "system" && typeof out[0].content === "string") out[0] = wrap(out[0]);
+  for (const i of new Set([first, last]))
+    if (i >= 0 && typeof out[i].content === "string") out[i] = wrap(out[i]);
+  return out;
+}
 async function chatRequest(onDelta, signal) {
   const model = $("#orModel").value.trim();
   const body = {
-    model, messages: chat, tools: [TOOL_SCHEMA],
+    model, messages: withCaching(chat), tools: [TOOL_SCHEMA],
     stream: true, usage: { include: true },
   };
   const providers = $("#orProvider").value.split(",").map((s) => s.trim()).filter(Boolean);
@@ -609,7 +625,9 @@ async function chatRequest(onDelta, signal) {
   }
   wire(`  openrouter done finish=${finish} tools=${tcs.filter(Boolean).length}` +
        (servedBy ? ` via=${servedBy}` : "") +
-       (usage ? ` in=${usage.prompt_tokens} out=${usage.completion_tokens}` : ""));
+       (usage ? ` in=${usage.prompt_tokens} out=${usage.completion_tokens}` +
+                (usage.prompt_tokens_details?.cached_tokens
+                  ? ` cached=${usage.prompt_tokens_details.cached_tokens}` : "") : ""));
   return { content, reasoning, reasoningDetails, toolCalls: tcs.filter(Boolean), finish, usage, servedBy };
 }
 
@@ -700,8 +718,11 @@ async function runTurn() {
     ui.setText(res.content || "", true);
     if (res.reasoning) ui.setReasoning(res.reasoning);
     if (!res.content && !res.reasoning && !res.toolCalls.length) ui.remove();
+    const cached = res.usage?.prompt_tokens_details?.cached_tokens;
     if (res.usage || res.servedBy) ui.setMeta(
-      (res.usage ? `tokens: ${res.usage.prompt_tokens} in · ${res.usage.completion_tokens} out` : "") +
+      (res.usage ? `tokens: ${res.usage.prompt_tokens} in` +
+        (cached ? ` (${cached} cached)` : "") +
+        ` · ${res.usage.completion_tokens} out` : "") +
       costLine(res.usage) +
       (res.servedBy ? ` · via ${res.servedBy}` : ""));
     const amsg = { role: "assistant", content: res.content || "" };
