@@ -59,9 +59,9 @@ for arm, title in [("mat", "matryoshka (lines)"), ("std", "standard (sentences)"
     x = np.arange(1, NCHUNK + 1)
 
     fig, ax = plt.subplots(figsize=(8.4, 5.2))
-    ax.errorbar(x - 0.06, pn, yerr=[pn - nlo, nhi - pn], fmt="o-", color=GREEN, ms=6, lw=2, capsize=3,
+    ax.errorbar(x, pn, yerr=[pn - nlo, nhi - pn], fmt="o-", color=GREEN, ms=6, lw=2, capsize=3,
                 label="chunk NOT hallucinated")
-    ax.errorbar(x + 0.06, ph, yerr=[ph - hlo, hhi - ph], fmt="o-", color=RED, ms=6, lw=2, capsize=3,
+    ax.errorbar(x, ph, yerr=[ph - hlo, hhi - ph], fmt="o-", color=RED, ms=6, lw=2, capsize=3,
                 label="chunk hallucinated (CON/FAB)")
     ax.axhline(0, color="#444", lw=0.8)
     ax.set_xticks(x)
