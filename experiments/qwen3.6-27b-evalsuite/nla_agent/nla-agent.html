@@ -163,6 +163,11 @@ footer{padding:10px 20px 26px; font-size:11px; color:var(--muted); border-top:1p
       <button data-m="s">Standard</button>
     </div>
     <div class="hint" id="modeHint"></div>
+    <label style="display:flex; gap:7px; align-items:center; margin-top:10px; font-size:12px; color:var(--ink); text-transform:none; letter-spacing:0;">
+      <input type="checkbox" id="fveChk" checked style="width:auto;"> Show FVE scores to the agent
+    </label>
+    <div class="hint">Off: the agent gets only the explanation text — no faithfulness scores and
+    no mention of FVE anywhere in its prompts. Toggling clears the chat.</div>
   </fieldset>
 
   <fieldset>
@@ -259,30 +264,36 @@ const SPACES = {
 const MAX_ROUNDS = 24;
 const OR_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-const TOOL_SCHEMA = {
-  type: "function",
-  function: {
-    name: "get_nla_explanation",
-    description:
-      "Verbalize Qwen3.6-27B's layer-42 residual-stream activation at one token position of the " +
-      "provided text, via the natural-language autoencoder. The activation is causal: it summarizes " +
-      "only tokens 0..position (left context). Returns the explanation lines plus reconstruction " +
-      "scores (per-line ΔFVE and cumulative FVE — fraction of the activation's variance the critic " +
-      "recovers from the words). Uncached positions take ~30–120 s on a shared GPU, so probe " +
-      "selectively. Repeat calls to the same position return the identical cached explanation.",
-    parameters: {
-      type: "object",
-      properties: {
-        position: {
-          type: "integer",
-          description: "0-based token index into <message_tokenized>. Must be less than the token " +
-                       "count; positions below ~10 have too little left context to be meaningful.",
+const fveOn = () => $("#fveChk").checked;
+function toolSchema() {
+  return {
+    type: "function",
+    function: {
+      name: "get_nla_explanation",
+      description:
+        "Verbalize Qwen3.6-27B's layer-42 residual-stream activation at one token position of the " +
+        "provided text, via the natural-language autoencoder. The activation is causal: it summarizes " +
+        "only tokens 0..position (left context). Returns the explanation " +
+        (fveOn()
+          ? "lines plus reconstruction scores (per-line ΔFVE and cumulative FVE — fraction of the " +
+            "activation's variance the critic recovers from the words). "
+          : "text. ") +
+        "Uncached positions take ~30–120 s on a shared GPU, so probe " +
+        "selectively. Repeat calls to the same position return the identical cached explanation.",
+      parameters: {
+        type: "object",
+        properties: {
+          position: {
+            type: "integer",
+            description: "0-based token index into <message_tokenized>. Must be less than the token " +
+                         "count; positions below ~10 have too little left context to be meaningful.",
+          },
         },
+        required: ["position"],
       },
-      required: ["position"],
     },
-  },
-};
+  };
+}
 
 const ANNOTATE_SCHEMA = {
   type: "function",
@@ -318,19 +329,22 @@ const ANNOTATE_SCHEMA = {
 };
 
 function systemPrompt(mode, nTokens, precached) {
+  const fve = fveOn();
   const common =
 `You are an interpretability agent investigating what Qwen3.6-27B internally represents while reading a piece of text.
 
 The first user message contains a <context> block: the text in <message>, and its exact tokenization in <message_tokenized> (each token written as [index:token piece]; the text has ${nTokens} tokens, positions 0..${nTokens - 1}).
 
-You have a tool, get_nla_explanation(position). It reads the model's layer-42 residual activation at that token — a vector summarizing the left context up to and including that token — and verbalizes it in natural language. A co-trained critic then reconstructs the vector from the words; FVE (fraction of variance explained) measures how faithful the verbalization is. Full-explanation FVE around 0.5–0.7 is typical; low FVE means the words missed much of what the activation encodes.
+You have a tool, get_nla_explanation(position). It reads the model's layer-42 residual activation at that token — a vector summarizing the left context up to and including that token — and verbalizes it in natural language.${fve ? " A co-trained critic then reconstructs the vector from the words; FVE (fraction of variance explained) measures how faithful the verbalization is. Full-explanation FVE around 0.5–0.7 is typical; low FVE means the words missed much of what the activation encodes." : ""}
 
 You also have show_annotations({title, annotations: [{position, excerpt, note?}]}). It renders a widget to the user: the text with those token positions highlighted, each tagged with an excerpt from that position's NLA explanation and an optional note. Quote excerpts VERBATIM from explanations you actually received. Use it to summarize findings visually once you've probed enough positions — it's the best way to end an investigation.
 `;
-  const mat =
-`This deployment uses the MATRYOSHKA verbalizer: up to 10 short, independent lines ordered by salience — it was trained so the FIRST lines carry the most reconstruction-relevant information. Each line comes with ΔFVE (how much reconstruction that single line adds) and cumulative FVE. Trust high-ΔFVE lines most; lines with ΔFVE near 0 add little signal.`;
-  const std =
-`This deployment uses the STANDARD (non-matryoshka) verbalizer: a short free-form explanation, typically 1–3 longer lines. Lines are NOT salience-ordered — information often arrives late in the explanation — and they are not independently meaningful, so judge faithfulness by the cumulative FVE of the whole explanation rather than by any single line.`;
+  const mat = fve
+    ? `This deployment uses the MATRYOSHKA verbalizer: up to 10 short, independent lines ordered by salience — it was trained so the FIRST lines carry the most reconstruction-relevant information. Each line comes with ΔFVE (how much reconstruction that single line adds) and cumulative FVE. Trust high-ΔFVE lines most; lines with ΔFVE near 0 add little signal.`
+    : `This deployment uses the MATRYOSHKA verbalizer: up to 10 short, independent lines ordered by salience — it was trained so the FIRST lines carry the most important information about the activation.`;
+  const std = fve
+    ? `This deployment uses the STANDARD (non-matryoshka) verbalizer: a short free-form explanation, typically 1–3 longer lines. Lines are NOT salience-ordered — information often arrives late in the explanation — and they are not independently meaningful, so judge faithfulness by the cumulative FVE of the whole explanation rather than by any single line.`
+    : `This deployment uses the STANDARD (non-matryoshka) verbalizer: a short free-form explanation, typically 1–3 longer lines. Lines are NOT salience-ordered — information often arrives late in the explanation — and they are not independently meaningful; read the explanation as a whole.`;
   const latency = precached
     ? "- Every position of THIS text is precached — tool calls return instantly and cost no GPU time, so probe as many positions as the question warrants."
     : "- Each uncached probe takes ~30–120 s on a shared GPU (much longer if the Space is cold). Probe a handful of informative positions rather than scanning densely; you may request several positions in parallel tool calls.";
@@ -341,9 +355,10 @@ Practical notes:
 - Explanations are sampled at temperature 1, but each position is cached after the first call — re-probing the same position returns the identical result, so don't repeat calls.
 ${latency}
 - An occasional stray CJK character inside a line is a known sampling artifact — ignore it.
+- If the provided text contains an empty <think></think> block (or similar), it just means reasoning was disabled in that transcript's system prompt — nothing was elided or hidden there.
 - The activation is about what the MODEL represents at that point in its reading, not about the ground truth of the text.
 
-Answer the user's questions by probing well-chosen positions. Always say which positions you probed, quote the relevant explanation lines, and cite FVE when it bears on how much to trust a line.`;
+Answer the user's questions by probing well-chosen positions. Always say which positions you probed${fve ? ", quote the relevant explanation lines, and cite FVE when it bears on how much to trust a line." : " and quote the relevant explanation lines."}`;
   return common + "\n" + (mode === "m" ? mat : std) + tail;
 }
 
@@ -505,15 +520,16 @@ function formatToolResult(pos, parsed) {
   if (parsed.message) return "Tool error: " + parsed.message;
   const piece = JSON.stringify(toks.pieces[pos]);
   let out = `NLA explanation of the layer-42 activation at token ${pos} (${piece}) — ${SPACES[mode].label} verbalizer:\n`;
+  const showFve = fveOn();
   parsed.rows.forEach((r, i) => {
     out += `${String(i + 1).padStart(2)}. ${r.text}`;
-    if (r.dfve != null)
+    if (showFve && r.dfve != null)
       out += `   [ΔFVE ${r.dfve >= 0 ? "+" : ""}${r.dfve.toFixed(3)}, cumulative FVE ${r.cum.toFixed(3)}]`;
     out += "\n";
   });
   const fve = parsed.chips.find((c) => /FVE/i.test(c.l || ""));
   const cos = parsed.chips.find((c) => /cosine/i.test(c.l || ""));
-  if (fve) out += `Full-explanation FVE ${fve.v}${cos ? `, cosine ${cos.v}` : ""}.\n`;
+  if (showFve && fve) out += `Full-explanation FVE ${fve.v}${cos ? `, cosine ${cos.v}` : ""}.\n`;
   const notes = parsed.notes.filter((n) => n && !/reconstruction scores arrive/.test(n));
   if (notes.length) out += "Note: " + notes.join(" ") + "\n";
   return out.trim();
@@ -657,7 +673,7 @@ function withCaching(msgs) {
 async function chatRequest(onDelta, signal) {
   const model = $("#orModel").value.trim();
   const body = {
-    model, messages: withCaching(chat), tools: [TOOL_SCHEMA, ANNOTATE_SCHEMA],
+    model, messages: withCaching(chat), tools: [toolSchema(), ANNOTATE_SCHEMA],
     stream: true, usage: { include: true },
   };
   const providers = $("#orProvider").value.split(",").map((s) => s.trim()).filter(Boolean);
@@ -1123,6 +1139,12 @@ function setMode(m) {
 $("#modeSeg").addEventListener("click", (e) => {
   const b = e.target.closest("button");
   if (b) setMode(b.dataset.m);
+});
+$("#fveChk").checked = localStorage.getItem("nlaAgent.fve") !== "off";
+$("#fveChk").addEventListener("change", () => {
+  localStorage.setItem("nlaAgent.fve", $("#fveChk").checked ? "on" : "off");
+  if (busy) aborter?.abort();
+  resetChat();   // prompts and tool results change shape — start clean
 });
 $("#exSel").addEventListener("change", () => {
   const v = +$("#exSel").value;
