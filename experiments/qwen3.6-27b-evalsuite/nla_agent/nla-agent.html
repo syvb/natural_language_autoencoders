@@ -168,6 +168,11 @@ footer{padding:10px 20px 26px; font-size:11px; color:var(--muted); border-top:1p
     </label>
     <div class="hint">Off: the agent gets only the explanation text — no faithfulness scores and
     no mention of FVE anywhere in its prompts. Toggling clears the chat.</div>
+    <label style="display:flex; gap:7px; align-items:center; margin-top:10px; font-size:12px; color:var(--ink); text-transform:none; letter-spacing:0;">
+      <input type="checkbox" id="widgetChk" checked style="width:auto;"> Let the agent make annotation widgets
+    </label>
+    <div class="hint">Off: the show_annotations tool isn't offered or mentioned to the agent.
+    Toggling clears the chat.</div>
     <label for="truncN">Truncate explanations to the first N lines</label>
     <input type="number" id="truncN" min="1" step="1" placeholder="(all lines)">
     <div class="hint">Applies to what the agent sees (you still get everything in the tool cards).
@@ -269,6 +274,7 @@ const MAX_ROUNDS = 24;
 const OR_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 const fveOn = () => $("#fveChk").checked;
+const widgetOn = () => $("#widgetChk").checked;
 const truncLimit = () => {
   const v = parseInt($("#truncN").value, 10);
   return Number.isInteger(v) && v >= 1 ? v : Infinity;
@@ -344,9 +350,9 @@ function systemPrompt(mode, nTokens, precached) {
 The first user message contains a <context> block: the text in <message>, and its exact tokenization in <message_tokenized> (each token written as [index:token piece]; the text has ${nTokens} tokens, positions 0..${nTokens - 1}).
 
 You have a tool, get_nla_explanation(position). It reads the model's layer-42 residual activation at that token — a vector summarizing the left context up to and including that token — and verbalizes it in natural language.${fve ? " A co-trained critic then reconstructs the vector from the words; FVE (fraction of variance explained) measures how faithful the verbalization is. Full-explanation FVE around 0.5–0.7 is typical; low FVE means the words missed much of what the activation encodes." : ""}
-
+${widgetOn() ? `
 You also have show_annotations({title, annotations: [{position, excerpt, note?}]}). It renders a widget to the user: the text with those token positions highlighted, each tagged with an excerpt from that position's explanation and an optional note. Quote excerpts VERBATIM from explanations you actually received. Use it to summarize findings visually once you've probed enough positions — it's the best way to end an investigation.
-`;
+` : ""}`;
   const mat = fve
     ? `Explanations arrive as up to 10 short, independent lines ordered by salience — the FIRST lines carry the most reconstruction-relevant information. Each line comes with ΔFVE (how much reconstruction that single line adds) and cumulative FVE. Trust high-ΔFVE lines most; lines with ΔFVE near 0 add little signal.`
     : `Explanations arrive as up to 10 short, independent lines ordered by salience — the FIRST lines carry the most important information about the activation.`;
@@ -696,7 +702,8 @@ function withCaching(msgs) {
 async function chatRequest(onDelta, signal) {
   const model = $("#orModel").value.trim();
   const body = {
-    model, messages: withCaching(chat), tools: [toolSchema(), ANNOTATE_SCHEMA],
+    model, messages: withCaching(chat),
+    tools: widgetOn() ? [toolSchema(), ANNOTATE_SCHEMA] : [toolSchema()],
     stream: true, usage: { include: true },
   };
   const providers = $("#orProvider").value.split(",").map((s) => s.trim()).filter(Boolean);
@@ -1178,6 +1185,12 @@ $("#fveChk").addEventListener("change", () => {
 $("#truncN").addEventListener("change", () => {
   if (busy) aborter?.abort();
   resetChat();   // same: the system prompt and result shape change
+});
+$("#widgetChk").checked = localStorage.getItem("nlaAgent.widget") !== "off";
+$("#widgetChk").addEventListener("change", () => {
+  localStorage.setItem("nlaAgent.widget", $("#widgetChk").checked ? "on" : "off");
+  if (busy) aborter?.abort();
+  resetChat();   // tool list and system prompt change
 });
 $("#exSel").addEventListener("change", () => {
   const v = +$("#exSel").value;
