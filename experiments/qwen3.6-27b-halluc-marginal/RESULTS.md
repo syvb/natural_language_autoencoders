@@ -437,6 +437,15 @@ faithful content and the standard model front-loads its confident wrong claims.
 (Caveat: token chunks can start/end mid-sentence, adding fragment-judging noise;
 the monotone trends are well clear of it.) Script: `chunk_judge.py`.
 
+Splitting each decile's marginal FVE by whether the chunk was hallucinated
+(`fig_decile_marg_{mat,std}.png`, real line marginals token-weighted onto the
+deciles) shows the two curves tracking closely at every decile — matryoshka
+essentially overlapping, standard with a small gap (hallucinated slightly lower)
+only at its high-marginal peak (deciles 4–5). Same conclusion as §3f–§3h: FVE
+tracks reconstructability and position, with at most a weak faithfulness gap in
+the high-marginal region. (Approximate; the exact version re-scores the critic on
+token-decile prefixes on a GPU. Script: `plot_decile_marg.py`.)
+
 ## Case studies
 
 `results/cases.md` — the 20 strongest negative-marginal matryoshka items (CJK-
