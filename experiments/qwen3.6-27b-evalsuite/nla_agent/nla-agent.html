@@ -272,7 +272,7 @@ function toolSchema() {
       name: "get_nla_explanation",
       description:
         "Verbalize Qwen3.6-27B's layer-42 residual-stream activation at one token position of the " +
-        "provided text, via the natural-language autoencoder. The activation is causal: it summarizes " +
+        "provided text. The activation is causal: it summarizes " +
         "only tokens 0..position (left context). Returns the explanation " +
         (fveOn()
           ? "lines plus reconstruction scores (per-line ΔFVE and cumulative FVE — fraction of the " +
@@ -301,7 +301,7 @@ const ANNOTATE_SCHEMA = {
     name: "show_annotations",
     description:
       "Render a widget directly to the user: the full input text with chosen token positions " +
-      "highlighted, each tagged with a short excerpt quoted VERBATIM from that position's NLA " +
+      "highlighted, each tagged with a short excerpt quoted VERBATIM from that position's " +
       "explanation and an optional note of yours. Use it to present findings visually after " +
       "probing positions with get_nla_explanation. The widget is shown immediately; the tool " +
       "returns a confirmation plus validation warnings.",
@@ -316,7 +316,7 @@ const ANNOTATE_SCHEMA = {
             type: "object",
             properties: {
               position: { type: "integer", description: "Token index to highlight." },
-              excerpt: { type: "string", description: "Excerpt quoted verbatim from the NLA explanation you received for this position (a line or part of one)." },
+              excerpt: { type: "string", description: "Excerpt quoted verbatim from the explanation you received for this position (a line or part of one)." },
               note: { type: "string", description: "Optional brief comment on what this annotation shows." },
             },
             required: ["position", "excerpt"],
@@ -337,14 +337,14 @@ The first user message contains a <context> block: the text in <message>, and it
 
 You have a tool, get_nla_explanation(position). It reads the model's layer-42 residual activation at that token — a vector summarizing the left context up to and including that token — and verbalizes it in natural language.${fve ? " A co-trained critic then reconstructs the vector from the words; FVE (fraction of variance explained) measures how faithful the verbalization is. Full-explanation FVE around 0.5–0.7 is typical; low FVE means the words missed much of what the activation encodes." : ""}
 
-You also have show_annotations({title, annotations: [{position, excerpt, note?}]}). It renders a widget to the user: the text with those token positions highlighted, each tagged with an excerpt from that position's NLA explanation and an optional note. Quote excerpts VERBATIM from explanations you actually received. Use it to summarize findings visually once you've probed enough positions — it's the best way to end an investigation.
+You also have show_annotations({title, annotations: [{position, excerpt, note?}]}). It renders a widget to the user: the text with those token positions highlighted, each tagged with an excerpt from that position's explanation and an optional note. Quote excerpts VERBATIM from explanations you actually received. Use it to summarize findings visually once you've probed enough positions — it's the best way to end an investigation.
 `;
   const mat = fve
-    ? `This deployment uses the MATRYOSHKA verbalizer: up to 10 short, independent lines ordered by salience — it was trained so the FIRST lines carry the most reconstruction-relevant information. Each line comes with ΔFVE (how much reconstruction that single line adds) and cumulative FVE. Trust high-ΔFVE lines most; lines with ΔFVE near 0 add little signal.`
-    : `This deployment uses the MATRYOSHKA verbalizer: up to 10 short, independent lines ordered by salience — it was trained so the FIRST lines carry the most important information about the activation.`;
+    ? `Explanations arrive as up to 10 short, independent lines ordered by salience — the FIRST lines carry the most reconstruction-relevant information. Each line comes with ΔFVE (how much reconstruction that single line adds) and cumulative FVE. Trust high-ΔFVE lines most; lines with ΔFVE near 0 add little signal.`
+    : `Explanations arrive as up to 10 short, independent lines ordered by salience — the FIRST lines carry the most important information about the activation.`;
   const std = fve
-    ? `This deployment uses the STANDARD (non-matryoshka) verbalizer: a short free-form explanation, typically 1–3 longer lines. Lines are NOT salience-ordered — information often arrives late in the explanation — and they are not independently meaningful, so judge faithfulness by the cumulative FVE of the whole explanation rather than by any single line.`
-    : `This deployment uses the STANDARD (non-matryoshka) verbalizer: a short free-form explanation, typically 1–3 longer lines. Lines are NOT salience-ordered — information often arrives late in the explanation — and they are not independently meaningful; read the explanation as a whole.`;
+    ? `Explanations arrive as a short free-form text, typically 1–3 longer lines. Lines are NOT salience-ordered — information often arrives late in the explanation — and they are not independently meaningful, so judge faithfulness by the cumulative FVE of the whole explanation rather than by any single line.`
+    : `Explanations arrive as a short free-form text, typically 1–3 longer lines. Lines are NOT salience-ordered — information often arrives late in the explanation — and they are not independently meaningful; read the explanation as a whole.`;
   const latency = precached
     ? "- Every position of THIS text is precached — tool calls return instantly and cost no GPU time, so probe as many positions as the question warrants."
     : "- Each uncached probe takes ~30–120 s on a shared GPU (much longer if the Space is cold). Probe a handful of informative positions rather than scanning densely; you may request several positions in parallel tool calls.";
@@ -519,7 +519,7 @@ const pickHtml = (data, marker) =>
 function formatToolResult(pos, parsed) {
   if (parsed.message) return "Tool error: " + parsed.message;
   const piece = JSON.stringify(toks.pieces[pos]);
-  let out = `NLA explanation of the layer-42 activation at token ${pos} (${piece}) — ${SPACES[mode].label} verbalizer:\n`;
+  let out = `Explanation of the layer-42 activation at token ${pos} (${piece}):\n`;
   const showFve = fveOn();
   parsed.rows.forEach((r, i) => {
     out += `${String(i + 1).padStart(2)}. ${r.text}`;
