@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NLA agent — Qwen3.6-27B</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔬</text></svg>">
+<style>
+:root{
+  --surface:#fcfcfb; --panel:#ffffff; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --ring:rgba(11,11,11,.10); --wash:rgba(11,11,11,.045);
+  --pos:#2a78d6; --neg:#e34948; --warn:#c98500; --sel:#2a78d6;
+  --user-bg:#eaf2fc; --tool-bg:#faf8f2;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --surface:#161615; --panel:#1e1e1c; --ink:#f2f1ee; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --ring:rgba(255,255,255,.10); --wash:rgba(255,255,255,.055);
+    --pos:#3987e5; --neg:#e66767; --warn:#e0a63f; --sel:#3987e5;
+    --user-bg:#1d2a3c; --tool-bg:#242219;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--surface); color:var(--ink);
+  font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;}
+a{color:var(--pos)}
+header{padding:14px 20px 10px; border-bottom:1px solid var(--grid);}
+header h1{font-size:18px; margin:0;}
+header p{margin:4px 0 0; font-size:12.5px; color:var(--ink2); max-width:74em;}
+main{display:grid; grid-template-columns:390px minmax(0,1fr); gap:0; align-items:start;}
+@media (max-width:900px){ main{grid-template-columns:1fr;} #side{position:static; max-height:none;} }
+#side{position:sticky; top:0; max-height:100vh; overflow-y:auto; scrollbar-width:thin;
+  padding:14px 16px 40px; border-right:1px solid var(--grid);}
+#chatcol{display:flex; flex-direction:column; min-height:calc(100vh - 62px);}
+#msgs{flex:1; padding:16px 18px 8px; display:flex; flex-direction:column; gap:10px;
+  overflow-y:auto; scrollbar-width:thin;}
+
+fieldset{border:1px solid var(--grid); border-radius:10px; margin:0 0 12px; padding:10px 12px 12px;}
+legend{font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding:0 5px;}
+label{display:block; font-size:11px; color:var(--ink2); margin:8px 0 3px;}
+label:first-of-type{margin-top:0}
+input[type=text],input[type=password],textarea{
+  width:100%; background:var(--panel); color:var(--ink); border:1px solid var(--ring);
+  border-radius:7px; padding:7px 9px; font:inherit; font-size:13px;}
+textarea{resize:vertical; min-height:90px; scrollbar-width:thin;}
+input:focus,textarea:focus{outline:2px solid var(--sel); outline-offset:-1px;}
+.hint{font-size:11px; color:var(--muted); margin-top:4px;}
+.hint.warn{color:var(--warn);}
+button{font:inherit; font-size:13px; border:1px solid var(--ring); border-radius:7px;
+  background:var(--panel); color:var(--ink); padding:7px 13px; cursor:pointer;}
+button:hover{background:var(--wash);}
+button.primary{background:var(--sel); border-color:var(--sel); color:#fff;}
+button.primary:hover{filter:brightness(1.08);}
+button:disabled{opacity:.45; cursor:not-allowed;}
+.seg{display:flex; border:1px solid var(--ring); border-radius:8px; overflow:hidden; width:100%;}
+.seg button{flex:1; border:0; border-radius:0; padding:8px 0;}
+.seg button.on{background:var(--sel); color:#fff;}
+details{border:1px solid var(--grid); border-radius:8px; margin-top:10px; background:var(--panel);}
+details>summary{cursor:pointer; padding:7px 10px; font-size:11.5px; color:var(--ink2);
+  user-select:none; list-style-position:inside;}
+details[open]>summary{border-bottom:1px solid var(--grid);}
+details>pre{margin:0; padding:9px 11px; font-size:11px; line-height:1.5; max-height:300px;
+  overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; scrollbar-width:thin;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--ink);}
+
+.msg{border:1px solid var(--grid); border-radius:10px; padding:10px 13px; max-width:56em;}
+.msg .who{font-size:10px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin-bottom:4px;}
+.msg .body{white-space:pre-wrap; overflow-wrap:anywhere; font-size:13.5px;}
+.msg.user{background:var(--user-bg); align-self:flex-end;}
+.msg.assistant{background:var(--panel); align-self:flex-start;}
+.msg.system{background:var(--panel); align-self:stretch; max-width:none;}
+.msg.error{border-color:var(--neg); color:var(--neg); align-self:stretch; max-width:none;
+  background:var(--panel); font-size:13px; white-space:pre-wrap; overflow-wrap:anywhere;}
+.msg .body code,.msg .body pre.code{background:var(--wash); border-radius:4px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px;}
+.msg .body code{padding:1px 4px;}
+.msg .body pre.code{padding:8px 10px; overflow-x:auto; white-space:pre; margin:6px 0;}
+.msg .meta{font-size:10.5px; color:var(--muted); margin-top:6px;}
+.msg details{margin-top:8px;}
+.cursor{display:inline-block; width:.55em; height:1em; background:var(--sel);
+  vertical-align:-2px; animation:blink 1s steps(1) infinite;}
+@keyframes blink{50%{opacity:0}}
+
+.tool{border:1px solid var(--grid); border-left:3px solid var(--warn); border-radius:10px;
+  background:var(--tool-bg); padding:9px 13px; align-self:stretch; max-width:56em;}
+.tool .hd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px;}
+.tool .st{font-size:11.5px; color:var(--ink2); margin-top:4px;}
+.tool .st.err{color:var(--neg);}
+.tool pre.res{margin:8px 0 0; padding:9px 11px; background:var(--panel);
+  border:1px solid var(--grid); border-radius:7px; font-size:12px; line-height:1.55;
+  white-space:pre-wrap; overflow-wrap:anywhere; max-height:340px; overflow-y:auto;
+  scrollbar-width:thin; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+.spin{display:inline-block; animation:blink 1.2s ease-in-out infinite;}
+
+#composer{position:sticky; bottom:0; background:var(--surface);
+  border-top:1px solid var(--grid); padding:10px 18px 14px;}
+#composer .row{display:flex; gap:8px; align-items:flex-end;}
+#composer textarea{min-height:44px; max-height:180px;}
+#status{font-size:11.5px; color:var(--muted); margin-bottom:6px; min-height:1.2em;}
+#status .busy{color:var(--warn);}
+.pill{display:inline-block; font-size:10px; letter-spacing:.05em; text-transform:uppercase;
+  border:1px solid var(--ring); border-radius:99px; padding:1px 8px; color:var(--muted);}
+footer{padding:10px 20px 26px; font-size:11px; color:var(--muted); border-top:1px solid var(--grid);}
+</style>
+</head>
+<body>
+<header>
+  <h1>🔬 NLA agent</h1>
+  <p>Give an LLM agent a text and one tool: <code>get_nla_explanation(position)</code> — a
+  <a href="https://huggingface.co/ceselder/nla-qwen36-27b-matryoshka">natural-language autoencoder</a>
+  that verbalizes Qwen3.6-27B's layer-42 activation at any token of the text, scored by round-trip
+  reconstruction (FVE). The agent probes positions and reports what the model was representing.
+  Everything — system prompt, context block, tool calls, raw results — is shown below.
+  Your API keys stay in this browser; nothing is sent anywhere except OpenRouter and the two
+  Hugging Face Spaces (<a href="https://huggingface.co/spaces/syvb/nla-qwen36-27b-explorer">matryoshka</a>,
+  <a href="https://huggingface.co/spaces/syvb/nla-qwen36-27b-explorer-std">standard</a>).</p>
+</header>
+<main>
+<aside id="side">
+  <fieldset>
+    <legend>Verbalizer</legend>
+    <div class="seg" id="modeSeg">
+      <button data-m="m" class="on">Matryoshka</button>
+      <button data-m="s">Standard</button>
+    </div>
+    <div class="hint" id="modeHint"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Keys &amp; model</legend>
+    <label for="orKey">OpenRouter API key</label>
+    <input type="password" id="orKey" placeholder="sk-or-…" autocomplete="off">
+    <label for="orModel">Agent model (any OpenRouter id with tool use)</label>
+    <input type="text" id="orModel" list="modelList" autocomplete="off">
+    <datalist id="modelList">
+      <option value="anthropic/claude-sonnet-4.5"></option>
+      <option value="anthropic/claude-haiku-4.5"></option>
+      <option value="nex-agi/nex-n2-mini"></option>
+      <option value="google/gemini-2.5-flash"></option>
+      <option value="openai/gpt-5-mini"></option>
+    </datalist>
+    <label for="hfToken">Hugging Face token <span style="text-transform:none">(optional — raises your ZeroGPU quota for live positions)</span></label>
+    <input type="password" id="hfToken" placeholder="hf_…" autocomplete="off">
+    <div class="hint">Saved in this browser's localStorage only. Never sent anywhere except
+    openrouter.ai / hf.space respectively.</div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Input text</legend>
+    <textarea id="textIn" placeholder="Paste the text the model will 'read'. The agent gets it verbatim plus its exact tokenization."></textarea>
+    <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+      <button class="primary" id="loadBtn">Load &amp; tokenize</button>
+      <span class="hint" id="loadStatus"></span>
+    </div>
+    <div class="hint">Tokenized by the Space with the real Qwen3.6-27B tokenizer. Loading a new
+    text clears the chat (the context changes).</div>
+    <details id="ctxDetails" style="display:none">
+      <summary>context block sent as the first user message</summary>
+      <pre id="ctxPre"></pre>
+    </details>
+  </fieldset>
+
+  <details id="sysDetails">
+    <summary>system prompt (changes with the verbalizer toggle)</summary>
+    <pre id="sysPre"></pre>
+  </details>
+
+  <details>
+    <summary>wire log — every request this page makes</summary>
+    <pre id="wireLog"></pre>
+  </details>
+  <div style="margin-top:10px; display:flex; gap:8px;">
+    <button id="copyJson">Copy conversation JSON</button>
+    <button id="clearBtn">Clear chat</button>
+  </div>
+</aside>
+
+<section id="chatcol">
+  <div id="msgs"></div>
+  <div id="composer">
+    <div id="status"></div>
+    <div class="row">
+      <textarea id="userIn" placeholder="Ask the agent about the text — e.g. “where does the model first represent that this is a scam?”"></textarea>
+      <button class="primary" id="sendBtn">Send</button>
+      <button id="stopBtn" disabled>Stop</button>
+    </div>
+  </div>
+</section>
+</main>
+<footer>
+  Static page, no backend. Explanations are sampled at temperature&nbsp;1; the Space caches the first
+  sample per position, so repeat probes return the identical explanation. Cold-starting a sleeping
+  Space loads a 92&nbsp;GB model and can take 15–25&nbsp;minutes — the page waits and shows progress.
+</footer>
+
+<script>
+"use strict";
+/* ── constants ─────────────────────────────────────────────────────────── */
+const SPACES = {
+  m: { id: "syvb/nla-qwen36-27b-explorer",
+       base: "https://syvb-nla-qwen36-27b-explorer.hf.space", label: "matryoshka" },
+  s: { id: "syvb/nla-qwen36-27b-explorer-std",
+       base: "https://syvb-nla-qwen36-27b-explorer-std.hf.space", label: "standard" },
+};
+const MAX_ROUNDS = 24;
+const OR_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+const TOOL_SCHEMA = {
+  type: "function",
+  function: {
+    name: "get_nla_explanation",
+    description:
+      "Verbalize Qwen3.6-27B's layer-42 residual-stream activation at one token position of the " +
+      "provided text, via the natural-language autoencoder. The activation is causal: it summarizes " +
+      "only tokens 0..position (left context). Returns the explanation lines plus reconstruction " +
+      "scores (per-line ΔFVE and cumulative FVE — fraction of the activation's variance the critic " +
+      "recovers from the words). Uncached positions take ~30–120 s on a shared GPU, so probe " +
+      "selectively. Repeat calls to the same position return the identical cached explanation.",
+    parameters: {
+      type: "object",
+      properties: {
+        position: {
+          type: "integer",
+          description: "0-based token index into <message_tokenized>. Must be less than the token " +
+                       "count; positions below ~10 have too little left context to be meaningful.",
+        },
+      },
+      required: ["position"],
+    },
+  },
+};
+
+function systemPrompt(mode, nTokens) {
+  const common =
+`You are an interpretability agent investigating what Qwen3.6-27B internally represents while reading a piece of text.
+
+The first user message contains a <context> block: the text in <message>, and its exact tokenization in <message_tokenized> (each token written as [index:token piece]; the text has ${nTokens} tokens, positions 0..${nTokens - 1}).
+
+You have one tool, get_nla_explanation(position). It reads the model's layer-42 residual activation at that token — a vector summarizing the left context up to and including that token — and verbalizes it in natural language. A co-trained critic then reconstructs the vector from the words; FVE (fraction of variance explained) measures how faithful the verbalization is. Full-explanation FVE around 0.5–0.7 is typical; low FVE means the words missed much of what the activation encodes.
+`;
+  const mat =
+`This deployment uses the MATRYOSHKA verbalizer: up to 10 short, independent lines ordered by salience — it was trained so the FIRST lines carry the most reconstruction-relevant information. Each line comes with ΔFVE (how much reconstruction that single line adds) and cumulative FVE. Trust high-ΔFVE lines most; lines with ΔFVE near 0 add little signal.`;
+  const std =
+`This deployment uses the STANDARD (non-matryoshka) verbalizer: a short free-form explanation, typically 1–3 longer lines. Lines are NOT salience-ordered — information often arrives late in the explanation — and they are not independently meaningful, so judge faithfulness by the cumulative FVE of the whole explanation rather than by any single line.`;
+  const tail = `
+
+Practical notes:
+- Positions below ~10 decode to generic noise (too little left context); prefer later positions.
+- Explanations are sampled at temperature 1, but each position is cached after the first call — re-probing the same position returns the identical result, so don't repeat calls.
+- Each uncached probe takes ~30–120 s on a shared GPU (much longer if the Space is cold). Probe a handful of informative positions rather than scanning densely; you may request several positions in parallel tool calls.
+- An occasional stray CJK character inside a line is a known sampling artifact — ignore it.
+- The activation is about what the MODEL represents at that point in its reading, not about the ground truth of the text.
+
+Answer the user's questions by probing well-chosen positions. Always say which positions you probed, quote the relevant explanation lines, and cite FVE when it bears on how much to trust a line.`;
+  return common + "\n" + (mode === "m" ? mat : std) + tail;
+}
+
+/* ── state ─────────────────────────────────────────────────────────────── */
+let mode = "m";
+let toks = null;          // { pieces:[...], truncated:bool, text:"..." }
+let chat = [];            // OpenAI-style message list, [0] = system
+let busy = false;
+let aborter = null;
+let firstSend = true;
+
+/* ── tiny dom/utils ────────────────────────────────────────────────────── */
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+function md(s) {  // minimal markdown: fenced code, inline code, bold
+  let h = esc(s);
+  h = h.replace(/```([\s\S]*?)```/g, (m, c) => `<pre class="code">${c.replace(/^[\w-]*\n/, "")}</pre>`);
+  h = h.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  h = h.replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>");
+  return h;
+}
+const sleep = (ms, signal) => new Promise((res, rej) => {
+  const t = setTimeout(res, ms);
+  signal?.addEventListener("abort", () => { clearTimeout(t); rej(new DOMException("aborted", "AbortError")); }, { once: true });
+});
+function wire(line) {
+  const p = $("#wireLog");
+  p.textContent += `${new Date().toISOString().slice(11, 19)} ${line}\n`;
+  p.scrollTop = p.scrollHeight;
+}
+function setStatus(html) { $("#status").innerHTML = html; }
+function scrollMsgs() {
+  const m = $("#msgs");
+  if (m.scrollHeight - m.scrollTop - m.clientHeight < 240) m.scrollTop = m.scrollHeight;
+}
+
+/* ── settings persistence (browser-local only) ─────────────────────────── */
+const LS = { orKey: "nlaAgent.orKey", hfToken: "nlaAgent.hfToken", model: "nlaAgent.model" };
+for (const [id, key] of [["orKey", LS.orKey], ["hfToken", LS.hfToken], ["orModel", LS.model]]) {
+  const inp = document.getElementById(id);
+  inp.value = localStorage.getItem(key) || (id === "orModel" ? "anthropic/claude-sonnet-4.5" : "");
+  inp.addEventListener("input", () => localStorage.setItem(key, inp.value.trim()));
+}
+
+/* ── gradio Space client ───────────────────────────────────────────────── */
+function hfHeaders() {
+  const t = $("#hfToken").value.trim();
+  return t ? { Authorization: "Bearer " + t } : {};
+}
+async function ensureAwake(space, onStatus, signal) {
+  for (let i = 0; i < 130; i++) {
+    let stage = "UNKNOWN";
+    try {
+      const r = await fetch("https://huggingface.co/api/spaces/" + space.id, { signal });
+      stage = (await r.json()).runtime?.stage || "UNKNOWN";
+    } catch (e) { if (e.name === "AbortError") throw e; }
+    wire(`space ${space.id} stage=${stage}`);
+    if (stage === "RUNNING") return;
+    if (["RUNTIME_ERROR", "BUILD_ERROR", "PAUSED"].includes(stage))
+      throw new Error(`Space ${space.id} is ${stage} — it needs a manual restart on Hugging Face.`);
+    if (stage === "SLEEPING")
+      fetch(space.base + "/", { mode: "no-cors", signal }).catch(() => {});  // wake it
+    onStatus(`Space is waking up (${stage}) — cold boot loads a 92 GB model, up to ~25 min. Waiting…`);
+    await sleep(15000, signal);
+  }
+  throw new Error("Gave up waiting for the Space to wake up (~30 min).");
+}
+async function gradioCall(space, api, data, { onGenerating, signal } = {}) {
+  wire(`POST ${space.base}/gradio_api/call/${api}`);
+  const post = await fetch(`${space.base}/gradio_api/call/${api}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...hfHeaders() },
+    body: JSON.stringify({ data }),
+    signal,
+  });
+  if (!post.ok) throw new Error(`Space ${api}: HTTP ${post.status} — ${(await post.text()).slice(0, 300)}`);
+  const { event_id } = await post.json();
+  const sse = await fetch(`${space.base}/gradio_api/call/${api}/${event_id}`, { headers: hfHeaders(), signal });
+  if (!sse.ok) throw new Error(`Space ${api} stream: HTTP ${sse.status}`);
+  const reader = sse.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "", result = null, sawComplete = false;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let cut;
+    while ((cut = buf.indexOf("\n\n")) >= 0) {
+      const block = buf.slice(0, cut);
+      buf = buf.slice(cut + 2);
+      let evName = null, dataStr = [];
+      for (const ln of block.split("\n")) {
+        if (ln.startsWith("event:")) evName = ln.slice(6).trim();
+        else if (ln.startsWith("data:")) dataStr.push(ln.slice(5).trim());
+      }
+      if (!evName || evName === "heartbeat") continue;
+      let payload = null;
+      try { payload = JSON.parse(dataStr.join("\n")); } catch (e) {}
+      wire(`  «${api}» event=${evName}`);
+      if (evName === "error")
+        throw new Error("Space error: " + (typeof payload === "string" ? payload : dataStr.join(" ").slice(0, 400) || "unknown (often ZeroGPU quota — add an HF token, or wait)"));
+      if (evName === "generating" && onGenerating && payload) onGenerating(payload);
+      if (evName === "complete") { result = payload; sawComplete = true; }
+    }
+  }
+  if (!sawComplete) throw new Error("Space stream ended without a completion event.");
+  return result;
+}
+
+/* ── HTML → structured parsing of the Space's outputs ──────────────────── */
+function parseTokensHtml(html) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const spans = [...doc.querySelectorAll(".nla-tok")];
+  const pieces = spans.map((s) => {
+    const c = s.cloneNode(true);
+    c.querySelectorAll(".nl").forEach((x) => x.remove());
+    c.querySelectorAll("br").forEach((x) => x.replaceWith("\n"));
+    return c.textContent;
+  });
+  return { pieces, truncated: !!doc.querySelector(".trunc") };
+}
+function parseVizHtml(html) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const empty = doc.querySelector(".nlaviz .empty");
+  if (empty) return { message: empty.textContent.trim() };
+  const rows = [...doc.querySelectorAll(".nlaviz .row")].map((r) => {
+    const t = r.getAttribute("title") || "";
+    const m = t.match(/ΔFVE ([+-]?[\d.]+), cumulative ([+-]?[\d.]+), cos ([+-]?[\d.]+)/);
+    const lineEl = r.querySelector(".line");
+    return {
+      text: ((lineEl && (lineEl.getAttribute("title") || lineEl.textContent)) || "").trim(),
+      dfve: m ? +m[1] : null, cum: m ? +m[2] : null, cos: m ? +m[3] : null,
+    };
+  });
+  const chips = [...doc.querySelectorAll(".chip")].map((c) => ({
+    v: c.querySelector(".v")?.textContent.trim(),
+    l: c.querySelector(".l")?.textContent.trim(),
+  }));
+  const notes = [...doc.querySelectorAll(".nlaviz .note")].map((n) => n.textContent.trim());
+  return { rows, chips, notes, pending: !!doc.querySelector(".pend") };
+}
+const pickHtml = (data, marker) =>
+  (Array.isArray(data) ? data : []).filter((d) => typeof d === "string" && d.includes(marker)).pop();
+
+function formatToolResult(pos, parsed) {
+  if (parsed.message) return "Tool error: " + parsed.message;
+  const piece = JSON.stringify(toks.pieces[pos]);
+  let out = `NLA explanation of the layer-42 activation at token ${pos} (${piece}) — ${SPACES[mode].label} verbalizer:\n`;
+  parsed.rows.forEach((r, i) => {
+    out += `${String(i + 1).padStart(2)}. ${r.text}`;
+    if (r.dfve != null)
+      out += `   [ΔFVE ${r.dfve >= 0 ? "+" : ""}${r.dfve.toFixed(3)}, cumulative FVE ${r.cum.toFixed(3)}]`;
+    out += "\n";
+  });
+  const fve = parsed.chips.find((c) => /FVE/i.test(c.l || ""));
+  const cos = parsed.chips.find((c) => /cosine/i.test(c.l || ""));
+  if (fve) out += `Full-explanation FVE ${fve.v}${cos ? `, cosine ${cos.v}` : ""}.\n`;
+  const notes = parsed.notes.filter((n) => n && !/reconstruction scores arrive/.test(n));
+  if (notes.length) out += "Note: " + notes.join(" ") + "\n";
+  return out.trim();
+}
+
+/* ── chat rendering ────────────────────────────────────────────────────── */
+function addCard(node) { $("#msgs").appendChild(node); scrollMsgs(); return node; }
+function addError(text) {
+  addCard(el("div", "msg error", "⚠ " + esc(text)));
+}
+function renderSystemCard() {
+  const sys = chat[0]?.content || "";
+  $("#sysPre").textContent = sys;
+  const d = el("details", null,
+    `<summary>system prompt — ${SPACES[mode].label} verbalizer, ${sys.length} chars</summary>` +
+    `<pre>${esc(sys)}</pre>`);
+  const wrap = el("div", "msg system");
+  wrap.appendChild(el("div", "who", "system"));
+  wrap.appendChild(d);
+  addCard(wrap);
+}
+function addUserCard(visibleText, fullContent) {
+  const w = el("div", "msg user");
+  w.appendChild(el("div", "who", "you"));
+  w.appendChild(el("div", "body", md(visibleText)));
+  if (fullContent !== visibleText) {
+    const d = el("details", null,
+      `<summary>context block attached (${toks.pieces.length} tokens) — exact first-message content</summary>` +
+      `<pre>${esc(fullContent)}</pre>`);
+    w.appendChild(d);
+  }
+  addCard(w);
+}
+function addAssistantCard() {
+  const w = el("div", "msg assistant");
+  w.appendChild(el("div", "who", `agent · ${esc($("#orModel").value.trim())}`));
+  const reason = el("details", null, "<summary>reasoning</summary><pre></pre>");
+  reason.style.display = "none";
+  w.appendChild(reason);
+  const body = el("div", "body", '<span class="cursor"></span>');
+  w.appendChild(body);
+  const meta = el("div", "meta", "");
+  w.appendChild(meta);
+  addCard(w);
+  return {
+    setText(t, done) { body.innerHTML = md(t) + (done ? "" : '<span class="cursor"></span>'); scrollMsgs(); },
+    setReasoning(t) { reason.style.display = ""; reason.querySelector("pre").textContent = t; },
+    setMeta(t) { meta.textContent = t; },
+    remove() { w.remove(); },
+    hasContent: () => body.textContent.trim().length > 0,
+  };
+}
+function addToolCard(name, argsStr) {
+  const w = el("div", "tool");
+  w.appendChild(el("div", "hd", `🔧 ${esc(name)}(${esc(argsStr)})`));
+  const st = el("div", "st", '<span class="spin">●</span> starting…');
+  w.appendChild(st);
+  const pre = el("pre", "res");
+  pre.style.display = "none";
+  w.appendChild(pre);
+  addCard(w);
+  const t0 = Date.now();
+  return {
+    status(s) { st.innerHTML = `<span class="spin">●</span> ${esc(s)}`; scrollMsgs(); },
+    done(extra) { st.textContent = `✓ done in ${((Date.now() - t0) / 1000).toFixed(0)} s${extra ? " · " + extra : ""}`; },
+    fail(s) { st.classList.add("err"); st.textContent = "✗ " + s; },
+    result(text) { pre.style.display = ""; pre.textContent = text; scrollMsgs(); },
+  };
+}
+
+/* ── OpenRouter streaming chat call ────────────────────────────────────── */
+async function chatRequest(onDelta, signal) {
+  const model = $("#orModel").value.trim();
+  const body = {
+    model, messages: chat, tools: [TOOL_SCHEMA],
+    stream: true, usage: { include: true },
+  };
+  wire(`POST openrouter chat/completions model=${model} messages=${chat.length}`);
+  const r = await fetch(OR_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + $("#orKey").value.trim(),
+      "HTTP-Referer": "https://syvb.ca/nla-agent.html",
+      "X-Title": "NLA Agent",
+    },
+    body: JSON.stringify(body), signal,
+  });
+  if (!r.ok) throw new Error(`OpenRouter HTTP ${r.status}: ${(await r.text()).slice(0, 600)}`);
+  const reader = r.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "", content = "", reasoning = "", finish = null, usage = null;
+  const tcs = [];            // accumulated tool calls by index
+  let reasoningDetails = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let nl;
+    while ((nl = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (!line.startsWith("data:")) continue;      // ignores ": comments" keepalives
+      const payload = line.slice(5).trim();
+      if (payload === "[DONE]") continue;
+      let j; try { j = JSON.parse(payload); } catch (e) { continue; }
+      if (j.usage) usage = j.usage;
+      const ch = j.choices?.[0];
+      if (!ch) continue;
+      if (ch.finish_reason) finish = ch.finish_reason;
+      const d = ch.delta || {};
+      if (d.content) { content += d.content; onDelta(content, reasoning); }
+      if (d.reasoning) { reasoning += d.reasoning; onDelta(content, reasoning); }
+      if (Array.isArray(d.reasoning_details)) reasoningDetails.push(...d.reasoning_details);
+      for (const t of d.tool_calls || []) {
+        const i = t.index ?? 0;
+        tcs[i] = tcs[i] || { id: "", type: "function", function: { name: "", arguments: "" } };
+        if (t.id) tcs[i].id = t.id;
+        if (t.function?.name) tcs[i].function.name = t.function.name;
+        if (t.function?.arguments) tcs[i].function.arguments += t.function.arguments;
+      }
+    }
+  }
+  wire(`  openrouter done finish=${finish} tools=${tcs.filter(Boolean).length}` +
+       (usage ? ` in=${usage.prompt_tokens} out=${usage.completion_tokens}` : ""));
+  return { content, reasoning, reasoningDetails, toolCalls: tcs.filter(Boolean), finish, usage };
+}
+
+/* ── tool execution ────────────────────────────────────────────────────── */
+async function execTool(tc, card, signal) {
+  if (tc.function.name !== "get_nla_explanation")
+    return `Tool error: unknown tool "${tc.function.name}".`;
+  let args;
+  try { args = JSON.parse(tc.function.arguments || "{}"); }
+  catch (e) { return "Tool error: arguments were not valid JSON: " + tc.function.arguments; }
+  const pos = Number(args.position);
+  if (!Number.isInteger(pos) || pos < 0 || pos >= toks.pieces.length)
+    return `Tool error: position must be an integer in [0, ${toks.pieces.length - 1}] (got ${args.position}).`;
+  const space = SPACES[mode];
+  card.status("checking Space status…");
+  await ensureAwake(space, (s) => card.status(s), signal);
+  card.status("extracting the activation… (queued if someone else is probing)");
+  const data = await gradioCall(space, "analyze", [toks.text, pos, "cumulative", "none", 0], {
+    signal,
+    onGenerating(payload) {
+      const viz = pickHtml(payload, "nlaviz");
+      if (!viz) return;
+      const p = parseVizHtml(viz);
+      if (p.rows?.length) card.status(`verbalizing the activation… ${p.rows.length} line${p.rows.length > 1 ? "s" : ""} so far`);
+      else card.status("verbalizing the activation…");
+    },
+  });
+  const viz = pickHtml(data, "nlaviz");
+  if (!viz) throw new Error("Space returned no visualization HTML.");
+  const parsed = parseVizHtml(viz);
+  const text = formatToolResult(pos, parsed);
+  card.done(parsed.rows ? `${parsed.rows.length} lines` : "");
+  card.result(text);
+  return text;
+}
+
+/* ── the agent loop ────────────────────────────────────────────────────── */
+async function runTurn() {
+  const signal = aborter.signal;
+  for (let round = 0; round < MAX_ROUNDS; round++) {
+    setStatus(`<span class="busy">● agent thinking…</span>`);
+    const ui = addAssistantCard();
+    let res;
+    try {
+      res = await chatRequest((c, rr) => { ui.setText(c); if (rr) ui.setReasoning(rr); }, signal);
+    } catch (e) {
+      ui.remove();
+      throw e;
+    }
+    ui.setText(res.content || "", true);
+    if (res.reasoning) ui.setReasoning(res.reasoning);
+    if (!res.content && !res.reasoning && !res.toolCalls.length) ui.remove();
+    if (res.usage) ui.setMeta(
+      `tokens: ${res.usage.prompt_tokens} in · ${res.usage.completion_tokens} out` +
+      (res.usage.cost != null ? ` · $${(+res.usage.cost).toFixed(4)}` : ""));
+    const amsg = { role: "assistant", content: res.content || "" };
+    if (res.toolCalls.length) amsg.tool_calls = res.toolCalls;
+    if (res.reasoningDetails.length) amsg.reasoning_details = res.reasoningDetails;
+    chat.push(amsg);
+    if (!res.toolCalls.length) return;    // agent is done with this turn
+    for (const tc of res.toolCalls) {
+      setStatus(`<span class="busy">● running ${esc(tc.function.name)}…</span>`);
+      const card = addToolCard(tc.function.name, tc.function.arguments || "{}");
+      let out;
+      try {
+        out = await execTool(tc, card, signal);
+        if (out.startsWith("Tool error:")) card.fail(out.slice(11).trim()), card.result(out);
+      } catch (e) {
+        if (e.name === "AbortError") throw e;
+        out = "Tool error: " + e.message;
+        card.fail(e.message);
+        card.result(out);
+      }
+      chat.push({ role: "tool", tool_call_id: tc.id, content: out });
+    }
+  }
+  addError(`Stopped after ${MAX_ROUNDS} agent rounds — send another message to continue.`);
+}
+
+/* ── top-level actions ─────────────────────────────────────────────────── */
+function resetChat() {
+  chat = toks ? [{ role: "system", content: systemPrompt(mode, toks.pieces.length) }] : [];
+  firstSend = true;
+  $("#msgs").innerHTML = "";
+  if (toks) renderSystemCard();
+  $("#sysPre").textContent = chat[0]?.content || "(load a text first)";
+  updateGates();
+}
+function contextBlock() {
+  const tokenized = toks.pieces.map((p, i) => `[${i}:${p}]`).join("");
+  return `<context>\n<message>${toks.text}</message>\n<message_tokenized>${tokenized}</message_tokenized>\n</context>`;
+}
+function updateGates() {
+  const keyOk = $("#orKey").value.trim().length > 0;
+  const ready = keyOk && !!toks && !busy;
+  $("#sendBtn").disabled = !ready;
+  $("#stopBtn").disabled = !busy;
+  $("#loadBtn").disabled = busy;
+  if (busy) return;
+  if (!keyOk) setStatus("Enter your OpenRouter API key to start.");
+  else if (!toks) setStatus("Load a text — the agent needs its context block first.");
+  else setStatus(`Ready — ${toks.pieces.length} tokens loaded · ${SPACES[mode].label} verbalizer.`);
+}
+
+async function loadText() {
+  const text = $("#textIn").value.trim();
+  if (!text) { $("#loadStatus").textContent = "enter some text first"; return; }
+  busy = true; updateGates(); aborter = new AbortController();
+  const st = $("#loadStatus");
+  try {
+    st.textContent = "checking Space…";
+    await ensureAwake(SPACES[mode], (s) => (st.textContent = s), aborter.signal);
+    st.textContent = "tokenizing…";
+    const data = await gradioCall(SPACES[mode], "tokenize", [text], { signal: aborter.signal });
+    const html = pickHtml(data, "nla-tok");
+    if (!html) throw new Error("tokenize returned no token panel");
+    const { pieces, truncated } = parseTokensHtml(html);
+    if (!pieces.length) throw new Error("tokenizer returned zero tokens");
+    toks = { pieces, truncated, text };
+    $("#ctxPre").textContent = contextBlock();
+    $("#ctxDetails").style.display = "";
+    st.textContent = `${pieces.length} tokens` + (truncated ? " — ⚠ truncated to the Space's 5120-token cap" : "");
+    resetChat();
+  } catch (e) {
+    st.textContent = "";
+    addError("Loading text failed: " + e.message);
+  } finally {
+    busy = false; updateGates();
+  }
+}
+
+async function send() {
+  const text = $("#userIn").value.trim();
+  if (!text || busy || !toks || !$("#orKey").value.trim()) return;
+  $("#userIn").value = "";
+  const full = firstSend ? contextBlock() + "\n\n" + text : text;
+  firstSend = false;
+  chat.push({ role: "user", content: full });
+  addUserCard(text, full);
+  busy = true; updateGates(); aborter = new AbortController();
+  try {
+    await runTurn();
+  } catch (e) {
+    if (e.name === "AbortError") addError("Stopped.");
+    else addError(e.message);
+  } finally {
+    busy = false; aborter = null; updateGates();
+  }
+}
+
+function setMode(m) {
+  if (m === mode) return;
+  if (busy) aborter?.abort();
+  mode = m;
+  document.querySelectorAll("#modeSeg button").forEach((b) =>
+    b.classList.toggle("on", b.dataset.m === m));
+  $("#modeHint").textContent = m === "m"
+    ? "10 salience-ordered independent lines; the first lines carry the most information."
+    : "free-form explanation (1–3 longer lines); not salience-ordered — judge by total FVE.";
+  resetChat();   // per spec: toggling clears the chat and swaps the system prompt
+}
+
+/* ── wiring ────────────────────────────────────────────────────────────── */
+$("#modeSeg").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (b) setMode(b.dataset.m);
+});
+$("#loadBtn").addEventListener("click", loadText);
+$("#sendBtn").addEventListener("click", send);
+$("#stopBtn").addEventListener("click", () => aborter?.abort());
+$("#clearBtn").addEventListener("click", () => { if (busy) aborter?.abort(); resetChat(); });
+$("#userIn").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+});
+$("#orKey").addEventListener("input", updateGates);
+$("#copyJson").addEventListener("click", async () => {
+  await navigator.clipboard.writeText(JSON.stringify(chat, null, 2));
+  $("#copyJson").textContent = "Copied ✓";
+  setTimeout(() => ($("#copyJson").textContent = "Copy conversation JSON"), 1200);
+});
+
+$("#modeHint").textContent = "10 salience-ordered independent lines; the first lines carry the most information.";
+$("#sysPre").textContent = "(load a text first)";
+updateGates();
+</script>
+</body>
+</html>
