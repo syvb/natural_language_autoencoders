@@ -67,16 +67,10 @@ for arm, title in [("mat", "matryoshka (lines)"), ("std", "standard (sentences)"
     ax.set_xticks(x)
     ax.set_xlabel("explanation token decile (1 = first 10% → 10 = last 10%)", fontsize=11)
     ax.set_ylabel("marginal FVE of the decile", fontsize=11)
-    ax.set_title(f"{title} — decile marginal FVE: hallucinated vs not (EXACT)\n"
-                 "critic scored directly on cumulative token-decile prefixes (GPU)", fontsize=11.5)
+    ax.set_title("Chunk marginal FVE", fontsize=13)
     ax.legend(fontsize=9.5)
     ax.grid(color="#ccc", alpha=0.3)
     ax.spines[["top", "right"]].set_visible(False)
-    fig.text(0.02, -0.02,
-             "Exact: marginal[d] = FVE(first d+1 token deciles) − FVE(first d deciles), own critic, real Qwen "
-             "tokenizer (deciles aligned to §3i judging).\nHallucination = decile chunk judged CON/FAB. Error bars: "
-             "cluster bootstrap over the 250 contexts (95%).",
-             fontsize=7.6, color="#777", ha="left", va="top")
     fig.tight_layout()
     fig.savefig(HERE / "results" / f"fig_decile_marg_{arm}.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
