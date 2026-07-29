@@ -143,6 +143,8 @@ footer{padding:10px 20px 26px; font-size:11px; color:var(--muted); border-top:1p
       <option value="google/gemini-2.5-flash"></option>
       <option value="openai/gpt-5-mini"></option>
     </datalist>
+    <label for="orProvider">Force OpenRouter provider <span style="text-transform:none">(optional — e.g. <code>DeepInfra</code>; comma-separate for a preference order; fallbacks are disabled when set)</span></label>
+    <input type="text" id="orProvider" placeholder="(any provider)" autocomplete="off">
     <label for="hfToken">Hugging Face token <span style="text-transform:none">(optional — raises your ZeroGPU quota for live positions)</span></label>
     <input type="password" id="hfToken" placeholder="hf_…" autocomplete="off">
     <div class="hint">Saved in this browser's localStorage only. Never sent anywhere except
@@ -309,8 +311,10 @@ function scrollMsgs() {
 }
 
 /* ── settings persistence (browser-local only) ─────────────────────────── */
-const LS = { orKey: "nlaAgent.orKey", hfToken: "nlaAgent.hfToken", model: "nlaAgent.model" };
-for (const [id, key] of [["orKey", LS.orKey], ["hfToken", LS.hfToken], ["orModel", LS.model]]) {
+const LS = { orKey: "nlaAgent.orKey", hfToken: "nlaAgent.hfToken", model: "nlaAgent.model",
+             provider: "nlaAgent.provider" };
+for (const [id, key] of [["orKey", LS.orKey], ["hfToken", LS.hfToken], ["orModel", LS.model],
+                         ["orProvider", LS.provider]]) {
   const inp = document.getElementById(id);
   inp.value = localStorage.getItem(key) || (id === "orModel" ? "anthropic/claude-sonnet-4.5" : "");
   inp.addEventListener("input", () => localStorage.setItem(key, inp.value.trim()));
@@ -506,7 +510,10 @@ async function chatRequest(onDelta, signal) {
     model, messages: chat, tools: [TOOL_SCHEMA],
     stream: true, usage: { include: true },
   };
-  wire(`POST openrouter chat/completions model=${model} messages=${chat.length}`);
+  const providers = $("#orProvider").value.split(",").map((s) => s.trim()).filter(Boolean);
+  if (providers.length) body.provider = { order: providers, allow_fallbacks: false };
+  wire(`POST openrouter chat/completions model=${model} messages=${chat.length}` +
+       (providers.length ? ` provider=${providers.join(">")} (no fallbacks)` : ""));
   const r = await fetch(OR_URL, {
     method: "POST",
     headers: {
@@ -520,7 +527,7 @@ async function chatRequest(onDelta, signal) {
   if (!r.ok) throw new Error(`OpenRouter HTTP ${r.status}: ${(await r.text()).slice(0, 600)}`);
   const reader = r.body.getReader();
   const dec = new TextDecoder();
-  let buf = "", content = "", reasoning = "", finish = null, usage = null;
+  let buf = "", content = "", reasoning = "", finish = null, usage = null, servedBy = null;
   const tcs = [];            // accumulated tool calls by index
   let reasoningDetails = [];
   while (true) {
@@ -536,6 +543,7 @@ async function chatRequest(onDelta, signal) {
       if (payload === "[DONE]") continue;
       let j; try { j = JSON.parse(payload); } catch (e) { continue; }
       if (j.usage) usage = j.usage;
+      if (j.provider) servedBy = j.provider;
       const ch = j.choices?.[0];
       if (!ch) continue;
       if (ch.finish_reason) finish = ch.finish_reason;
@@ -553,8 +561,9 @@ async function chatRequest(onDelta, signal) {
     }
   }
   wire(`  openrouter done finish=${finish} tools=${tcs.filter(Boolean).length}` +
+       (servedBy ? ` via=${servedBy}` : "") +
        (usage ? ` in=${usage.prompt_tokens} out=${usage.completion_tokens}` : ""));
-  return { content, reasoning, reasoningDetails, toolCalls: tcs.filter(Boolean), finish, usage };
+  return { content, reasoning, reasoningDetails, toolCalls: tcs.filter(Boolean), finish, usage, servedBy };
 }
 
 /* ── tool execution ────────────────────────────────────────────────────── */
@@ -632,9 +641,10 @@ async function runTurn() {
     ui.setText(res.content || "", true);
     if (res.reasoning) ui.setReasoning(res.reasoning);
     if (!res.content && !res.reasoning && !res.toolCalls.length) ui.remove();
-    if (res.usage) ui.setMeta(
-      `tokens: ${res.usage.prompt_tokens} in · ${res.usage.completion_tokens} out` +
-      (res.usage.cost != null ? ` · $${(+res.usage.cost).toFixed(4)}` : ""));
+    if (res.usage || res.servedBy) ui.setMeta(
+      (res.usage ? `tokens: ${res.usage.prompt_tokens} in · ${res.usage.completion_tokens} out` : "") +
+      (res.usage?.cost != null ? ` · $${(+res.usage.cost).toFixed(4)}` : "") +
+      (res.servedBy ? ` · via ${res.servedBy}` : ""));
     const amsg = { role: "assistant", content: res.content || "" };
     if (res.toolCalls.length) amsg.tool_calls = res.toolCalls;
     if (res.reasoningDetails.length) amsg.reasoning_details = res.reasoningDetails;
