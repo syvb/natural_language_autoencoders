@@ -1112,6 +1112,12 @@ async function loadCache() {
 async function loadText() {
   const text = $("#textIn").value.trim();
   if (!text) { $("#loadStatus").textContent = "enter some text first"; return; }
+  // exact match with a precached example (e.g. Load pressed on an example, or
+  // its text pasted by hand) → serve from the cache, never touch the Space
+  if (cache) {
+    const i = cache.examples.findIndex((e) => e.text.trim() === text);
+    if (i >= 0) { applyExample(i); return; }
+  }
   busy = true; updateGates(); aborter = new AbortController();
   const st = $("#loadStatus");
   try {
