@@ -51,7 +51,6 @@ body{margin:0; background:var(--nla-page); color:var(--nla-ink);
 .modebar button{font:inherit; font-size:11.5px; padding:5px 12px; border:none;
   background:transparent; color:var(--nla-ink2); cursor:pointer;}
 .modebar button.on{background:var(--nla-sel); color:#fff;}
-#heatbar button.on{background:var(--nla-neg);}
 
 /* token panel — the honeypot transcript is ~4.7k tokens; it scrolls inside
    the panel, never the page */
@@ -69,18 +68,6 @@ body{margin:0; background:var(--nla-page); color:var(--nla-ink);
 .nla-tok.sel{background:var(--nla-sel); color:#fff;}
 .nla-tok .nl{color:var(--nla-muted); font-size:10px;}
 .nla-tok.sel .nl{color:rgba(255,255,255,.75);}
-/* eval-awareness heatmap: the heat bar flips a body class; tokens carry their
-   scores as CSS vars, so switching modes re-renders nothing */
-body.nla-heat-p .nla-tok{background-color:rgba(224,58,58, calc(var(--pa,0)*0.85));}
-body.nla-heat-f .nla-tok{background-color:rgba(224,58,58, calc(var(--paf,0)*0.85));}
-body.nla-heat-fn .nla-tok{background-color:rgba(224,58,58, calc(var(--pafn,0)*0.85));}
-body[class*="nla-heat"] .nla-tok:hover, body[class*="nla-heat"] .nla-tok:focus-visible{background:var(--nla-hover);}
-body[class*="nla-heat"] .nla-tok.sel{background:var(--nla-sel);}
-/* per-line badges: hidden unless a heatmap mode is active */
-.eabadge{display:none; min-width:2.3em; text-align:center; font-size:9px; font-weight:700;
-  padding:0 3px; margin-right:5px; border-radius:3px; color:#fff; vertical-align:middle;
-  background:rgba(198,52,52, calc(var(--pea,0)*0.65 + 0.35));}
-body[class*="nla-heat"] .eabadge{display:inline-block;}
 
 /* results card */
 .nlaviz{background:var(--nla-surface); border:1px solid var(--nla-ring);
@@ -131,13 +118,6 @@ footer a:hover{text-decoration:underline;}
         <div class="modebar" id="modebar" hidden>
           <button data-m="marginal" class="on">marginal ΔFVE</button>
           <button data-m="cumulative">cumulative</button>
-          <button data-m="ablation" hidden>ablation</button>
-        </div>
-        <div class="modebar" id="heatbar" hidden>
-          <button data-h="off" class="on">heat off</button>
-          <button data-h="p">P(aware)</button>
-          <button data-h="f">×ΔFVE</button>
-          <button data-h="fn">÷rank</button>
         </div>
       </div>
       <div id="viz-slot"></div>
@@ -147,9 +127,13 @@ footer a:hover{text-decoration:underline;}
 </div>
 <script>
 "use strict";
-// Injected by build_embed.py: {"urls": {pre, ea, loo}} to fetch, or
-// {"inline": {pre, ea, loo}} with the data baked in (ea/loo may be null).
+// Injected by build_embed.py: {"url": "…/precache.json"} to fetch, or
+// {"inline": pre} with the full data baked in.
 const DATA_SOURCE = __DATA_SOURCE__;
+// Also injected: the blackmail-honeypot precache entry, gzip+base64 (base64 is
+// a fixed point of LessWrong's entity-decode, raw JSON isn't). The page boots
+// from this instantly; the full precache.json streams in behind it.
+const BAKED_B64 = "__BAKED_B64__";
 // true in the LessWrong-widget build: its sandbox (allow-scripts only) can
 // never open links — the footer is hidden by widget CSS and the error card
 // shows a plain URL instead of a dead anchor.
@@ -173,8 +157,9 @@ const HONEYPOT_PREFIX = "<|im_start|>system";
 const GOOD_MIN_POS = 10;
 const CJK_RE = /[　-ヿ㐀-䶿一-鿿＀-￯]/;
 
-let DATA = null, EA = null, LOOD = null;
-let curText = 0, curPos = null, mode = "marginal", heat = "off";
+let DATA = null;                 // {meta, entries[]} — entries may be sparse
+let curText = 0, curPos = null, mode = "marginal";
+let fullLoadError = null;        // set if the background precache fetch fails
 
 const $ = (s) => document.querySelector(s);
 // numeric refs built at runtime — the SOURCE must contain no decodable
@@ -198,7 +183,8 @@ function buildPicker(honeypotIdx) {
     const o = document.createElement("option");
     o.value = i;
     o.textContent = TAB_LABELS[i] || "Example " + (i + 1);
-    o.title = DATA.entries[i].text.slice(0, 90);
+    const e = DATA.entries[i];  // sparse until the full precache streams in
+    if (e) o.title = e.text.slice(0, 90);
     return o;
   };
   const n = DATA.entries.length;
@@ -218,17 +204,10 @@ function buildPicker(honeypotIdx) {
 
 function renderTokens() {
   const e = DATA.entries[curText];
-  const ea = EA && EA.entries[curText];
   const spans = e.pieces.map((p, i) => {
     const body = esc(p).replace(/\n/g, '<span class="nl">⏎</span><br>');
     const sel = i === curPos ? " sel" : "";
-    let style = "";
-    if (ea && ea.paware[i] !== null && ea.paware[i] !== undefined) {
-      const pa = ea.paware[i] || 0, paf = (ea.paware_fvew || [])[i] || 0,
-            pafn = (ea.paware_fvewnorm || [])[i] || 0;
-      style = ` style="--pa:${pa.toFixed(3)};--paf:${paf.toFixed(3)};--pafn:${pafn.toFixed(3)}"`;
-    }
-    return `<span class="nla-tok${sel}" data-i="${i}" title="#${i}"${style} role="button" tabindex="0">${body}</span>`;
+    return `<span class="nla-tok${sel}" data-i="${i}" title="#${i}" role="button" tabindex="0">${body}</span>`;
   }).join("");
   $("#tok-slot").innerHTML =
     `<div class="tokpanel"><div class="tokhead"><span>${e.pieces.length} tokens · precomputed</span>` +
@@ -243,39 +222,21 @@ function renderViz() {
   if (!res) { $("#viz-slot").innerHTML = card("This position wasn't precomputed — try it on the live Space."); return; }
   const { lines, fve, cos } = res;
   const marginal = fve.map((v, k) => k === 0 ? v : v - fve[k - 1]);
-  const L = LOOD && LOOD.entries[curText];
-  const looArr = mode === "ablation" && L && L.loo[curPos] &&
-                 L.loo[curPos].length === lines.length ? L.loo[curPos] : null;
-  const looFull = looArr !== null ? L.full[curPos] : null;
-  const looMissing = mode === "ablation" && looArr === null;
-  let vals, title, sub;
-  if (looArr) {
-    vals = looArr.map((x) => looFull - x);  // necessity of each line
-    title = "FVE lost when each line is deleted (leave-one-out)";
-    sub = "all OTHER lines kept — necessity, not salience order; a small bar with a " +
-          "large ΔFVE means the line is redundant with later ones";
-  } else {
-    vals = mode === "cumulative" ? fve : marginal;
-    title = mode === "cumulative" ? "Cumulative round-trip FVE by explanation-line prefix"
-                                  : "Additional FVE per explanation line (ΔFVE)";
-    sub = mode === "cumulative" ? "reconstruction quality from lines 1..k only"
-                                : "how much reconstruction each successive line adds";
-  }
+  const vals = mode === "cumulative" ? fve : marginal;
+  const title = mode === "cumulative" ? "Cumulative round-trip FVE by explanation-line prefix"
+                                      : "Additional FVE per explanation line (ΔFVE)";
+  const sub = mode === "cumulative" ? "reconstruction quality from lines 1..k only"
+                                    : "how much reconstruction each successive line adds";
   const lo = Math.min(0, Math.min(...vals)), hi = Math.max(0.05, Math.max(...vals));
   const span = hi - lo, zeroPct = (0 - lo) / span * 100;
-  const pl = EA && EA.entries[curText] && (EA.entries[curText].paware_lines || [])[curPos];
 
   const rows = lines.map((ln, i) => {
     const x = vals[i], w = Math.abs(x) / span * 100;
     const left = x >= 0 ? zeroPct : zeroPct - w;
     const cls = x >= 0 ? "pos" : "neg";
-    let tip = `line ${i + 1} — ΔFVE ${s3(marginal[i])}, cumulative ${f3(fve[i])}, cos ${f3(cos[i])}`;
-    if (looArr) tip += `, delete→lose ${s3(x)}, alone ${s3(L.solo[curPos][i])}`;
-    const pv = pl && pl[i] !== null && pl[i] !== undefined ? pl[i] : null;
-    const badge = pv === null ? "" :
-      `<span class="eabadge" style="--pea:${pv.toFixed(3)}" title="P(eval-aware)=${f2(pv)}">${f2(pv)}</span>`;
+    const tip = `line ${i + 1} — ΔFVE ${s3(marginal[i])}, cumulative ${f3(fve[i])}, cos ${f3(cos[i])}`;
     return `<div class="row" title="${esc(tip)}"><div class="idx">${i + 1}</div>` +
-      `<div class="line" title="${esc(ln)}">${badge}${esc(ln)}</div>` +
+      `<div class="line" title="${esc(ln)}">${esc(ln)}</div>` +
       `<div class="track"><div class="zero" style="left:${zeroPct.toFixed(2)}%"></div>` +
       `<div class="bar ${cls}" style="left:${left.toFixed(2)}%;width:${Math.max(w, 0.4).toFixed(2)}%"></div></div>` +
       `<div class="val">${s3(x)}</div></div>`;
@@ -294,8 +255,6 @@ function renderViz() {
     `<div class="chip"><div class="v">${esc(piece)}</div><div class="l">token @ ${curPos}</div></div></div>`;
 
   const notes = [];
-  if (looMissing)
-    notes.push('<span class="warnic">⚠</span> no ablation scores for this position — showing marginal ΔFVE.');
   if (curPos < GOOD_MIN_POS)
     notes.push('<span class="warnic">⚠</span> very early position — little left-context; ' +
                'explanations may be generic.');
@@ -310,8 +269,7 @@ function renderViz() {
 
 function syncHash() {
   try {
-    const h = `#t=${curText}` + (curPos !== null ? `&p=${curPos}` : "") +
-              `&m=${mode}` + (heat !== "off" ? `&h=${heat}` : "");
+    const h = `#t=${curText}` + (curPos !== null ? `&p=${curPos}` : "") + `&m=${mode}`;
     history.replaceState(null, "", h);
   } catch (e) { /* sandboxed iframes may forbid this */ }
 }
@@ -334,51 +292,59 @@ function scrollSelIntoView() {
   panel.scrollTop += ds.top - dp.top - panel.clientHeight / 2 + ds.height / 2;
 }
 
+const liveDemoMsg = () =>
+  IS_WIDGET ? `try the live demo: ${SPACE_URL_TEXT}`
+            : `<a href="https://huggingface.co/spaces/syvb/nla-qwen36-27b-explorer">use the live Space</a>`;
+
 function selectText(t, pos = null) {
   curText = t;
-  curPos = pos === null ? randomPos(DATA.entries[t]) : pos;
   $("#pick").value = String(t);
+  const e = DATA.entries[t];
+  if (!e) {  // not streamed in yet (boot showed only the baked-in honeypot)
+    curPos = pos;  // kept as-is; re-selected (and clamped) when the data lands
+    $("#tok-slot").innerHTML = card(fullLoadError
+      ? `couldn't load this sample (${esc(String(fullLoadError))}) — ${liveDemoMsg()}`
+      : "loading this sample — the full set streams in behind the baked-in honeypot…");
+    $("#viz-slot").innerHTML = "";
+    syncHash(); return;
+  }
+  curPos = pos === null ? randomPos(e) : Math.min(pos, e.pieces.length - 1);
   renderTokens(); renderViz(); syncHash(); scrollSelIntoView();
 }
 
-function setHeat(h) {
-  heat = h;
-  const b = document.body.classList;
-  b.remove("nla-heat-p", "nla-heat-f", "nla-heat-fn");
-  if (h !== "off") b.add("nla-heat-" + h);
-  document.querySelectorAll("#heatbar button").forEach((x) =>
-    x.classList.toggle("on", x.dataset.h === h));
-}
-
-function boot(pre, ea, loo) {
+function initUI(pre) {
   DATA = pre;
-  if (ea && ea.entries && ea.entries.length === pre.entries.length) EA = ea;
-  if (loo && loo.entries && loo.entries.length === pre.entries.length) LOOD = loo;
   $("#modebar").hidden = false;
-  if (LOOD) $('#modebar button[data-m="ablation"]').hidden = false;
-  if (EA) $("#heatbar").hidden = false;
   const m = (location.hash.match(/[#&]m=(\w+)/) || [])[1];
-  if (m === "cumulative" || m === "marginal" || (m === "ablation" && LOOD)) mode = m;
+  if (m === "cumulative" || m === "marginal") mode = m;
   document.querySelectorAll("#modebar button").forEach((b) =>
     b.classList.toggle("on", b.dataset.m === mode));
-  const h = (location.hash.match(/[#&]h=(\w+)/) || [])[1];
-  if (EA && (h === "p" || h === "f" || h === "fn")) setHeat(h);
-  // default sample = the eval-awareness (blackmail honeypot) scenario
-  let deft = pre.entries.findIndex((e) => e.text.startsWith(HONEYPOT_PREFIX));
+  // default sample = the blackmail-honeypot scenario
+  let deft = DATA.entries.findIndex((e) => e && e.text.startsWith(HONEYPOT_PREFIX));
   if (deft < 0) deft = 0;
   buildPicker(deft);
   const tRaw = (location.hash.match(/[#&]t=(\d+)/) || [])[1];
   const t = tRaw === undefined ? deft :
     Math.min(parseInt(tRaw, 10) || 0, DATA.entries.length - 1);
   const pRaw = (location.hash.match(/[#&]p=(\d+)/) || [])[1];
-  const p = pRaw === undefined ? null :
-    Math.min(parseInt(pRaw, 10), DATA.entries[t].pieces.length - 1);
-  selectText(t, p);
+  selectText(t, pRaw === undefined ? null : parseInt(pRaw, 10));
   $("#foot").innerHTML = `Precomputed samples from
     <a href="https://huggingface.co/${esc(DATA.meta.model_repo)}" target="_blank"
     rel="noopener">${esc(DATA.meta.model_repo)}</a> (matryoshka, layer 42)
     · <a href="https://huggingface.co/spaces/syvb/nla-qwen36-27b-explorer" target="_blank"
     rel="noopener">analyze your own text on the live Space</a>`;
+}
+
+// the full precache arrived — swap it in under the already-live UI
+function absorbFull(pre) {
+  const wasMissing = !DATA.entries[curText];
+  DATA.meta = pre.meta;
+  DATA.entries = pre.entries;
+  document.querySelectorAll("#pick option").forEach((o) => {  // fill in tooltips
+    const e = pre.entries[+o.value];
+    if (e) o.title = e.text.slice(0, 90);
+  });
+  if (wasMissing) selectText(curText, curPos);
 }
 
 document.addEventListener("click", (ev) => {
@@ -388,8 +354,6 @@ document.addEventListener("click", (ev) => {
     tok.classList.add("sel");
     curPos = +tok.dataset.i; renderViz(); syncHash(); return;
   }
-  const hb = ev.target.closest("#heatbar button");
-  if (hb) { setHeat(hb.dataset.h); syncHash(); return; }
   const mb = ev.target.closest("#modebar button");
   if (mb) {
     mode = mb.dataset.m;
@@ -408,24 +372,42 @@ const themeParam = new URLSearchParams(location.search).get("theme");
 if (themeParam === "dark" || themeParam === "light")
   document.documentElement.dataset.theme = themeParam;
 
-if (DATA_SOURCE.inline) {
-  boot(DATA_SOURCE.inline.pre, DATA_SOURCE.inline.ea, DATA_SOURCE.inline.loo);
-} else {
-  const grab = (u) => fetch(u).then((r) => {
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return r.json();
-  });
-  Promise.all([
-    grab(DATA_SOURCE.urls.pre),
-    grab(DATA_SOURCE.urls.ea).catch(() => null),   // overlays are optional
-    grab(DATA_SOURCE.urls.loo).catch(() => null),
-  ]).then(([p, e, l]) => boot(p, e, l)).catch((err) => {
-    $("#tok-slot").innerHTML = card(
-      `couldn't load precomputed data (${esc(String(err))}) — ` +
-      (IS_WIDGET ? `try the live demo: ${SPACE_URL_TEXT}`
-                 : `<a href="https://huggingface.co/spaces/syvb/nla-qwen36-27b-explorer">use the live Space</a>`));
-  });
+// decode the baked-in honeypot entry: base64 → gzip bytes → JSON {i, n, meta, entry}
+async function unbake() {
+  const bin = Uint8Array.from(atob(BAKED_B64), (c) => c.charCodeAt(0));
+  const buf = await new Response(new Blob([bin]).stream()
+    .pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+  return JSON.parse(new TextDecoder().decode(buf));
 }
+
+async function start() {
+  if (DATA_SOURCE.inline) { initUI(DATA_SOURCE.inline); return; }
+  let booted = false;
+  try {  // instant boot from the baked honeypot; the network never blocks first paint
+    if (typeof DecompressionStream !== "undefined") {
+      const b = await unbake();
+      const entries = new Array(b.n).fill(null);
+      entries[b.i] = b.entry;
+      initUI({ meta: b.meta, entries });
+      booted = true;
+    }
+  } catch (e) { /* fall back to the plain network path */ }
+  try {
+    const r = await fetch(DATA_SOURCE.url);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const pre = await r.json();
+    if (booted) absorbFull(pre); else initUI(pre);
+  } catch (err) {
+    fullLoadError = err;
+    if (!booted) {
+      $("#tok-slot").innerHTML = card(
+        `couldn't load precomputed data (${esc(String(err))}) — ${liveDemoMsg()}`);
+    } else if (!DATA.entries[curText]) {
+      selectText(curText, curPos);  // upgrade the "loading…" card to the error card
+    }
+  }
+}
+start();
 </script>
 </body>
 </html>

@@ -1,18 +1,21 @@
 """Generate embed.html — the fully static, client-side 27B explorer for posts.
 
 Same pattern as the v3 (Qwen2.5-7B) space's build_embed.py: plain HTML/CSS/JS,
-no server. The page fetches the SAME data files the Space ships —
-precache.json (required) plus the optional overlays eval_awareness.json (token
-heatmap + per-line badges, revealed only when a heat mode is on) and loo.json
-(the 'ablation' leave-one-out view) — so redeploying the Space (deploy.sh)
-refreshes the page's data with no HTML rebuild. Defaults to the blackmail-
-honeypot (eval-awareness) scenario; its ~4.7k-token transcript scrolls inside
-the token panel.
+no server. The default blackmail-honeypot sample is baked into the page
+(gzip+base64, decoded with the browser's DecompressionStream) so first paint is
+instant; the Space's full precache.json (~34MB, all 39 samples) streams in
+behind it, so redeploying the Space (deploy.sh) refreshes the other samples
+with no HTML rebuild. Baking reads the LOCAL precache.json — keep it in sync
+with the Space (deploy.sh does) or the baked honeypot could drift.
+
+The eval-awareness heatmap and leave-one-out ablation overlays were dropped:
+their JSONs only cover the 5 curated samples and went stale (and unused, per
+the entry-count guard) when the 34 WeirdChat samples landed in precache.json.
 
 Usage:
     python3 build_embed.py                # → embed.html (fetches from the Space repo)
-    python3 build_embed.py --base-url URL # fetch the three JSONs from elsewhere
-    python3 build_embed.py --inline       # bake all data in (~8MB, no CORS/network)
+    python3 build_embed.py --base-url URL # fetch precache.json from elsewhere
+    python3 build_embed.py --inline       # bake ALL data in (~34MB, no CORS/network)
     python3 build_embed.py --widget       # → embed_widget.html: document-shell-free
                                           #   fragment for sandboxed-iframe embeds
                                           #   (e.g. LessWrong post widgets)
@@ -20,13 +23,25 @@ Usage:
 Rebuild only when embed_template.html changes (or to switch data source).
 """
 import argparse
+import base64
+import gzip
 import json
 import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_BASE = "https://huggingface.co/spaces/syvb/nla-qwen36-27b-explorer/resolve/main"
-FILES = {"pre": "precache.json", "ea": "eval_awareness.json", "loo": "loo.json"}
+HONEYPOT_PREFIX = "<|im_start|>system"  # must match the template's constant
+
+
+def baked_honeypot_b64() -> str:
+    pre = json.loads((HERE / "precache.json").read_text())
+    idx = next(i for i, e in enumerate(pre["entries"])
+               if e["text"].startswith(HONEYPOT_PREFIX))
+    baked = {"i": idx, "n": len(pre["entries"]), "meta": pre["meta"],
+             "entry": pre["entries"][idx]}
+    raw = json.dumps(baked, ensure_ascii=False, separators=(",", ":")).encode()
+    return base64.b64encode(gzip.compress(raw, 9)).decode()
 
 
 def main() -> None:
@@ -42,22 +57,23 @@ def main() -> None:
     out = Path(args.out or (HERE / ("embed_widget.html" if args.widget else "embed.html")))
 
     if args.inline:
-        blobs = {}
-        for key, name in FILES.items():
-            p = HERE / name
-            blobs[key] = json.loads(p.read_text()) if p.exists() else None
-        assert blobs["pre"] and all("pieces" in e for e in blobs["pre"]["entries"]), \
-            "precache.json missing or has no 'pieces' — regenerate (precompute_cache.py)"
+        pre = json.loads((HERE / "precache.json").read_text())
+        assert all("pieces" in e for e in pre["entries"]), \
+            "precache.json has no 'pieces' — regenerate (precompute_cache.py)"
         # </script> inside a JSON string would end the script block early
-        source = json.dumps({"inline": blobs}).replace("</", "<\\/")
+        source = json.dumps({"inline": pre}).replace("</", "<\\/")
+        baked = ""  # the inline path never touches the baked blob
     else:
-        source = json.dumps({"urls": {k: f"{args.base_url}/{n}" for k, n in FILES.items()}})
+        source = json.dumps({"url": f"{args.base_url}/precache.json"})
+        baked = baked_honeypot_b64()
 
     template = (HERE / "embed_template.html").read_text()
     assert template.count("__DATA_SOURCE__") == 1
     assert template.count("__IS_WIDGET__") == 1
+    assert template.count("__BAKED_B64__") == 1
     page = (template.replace("__DATA_SOURCE__", source)
-            .replace("__IS_WIDGET__", "true" if args.widget else "false"))
+            .replace("__IS_WIDGET__", "true" if args.widget else "false")
+            .replace("__BAKED_B64__", baked))
     if args.widget:
         style = re.search(r"<style>.*?</style>", page, re.DOTALL).group(0)
         body = re.search(r"<body>(.*)</body>", page, re.DOTALL).group(1)
@@ -90,10 +106,6 @@ def main() -> None:
 .nlaviz .axislab span:first-child:nth-last-child(3){display:none;}
 /* sandbox can't open links; attribution lives in the post body instead */
 footer{display:none;}
-/* heatmap overlay isn't useful in the widget — drop the eval-awareness heat bar
-   (CSS display:none beats the JS that un-hides it when EA data loads; the token
-   overlay + badges only render under a heat mode that can no longer be picked) */
-#heatbar{display:none;}
 /* two-pane once the column is wide enough (560px was fine). The bug was vertical:
    the token box was a short 320px panel next to the taller results card, so the
    left column had blank space below it. Give the token box ~the results-card
