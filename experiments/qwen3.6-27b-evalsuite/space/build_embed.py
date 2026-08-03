@@ -67,13 +67,13 @@ def main() -> None:
         # never fires in a 340-700px iframe), and a denser results card. The
         # two control bars stay in the right column's flow (unlike the v3
         # widget's single absolute bar — two stacked bars would collide with
-        # the tabs row).
+        # the sample-picker row).
         overrides = """<style>
 .wrap{padding:4px 2px 8px;}
 .tokscroll{max-height:320px;font-size:13px;line-height:1.85;}
 .tokhead{padding:6px 12px;}
-.tabs{margin-bottom:8px;}
-.tabs button{padding:4px 10px;font-size:11.5px;}
+.picker{margin-bottom:6px;}
+.picker select{padding:4px 8px;font-size:11.5px;}
 .bars{gap:4px;margin-bottom:6px;}
 .modebar button{padding:4px 10px;font-size:11px;}
 .nlaviz{padding:10px 10px 10px 8px;}

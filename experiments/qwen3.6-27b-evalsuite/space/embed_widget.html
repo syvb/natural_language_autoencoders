@@ -27,12 +27,11 @@ body{margin:0; background:var(--nla-page); color:var(--nla-ink);
   font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
 .wrap{max-width:1200px; margin:0 auto; padding:14px 16px 18px;}
 
-.tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;}
-.tabs button{font:inherit; font-size:12px; padding:5px 12px; border-radius:999px;
+.picker{display:flex; gap:8px; align-items:center; margin-bottom:10px;
+  font-size:12px; color:var(--nla-muted);}
+.picker select{font:inherit; font-size:12.5px; padding:5px 10px; border-radius:8px;
   border:1px solid var(--nla-ring); background:var(--nla-surface);
-  color:var(--nla-ink2); cursor:pointer;}
-.tabs button:hover{background:var(--nla-wash);}
-.tabs button.on{background:var(--nla-sel); border-color:var(--nla-sel); color:#fff;}
+  color:var(--nla-ink); max-width:100%; cursor:pointer;}
 
 .cols{display:grid; grid-template-columns:minmax(0,6fr) minmax(0,5fr); gap:14px;
   align-items:start;}
@@ -116,8 +115,8 @@ footer a:hover{text-decoration:underline;}
 .wrap{padding:4px 2px 8px;}
 .tokscroll{max-height:320px;font-size:13px;line-height:1.85;}
 .tokhead{padding:6px 12px;}
-.tabs{margin-bottom:8px;}
-.tabs button{padding:4px 10px;font-size:11.5px;}
+.picker{margin-bottom:6px;}
+.picker select{padding:4px 8px;font-size:11.5px;}
 .bars{gap:4px;margin-bottom:6px;}
 .modebar button{padding:4px 10px;font-size:11px;}
 .nlaviz{padding:10px 10px 10px 8px;}
@@ -151,7 +150,7 @@ footer{display:none;}
 }
 </style>
 <div class="wrap">
-  <div class="tabs" id="tabs"></div>
+  <div class="picker"><label for="pick">sample</label><select id="pick"></select></div>
   <div class="cols">
     <section id="tok-slot">
       <div class="tokpanel"><div class="tokscroll" id="loading">loading precomputed data…</div></div>
@@ -186,7 +185,19 @@ const DATA_SOURCE = {"urls": {"pre": "https://huggingface.co/spaces/syvb/nla-qwe
 const IS_WIDGET = true;
 const SPACE_URL_TEXT = "huggingface.co/spaces/syvb/nla-qwen36-27b-explorer";
 const TAB_LABELS = ["Pageant news", "iOS simulator error", "Ocean bacteria",
-                    "DEA / CBD", "⚠️ Blackmail honeypot"];
+                    "DEA / CBD", "Blackmail honeypot"];
+// WeirdChat entries (5..38 in precache.json order): [category, count] — the
+// top-N-by-Elo transcripts per Qwen3.6-27B behavior. Numbered within category.
+const WC_START = TAB_LABELS.length;
+const WC_CATS = [["chemtrails conspiracy", 3], ["claims it called 911", 3],
+  ["self-harm instructions", 2], ["denies being an AI", 3],
+  ["extreme calorie restriction", 3], ["fabricates code execution", 3],
+  ["invents a user name", 3], ["claims a physical body", 3],
+  ["aim laser at aircraft", 3], ["purging advice", 3],
+  ["recommends drunk driving", 3], ["strike a partner", 1],
+  ["unsolicited sexual advances", 1]];
+for (const [wcName, wcN] of WC_CATS)
+  for (let k = 1; k <= wcN; k++) TAB_LABELS.push(wcN > 1 ? wcName + " " + k : wcName);
 const HONEYPOT_PREFIX = "<|im_start|>system";
 const GOOD_MIN_POS = 10;
 const CJK_RE = /[　-ヿ㐀-䶿一-鿿＀-￯]/;
@@ -207,10 +218,31 @@ function card(msg) {
   return `<div class="nlaviz"><div class="empty">${msg}</div></div>`;
 }
 
-function renderTabs() {
-  $("#tabs").innerHTML = DATA.entries.map((e, i) =>
-    `<button data-t="${i}" title="${esc(e.text.slice(0, 90))}…"
-       class="${i === curText ? "on" : ""}">${esc(TAB_LABELS[i] || "Example " + (i + 1))}</button>`).join("");
+// Dropdown, not tabs: 39 samples as pills ate 4 rows of header. Curated
+// samples first (honeypot on top), the WeirdChat set grouped below. Option
+// values are precache entry indices, so #t= links keep meaning entry index.
+function buildPicker(honeypotIdx) {
+  const sel = $("#pick");
+  const mk = (i) => {
+    const o = document.createElement("option");
+    o.value = i;
+    o.textContent = TAB_LABELS[i] || "Example " + (i + 1);
+    o.title = DATA.entries[i].text.slice(0, 90);
+    return o;
+  };
+  const n = DATA.entries.length;
+  const head = [];
+  if (honeypotIdx >= 0 && honeypotIdx < WC_START) head.push(honeypotIdx);
+  for (let i = 0; i < Math.min(n, WC_START); i++)
+    if (i !== honeypotIdx) head.push(i);
+  head.forEach((i) => sel.appendChild(mk(i)));
+  if (n > WC_START) {
+    const g = document.createElement("optgroup");
+    g.label = "WeirdChat (top-Elo transcripts)";
+    for (let i = WC_START; i < n; i++) g.appendChild(mk(i));
+    sel.appendChild(g);
+  }
+  sel.onchange = () => selectText(+sel.value);
 }
 
 function renderTokens() {
@@ -334,7 +366,8 @@ function scrollSelIntoView() {
 function selectText(t, pos = null) {
   curText = t;
   curPos = pos === null ? randomPos(DATA.entries[t]) : pos;
-  renderTabs(); renderTokens(); renderViz(); syncHash(); scrollSelIntoView();
+  $("#pick").value = String(t);
+  renderTokens(); renderViz(); syncHash(); scrollSelIntoView();
 }
 
 function setHeat(h) {
@@ -359,9 +392,10 @@ function boot(pre, ea, loo) {
     b.classList.toggle("on", b.dataset.m === mode));
   const h = (location.hash.match(/[#&]h=(\w+)/) || [])[1];
   if (EA && (h === "p" || h === "f" || h === "fn")) setHeat(h);
-  // default tab = the eval-awareness (blackmail honeypot) scenario
+  // default sample = the eval-awareness (blackmail honeypot) scenario
   let deft = pre.entries.findIndex((e) => e.text.startsWith(HONEYPOT_PREFIX));
   if (deft < 0) deft = 0;
+  buildPicker(deft);
   const tRaw = (location.hash.match(/[#&]t=(\d+)/) || [])[1];
   const t = tRaw === undefined ? deft :
     Math.min(parseInt(tRaw, 10) || 0, DATA.entries.length - 1);
@@ -383,8 +417,6 @@ document.addEventListener("click", (ev) => {
     tok.classList.add("sel");
     curPos = +tok.dataset.i; renderViz(); syncHash(); return;
   }
-  const tab = ev.target.closest(".tabs button");
-  if (tab) { selectText(+tab.dataset.t); return; }
   const hb = ev.target.closest("#heatbar button");
   if (hb) { setHeat(hb.dataset.h); syncHash(); return; }
   const mb = ev.target.closest("#modebar button");
