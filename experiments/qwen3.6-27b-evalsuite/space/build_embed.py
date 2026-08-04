@@ -19,6 +19,11 @@ Usage:
     python3 build_embed.py --widget       # → embed_widget.html: document-shell-free
                                           #   fragment for sandboxed-iframe embeds
                                           #   (e.g. LessWrong post widgets)
+    python3 build_embed.py --widget-page  # → embed_widget_page.html: the widget
+                                          #   fragment wrapped in a minimal page
+                                          #   shell, for hosting on syvb.ca and
+                                          #   iframing FROM the LW post (keeps the
+                                          #   2.6MB payload out of the editor)
 
 Rebuild only when embed_template.html changes (or to switch data source).
 """
@@ -52,9 +57,15 @@ def main() -> None:
                     help="bake the data files into the page instead of fetching")
     ap.add_argument("--widget", action="store_true",
                     help="emit a <style>+body fragment for sandboxed-iframe embeds")
+    ap.add_argument("--widget-page", action="store_true",
+                    help="emit the widget fragment wrapped in a minimal page shell")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
-    out = Path(args.out or (HERE / ("embed_widget.html" if args.widget else "embed.html")))
+    if args.widget_page:
+        args.widget = True
+    out = Path(args.out or (HERE / ("embed_widget_page.html" if args.widget_page
+                                    else "embed_widget.html" if args.widget
+                                    else "embed.html")))
 
     if args.inline:
         pre = json.loads((HERE / "precache.json").read_text())
@@ -125,6 +136,25 @@ footer{display:none;}
         import html as html_lib
         assert html_lib.unescape(page) == page, (
             "widget fragment contains decodable HTML entities — publish-unsafe")
+        if args.widget_page:
+            # height reporter: the LW post embeds this page via a tiny relay
+            # widget (see repo docstring) — post our content height up so the
+            # nested iframe can be sized exactly, no internal scrollbars
+            reporter = """<script>
+(function () {
+  function send() {
+    parent.postMessage({ type: "nla-embed-height",
+                         height: document.documentElement.scrollHeight }, "*");
+  }
+  new ResizeObserver(send).observe(document.body);
+  addEventListener("load", send);
+})();
+</script>"""
+            page = ('<!doctype html>\n<html lang="en">\n<head>\n'
+                    '<meta charset="utf-8">\n'
+                    '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+                    '<title>NLA Qwen3.6-27B — activation explorer (embed)</title>\n'
+                    '</head>\n<body>\n' + page + reporter + '\n</body>\n</html>\n')
     out.write_text(page)
     print(f"wrote {out} ({out.stat().st_size / 1e3:.0f} kB, "
           f"{'widget fragment, ' if args.widget else ''}"
